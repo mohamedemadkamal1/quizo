@@ -11,3 +11,10 @@ export const colors = {
     gradientEnd: '#A3B3FF',
   },
 } as const;
+
+export const gradients = {
+  authHero: {
+    colors: ['#FFFFFF', '#C6D2FF', '#A3B3FF'] as const,
+    locations: [0, 0.6635, 1] as const,
+  },
+} as const;

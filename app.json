@@ -35,12 +35,22 @@
                     "weight": 600
                   }
                 ]
+              },
+              {
+                "fontFamily": "Nunito",
+                "fontDefinitions": [
+                  {
+                    "path": "node_modules/@expo-google-fonts/nunito/500Medium/Nunito_500Medium.ttf",
+                    "weight": 500
+                  }
+                ]
               }
             ]
           },
           "ios": {
             "fonts": [
-              "node_modules/@expo-google-fonts/fredoka/600SemiBold/Fredoka_600SemiBold.ttf"
+              "node_modules/@expo-google-fonts/fredoka/600SemiBold/Fredoka_600SemiBold.ttf",
+              "node_modules/@expo-google-fonts/nunito/500Medium/Nunito_500Medium.ttf"
             ]
           }
         }
