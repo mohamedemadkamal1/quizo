@@ -1,9 +1,12 @@
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import '../../global.css';
+
+import { useAuthStore } from '@/features/stores/auth.store';
+import { setApiAccessToken } from '@/lib/api/api-client';
 
 import { AnimatedSplash } from '@/components/splash/AnimatedSplash';
 
@@ -15,6 +18,28 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 export default function RootLayout() {
   const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
   const nativeSplashHidden = useRef(false);
+
+  const session = useAuthStore((state) => state.session);
+
+  const [splashAnimationFinished, setSplashAnimationFinished] = useState(false);
+
+  const [authHydrated, setAuthHydrated] = useState(false);
+
+  useEffect(() => {
+    async function hydrateAuth() {
+      try {
+        await useAuthStore.persist.rehydrate();
+
+        const storedSession = useAuthStore.getState().session;
+
+        setApiAccessToken(storedSession?.accessToken ?? null);
+      } finally {
+        setAuthHydrated(true);
+      }
+    }
+
+    void hydrateAuth();
+  }, []);
 
   const handleRootLayout = useCallback(() => {
     if (nativeSplashHidden.current) {
@@ -29,7 +54,7 @@ export default function RootLayout() {
   }, []);
 
   const handleAnimationFinish = useCallback(() => {
-    setShowAnimatedSplash(false);
+    setSplashAnimationFinished(true);
   }, []);
 
   return (
@@ -43,9 +68,17 @@ export default function RootLayout() {
             backgroundColor: '#FFFFFF',
           },
         }}
-      />
+      >
+        <Stack.Protected guard={!session}>
+          <Stack.Screen name="(auth)" />
+        </Stack.Protected>
 
-      {showAnimatedSplash && (
+        <Stack.Protected guard={Boolean(session)}>
+          <Stack.Screen name="(app)" />
+        </Stack.Protected>
+      </Stack>
+
+      {(!splashAnimationFinished || !authHydrated) && (
         <AnimatedSplash onFinish={handleAnimationFinish} />
       )}
     </View>

@@ -22,11 +22,13 @@ export function AuthScreenLayout({
         className="flex-1"
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
         bounces={false}
       >
         <AuthHero />
 
-        <View className="flex-1 items-center px-6 pb-4 pt-6">
+        <View className="flex-1 items-center px-6 pb-6 pt-5">
           <Text className="text-center font-fredoka text-[30px] font-semibold leading-[36px] text-muv-blue-300">
             {title}
           </Text>
@@ -35,12 +37,10 @@ export function AuthScreenLayout({
             {subtitle}
           </Text>
 
-          <View className="mt-8 w-full items-center gap-4 pt-3">
-            {children}
-          </View>
+          <View className="mt-6 w-full items-center gap-4">{children}</View>
 
           {footer ? (
-            <View className="mt-auto w-full items-center pt-6">{footer}</View>
+            <View className="mt-6 w-full items-center">{footer}</View>
           ) : null}
         </View>
       </ScrollView>
