@@ -2,10 +2,13 @@ import {
   ApiEnvelope,
   AuthSession,
   EmailPayload,
+  GuestProfilePayload,
   ResetPasswordPayload,
   SignInPayload,
+  SignUpPayload,
   VerifyResetCodePayload,
 } from '@/features/auth/types/auth.types';
+
 import { apiClient } from '@/lib/api/api-client';
 
 export async function signIn(payload: SignInPayload): Promise<AuthSession> {
@@ -17,9 +20,13 @@ export async function signIn(payload: SignInPayload): Promise<AuthSession> {
   return response.data.data;
 }
 
-export async function createGuestSession(): Promise<AuthSession> {
-  const response =
-    await apiClient.post<ApiEnvelope<AuthSession>>('/auth/guest');
+export async function createGuestSession(
+  payload: GuestProfilePayload,
+): Promise<AuthSession> {
+  const response = await apiClient.post<ApiEnvelope<AuthSession>>(
+    '/auth/guest',
+    payload,
+  );
 
   return response.data.data;
 }
@@ -51,4 +58,13 @@ export async function resetPassword(
   payload: ResetPasswordPayload,
 ): Promise<void> {
   await apiClient.post('/auth/reset-password', payload);
+}
+
+export async function signUp(payload: SignUpPayload): Promise<AuthSession> {
+  const response = await apiClient.post<ApiEnvelope<AuthSession>>(
+    '/auth/sign-up',
+    payload,
+  );
+
+  return response.data.data;
 }

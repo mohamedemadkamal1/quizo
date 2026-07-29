@@ -1,7 +1,7 @@
 import { Text, View } from 'react-native';
 
 import { AppButton } from '@/components/atoms/AppButton';
-import { useAuthStore } from '@/features/stores/auth.store';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
 
 export default function HomeScreen() {
   const session = useAuthStore((state) => state.session);

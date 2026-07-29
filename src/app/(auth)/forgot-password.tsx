@@ -7,13 +7,13 @@ import { AppButton } from '@/components/atoms/AppButton';
 import { AuthInput } from '@/components/atoms/AuthInput';
 import { AuthPromptLink } from '@/components/atoms/AuthLink';
 import { AuthScreenLayout } from '@/components/templates/AuthScreenLayout';
-import { requestPasswordReset } from '@/features/services/auth.service';
-import { usePasswordResetStore } from '@/features/stores/password-reset.store';
-import { getApiErrorMessage } from '@/features/utils/get-api-error-message';
+import { requestPasswordReset } from '@/features/auth/services/auth.service';
+import { usePasswordResetStore } from '@/features/auth/stores/password-reset.store';
+import { getApiErrorMessage } from '@/features/auth/utils/get-api-error-message';
 import {
   ForgotPasswordFormValues,
   forgotPasswordSchema,
-} from '../../features/validation/auth.schemas';
+} from '../../features/auth/validation/auth.schemas';
 
 export default function ForgotPasswordScreen() {
   const beginReset = usePasswordResetStore((state) => state.begin);

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import '../../global.css';
 
-import { useAuthStore } from '@/features/stores/auth.store';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { setApiAccessToken } from '@/lib/api/api-client';
 
 import { AnimatedSplash } from '@/components/splash/AnimatedSplash';

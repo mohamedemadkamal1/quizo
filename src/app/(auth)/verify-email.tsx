@@ -9,10 +9,10 @@ import { AuthScreenLayout } from '@/components/templates/AuthScreenLayout';
 import {
   resendPasswordResetCode,
   verifyPasswordResetCode,
-} from '../../features/services/auth.service';
+} from '../../features/auth/services/auth.service';
 
-import { usePasswordResetStore } from '@/features/stores/password-reset.store';
-import { getApiErrorMessage } from '@/features/utils/get-api-error-message';
+import { usePasswordResetStore } from '@/features/auth/stores/password-reset.store';
+import { getApiErrorMessage } from '@/features/auth/utils/get-api-error-message';
 
 export default function VerifyEmailScreen() {
   const email = usePasswordResetStore((state) => state.email);

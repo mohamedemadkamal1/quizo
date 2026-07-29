@@ -1,48 +1,49 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
 import { Text, View } from 'react-native';
 
 import { AppButton } from '@/components/atoms/AppButton';
 import { AuthInput } from '@/components/atoms/AuthInput';
-import { AuthLink, AuthPromptLink } from '@/components/atoms/AuthLink';
+import { AuthPromptLink } from '@/components/atoms/AuthLink';
 import { AuthScreenLayout } from '@/components/templates/AuthScreenLayout';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { getApiErrorMessage } from '@/features/auth/utils/get-api-error-message';
 import {
-  SignInFormValues,
-  signInSchema,
-} from '../../features/auth/validation/auth.schemas';
+  SignUpFormValues,
+  signUpSchema,
+} from '@/features/auth/validation/auth.schemas';
 
-export default function SignInScreen() {
-  const { reset } = useLocalSearchParams<{
-    reset?: string;
-  }>();
-
-  const signIn = useAuthStore((state) => state.signIn);
+export default function SignUpScreen() {
+  const signUp = useAuthStore((state) => state.signUp);
 
   const {
     control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<SignInFormValues>({
-    resolver: zodResolver(signInSchema),
+  } = useForm<SignUpFormValues>({
+    resolver: zodResolver(signUpSchema),
     defaultValues: {
       email: '',
       password: '',
+      confirmPassword: '',
     },
   });
 
-  async function handleSignIn(values: SignInFormValues) {
+  async function handleSignUp(values: SignUpFormValues) {
     try {
-      await signIn(values);
+      await signUp({
+        email: values.email,
+        password: values.password,
+      });
+
       router.replace('/home');
     } catch (error) {
       setError('root', {
         message: getApiErrorMessage(
           error,
-          'Unable to sign in. Please try again.',
+          'Unable to create your account. Please try again.',
         ),
       });
     }
@@ -50,14 +51,15 @@ export default function SignInScreen() {
 
   return (
     <AuthScreenLayout
-      title="Welcome Back!"
-      subtitle="Sign in to continue your learning journey."
+      title="Create Your Account"
+      subtitle="Start your journey to learn, play, and grow with Quizo"
       footer={
         <AuthPromptLink
-          prefix="Don’t have an account?"
-          action="Sign Up"
+          prefix="Already have an account?"
+          action="Sign In"
+          disabled={isSubmitting}
           onPress={() => {
-            router.push('/sign-up');
+            router.replace('/sign-in');
           }}
         />
       }
@@ -79,6 +81,7 @@ export default function SignInScreen() {
               autoComplete="email"
               textContentType="emailAddress"
               returnKeyType="next"
+              editable={!isSubmitting}
             />
           )}
         />
@@ -96,30 +99,37 @@ export default function SignInScreen() {
               secureTextEntry
               autoCapitalize="none"
               autoCorrect={false}
-              autoComplete="current-password"
-              textContentType="password"
-              returnKeyType="done"
-              onSubmitEditing={() => {
-                void handleSubmit(handleSignIn)();
-              }}
+              autoComplete="new-password"
+              textContentType="newPassword"
+              returnKeyType="next"
+              editable={!isSubmitting}
             />
           )}
         />
 
-        <View className="items-end">
-          <AuthLink
-            label="Forgot Password?"
-            onPress={() => {
-              router.push('/forgot-password');
-            }}
-          />
-        </View>
-
-        {reset === 'success' ? (
-          <Text className="text-center font-nunito text-xs font-medium leading-4 text-green-600">
-            Your password was reset successfully.
-          </Text>
-        ) : null}
+        <Controller
+          control={control}
+          name="confirmPassword"
+          render={({ field }) => (
+            <AuthInput
+              value={field.value}
+              onChangeText={field.onChange}
+              onBlur={field.onBlur}
+              error={errors.confirmPassword?.message}
+              placeholder="Confirm Password"
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="new-password"
+              textContentType="newPassword"
+              returnKeyType="done"
+              editable={!isSubmitting}
+              onSubmitEditing={() => {
+                void handleSubmit(handleSignUp)();
+              }}
+            />
+          )}
+        />
 
         {errors.root?.message ? (
           <Text className="text-center font-nunito text-xs font-medium leading-4 text-red-500">
@@ -129,10 +139,10 @@ export default function SignInScreen() {
       </View>
 
       <AppButton
-        label="Sign In"
+        label="Sign Up"
         isLoading={isSubmitting}
         onPress={() => {
-          void handleSubmit(handleSignIn)();
+          void handleSubmit(handleSignUp)();
         }}
       />
     </AuthScreenLayout>

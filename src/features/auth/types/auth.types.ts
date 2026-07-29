@@ -2,6 +2,7 @@ export type AuthUser = {
   id: string;
   displayName: string;
   email: string | null;
+  age: number | null;
   role: 'learner' | 'guest';
 };
 
@@ -13,6 +14,16 @@ export type AuthSession = {
 export type SignInPayload = {
   email: string;
   password: string;
+};
+
+export type SignUpPayload = {
+  email: string;
+  password: string;
+};
+
+export type GuestProfilePayload = {
+  nickname: string | null;
+  age: number | null;
 };
 
 export type EmailPayload = {

@@ -4,10 +4,6 @@ import { AppButton } from '@/components/atoms/AppButton';
 import { AuthScreenLayout } from '@/components/templates/AuthScreenLayout';
 
 import { router } from 'expo-router';
-import { useState } from 'react';
-
-import { useAuthStore } from '@/features/stores/auth.store';
-import { getApiErrorMessage } from '@/features/utils/get-api-error-message';
 
 function LegalNotice() {
   return (
@@ -21,30 +17,10 @@ function LegalNotice() {
 }
 
 export default function WelcomeScreen() {
-  const continueAsGuest = useAuthStore((state) => state.continueAsGuest);
-
-  const [isCreatingGuest, setIsCreatingGuest] = useState(false);
-  const [guestError, setGuestError] = useState<string | null>(null);
-
   function handleContinueWithEmail() {
     router.push('/sign-in');
   }
 
-  async function handleContinueAsGuest() {
-    setGuestError(null);
-    setIsCreatingGuest(true);
-
-    try {
-      await continueAsGuest();
-      router.replace('/home');
-    } catch (error) {
-      setGuestError(
-        getApiErrorMessage(error, 'Unable to continue as a guest.'),
-      );
-    } finally {
-      setIsCreatingGuest(false);
-    }
-  }
   return (
     <AuthScreenLayout
       title="Welcome to Quizo !"
@@ -59,9 +35,8 @@ export default function WelcomeScreen() {
       <AppButton
         label="Continue as a Guest"
         variant="secondary"
-        isLoading={isCreatingGuest}
         onPress={() => {
-          void handleContinueAsGuest();
+          router.push('/guest-profile');
         }}
       />
     </AuthScreenLayout>

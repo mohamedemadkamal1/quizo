@@ -5,15 +5,51 @@ import {
   ApiEnvelope,
   AuthSession,
   EmailPayload,
+  GuestProfilePayload,
   ResetPasswordPayload,
   SignInPayload,
+  SignUpPayload,
   VerifyResetCodePayload,
 } from '@/features/auth/types/auth.types';
 
 const DEMO_EMAIL = 'learner@quizo.app';
 const DEMO_OTP = '123456';
 
-let demoPassword = 'Password123!';
+type MockAccount = {
+  id: string;
+  email: string;
+  password: string;
+  displayName: string;
+};
+
+const accounts = new Map<string, MockAccount>([
+  [
+    DEMO_EMAIL,
+    {
+      id: 'learner-1',
+      email: DEMO_EMAIL,
+      password: 'Password123!',
+      displayName: 'Demo Learner',
+    },
+  ],
+]);
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
+function createLearnerSession(account: MockAccount): AuthSession {
+  return {
+    accessToken: `mock-learner-${account.id}-${Date.now()}`,
+    user: {
+      id: account.id,
+      displayName: account.displayName,
+      email: account.email,
+      age: null,
+      role: 'learner',
+    },
+  };
+}
 
 const pendingResetEmails = new Set<string>();
 const resetTokens = new Map<string, string>();
@@ -40,11 +76,10 @@ export function installAuthMocks(api: AxiosInstance) {
 
   mock.onPost('/auth/sign-in').reply((config) => {
     const body = parseBody<SignInPayload>(config.data);
+    const email = normalizeEmail(body.email);
+    const account = accounts.get(email);
 
-    const isValid =
-      body.email.toLowerCase() === DEMO_EMAIL && body.password === demoPassword;
-
-    if (!isValid) {
+    if (!account || account.password !== body.password) {
       return [
         401,
         {
@@ -54,26 +89,52 @@ export function installAuthMocks(api: AxiosInstance) {
       ];
     }
 
-    const session: AuthSession = {
-      accessToken: 'mock-learner-access-token',
-      user: {
-        id: 'learner-1',
-        displayName: 'Demo Learner',
-        email: DEMO_EMAIL,
-        role: 'learner',
-      },
-    };
-
-    return [200, success(session, 'Signed in successfully.')];
+    return [
+      200,
+      success(createLearnerSession(account), 'Signed in successfully.'),
+    ];
   });
 
-  mock.onPost('/auth/guest').reply(() => {
+  mock.onPost('/auth/sign-up').reply((config) => {
+    const body = parseBody<SignUpPayload>(config.data);
+    const email = normalizeEmail(body.email);
+
+    if (accounts.has(email)) {
+      return [
+        409,
+        {
+          message: 'An account with this email already exists.',
+          code: 'AUTH_EMAIL_ALREADY_EXISTS',
+        },
+      ];
+    }
+
+    const account: MockAccount = {
+      id: `learner-${Date.now()}`,
+      email,
+      password: body.password,
+      displayName: email.split('@')[0] || 'Learner',
+    };
+
+    accounts.set(email, account);
+
+    return [
+      201,
+      success(createLearnerSession(account), 'Account created successfully.'),
+    ];
+  });
+  mock.onPost('/auth/guest').reply((config) => {
+    const body = parseBody<GuestProfilePayload>(config.data);
+
+    const guestId = `guest-${Date.now()}`;
+
     const session: AuthSession = {
-      accessToken: `mock-guest-${Date.now()}`,
+      accessToken: `mock-${guestId}`,
       user: {
-        id: `guest-${Date.now()}`,
-        displayName: 'Guest',
+        id: guestId,
+        displayName: body.nickname?.trim() || 'Guest',
         email: null,
+        age: body.age,
         role: 'guest',
       },
     };
@@ -141,10 +202,14 @@ export function installAuthMocks(api: AxiosInstance) {
       ];
     }
 
-    if (email === DEMO_EMAIL) {
-      demoPassword = body.newPassword;
-    }
+    const account = accounts.get(email);
 
+    if (account) {
+      accounts.set(email, {
+        ...account,
+        password: body.newPassword,
+      });
+    }
     resetTokens.delete(body.resetToken);
 
     return [200, success(null, 'Password reset successfully.')];
