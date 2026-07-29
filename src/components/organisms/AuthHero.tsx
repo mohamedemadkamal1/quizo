@@ -1,23 +1,24 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Image, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 
 import { gradients } from '@/theme/tokens';
 
 const MAX_HERO_HEIGHT = 440;
 const HERO_SCREEN_RATIO = 0.55;
 
-export function AuthHero() {
-  const { height: screenHeight } = useWindowDimensions();
+type AuthHeroProps = {
+  height: number;
+};
 
-  const heroHeight = Math.min(
-    MAX_HERO_HEIGHT,
-    screenHeight * HERO_SCREEN_RATIO,
-  );
+export function getAuthHeroHeight(screenHeight: number) {
+  return Math.min(MAX_HERO_HEIGHT, screenHeight * HERO_SCREEN_RATIO);
+}
 
+export function AuthHero({ height }: AuthHeroProps) {
   return (
     <View
       className="w-full overflow-hidden rounded-b-[70px]"
-      style={{ height: heroHeight }}
+      style={{ height }}
     >
       <LinearGradient
         colors={gradients.authHero.colors}
