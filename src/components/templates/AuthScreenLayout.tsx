@@ -1,5 +1,6 @@
 import { PropsWithChildren, ReactNode } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AuthHero } from '@/components/organisms/AuthHero';
@@ -18,12 +19,12 @@ export function AuthScreenLayout({
 }: AuthScreenLayoutProps) {
   return (
     <SafeAreaView edges={['bottom']} className="flex-1 bg-white">
-      <ScrollView
-        className="flex-1"
+      <KeyboardAwareScrollView
+        style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
+        bottomOffset={24}
         bounces={false}
       >
         <AuthHero />
@@ -43,12 +44,16 @@ export function AuthScreenLayout({
             <View className="mt-6 w-full items-center">{footer}</View>
           ) : null}
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+  },
+
   contentContainer: {
     flexGrow: 1,
   },

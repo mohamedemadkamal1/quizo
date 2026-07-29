@@ -3,6 +3,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import '../../global.css';
 
 import { useAuthStore } from '@/features/auth/stores/auth.store';
@@ -58,30 +59,32 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <View style={styles.container} onLayout={handleRootLayout}>
-      <StatusBar style="dark" />
+    <KeyboardProvider>
+      <View style={styles.container} onLayout={handleRootLayout}>
+        <StatusBar style="dark" />
 
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: {
-            backgroundColor: '#FFFFFF',
-          },
-        }}
-      >
-        <Stack.Protected guard={!session}>
-          <Stack.Screen name="(auth)" />
-        </Stack.Protected>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: {
+              backgroundColor: '#FFFFFF',
+            },
+          }}
+        >
+          <Stack.Protected guard={!session}>
+            <Stack.Screen name="(auth)" />
+          </Stack.Protected>
 
-        <Stack.Protected guard={Boolean(session)}>
-          <Stack.Screen name="(app)" />
-        </Stack.Protected>
-      </Stack>
+          <Stack.Protected guard={Boolean(session)}>
+            <Stack.Screen name="(app)" />
+          </Stack.Protected>
+        </Stack>
 
-      {(!splashAnimationFinished || !authHydrated) && (
-        <AnimatedSplash onFinish={handleAnimationFinish} />
-      )}
-    </View>
+        {(!splashAnimationFinished || !authHydrated) && (
+          <AnimatedSplash onFinish={handleAnimationFinish} />
+        )}
+      </View>
+    </KeyboardProvider>
   );
 }
 
