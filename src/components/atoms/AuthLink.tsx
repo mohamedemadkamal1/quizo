@@ -13,7 +13,7 @@ export function AuthLink({ label, onPress, disabled = false }: AuthLinkProps) {
       disabled={disabled}
       hitSlop={10}
       onPress={onPress}
-      className={disabled ? 'opacity-50' : 'active:opacity-60'}
+      className={`active:opacity-60 ${disabled ? 'opacity-50' : ''}`}
     >
       <Text className="font-nunito text-[12px] font-medium leading-4 text-muv-blue-300">
         {label}

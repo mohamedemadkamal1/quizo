@@ -86,7 +86,8 @@ export function AppButton({
       className={[
         'h-[45px] w-[280px] max-w-full',
         isPrimary ? 'rounded-[90px]' : 'rounded-[30px]',
-        isDisabled ? 'opacity-50' : 'active:scale-[0.98] active:opacity-90',
+        'active:scale-[0.98] active:opacity-90',
+        isDisabled ? 'opacity-50' : '',
       ].join(' ')}
       style={isPrimary ? styles.primaryShadow : styles.secondaryShadow}
     >
