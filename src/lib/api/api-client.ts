@@ -1,15 +1,20 @@
-import axios from 'axios';
-
-import { installAuthMocks } from './mock-auth';
+import { create } from 'axios';
 
 let accessToken: string | null = null;
+
+const configuredApiUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/+$/, '');
+const apiBaseUrl = configuredApiUrl
+  ? configuredApiUrl.endsWith('/api')
+    ? configuredApiUrl
+    : `${configuredApiUrl}/api`
+  : undefined;
 
 export function setApiAccessToken(token: string | null) {
   accessToken = token;
 }
 
-export const apiClient = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL,
+export const apiClient = create({
+  baseURL: apiBaseUrl,
   timeout: 15_000,
   headers: {
     'Content-Type': 'application/json',
@@ -17,13 +22,9 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  if (accessToken) {
+  if (accessToken && !config.headers.Authorization) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
 
   return config;
 });
-
-if (process.env.EXPO_PUBLIC_USE_MOCK_AUTH === 'true') {
-  installAuthMocks(apiClient);
-}

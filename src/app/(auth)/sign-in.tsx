@@ -37,7 +37,6 @@ export default function SignInScreen() {
   async function handleSignIn(values: SignInFormValues) {
     try {
       await signIn(values);
-      router.replace('/home');
     } catch (error) {
       setError('root', {
         message: getApiErrorMessage(
@@ -56,6 +55,7 @@ export default function SignInScreen() {
         <AuthPromptLink
           prefix="Don’t have an account?"
           action="Sign Up"
+          disabled={isSubmitting}
           onPress={() => {
             router.push('/sign-up');
           }}
@@ -79,6 +79,7 @@ export default function SignInScreen() {
               autoComplete="email"
               textContentType="emailAddress"
               returnKeyType="next"
+              editable={!isSubmitting}
             />
           )}
         />
@@ -99,6 +100,7 @@ export default function SignInScreen() {
               autoComplete="current-password"
               textContentType="password"
               returnKeyType="done"
+              editable={!isSubmitting}
               onSubmitEditing={() => {
                 void handleSubmit(handleSignIn)();
               }}

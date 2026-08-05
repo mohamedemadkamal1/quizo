@@ -49,7 +49,7 @@ export default function NewPasswordScreen() {
     try {
       await resetPassword({
         resetToken: verifiedResetToken,
-        newPassword: values.password,
+        password: values.password,
       });
 
       clearResetFlow();
@@ -89,6 +89,7 @@ export default function NewPasswordScreen() {
               autoComplete="new-password"
               textContentType="newPassword"
               returnKeyType="next"
+              editable={!isSubmitting}
             />
           )}
         />
@@ -109,6 +110,7 @@ export default function NewPasswordScreen() {
               autoComplete="new-password"
               textContentType="newPassword"
               returnKeyType="done"
+              editable={!isSubmitting}
               onSubmitEditing={() => {
                 void handleSubmit(handleResetPassword)();
               }}

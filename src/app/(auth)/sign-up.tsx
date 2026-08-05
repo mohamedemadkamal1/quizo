@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { isAxiosError } from 'axios';
 import { router } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
 import { Text, View } from 'react-native';
@@ -34,12 +35,31 @@ export default function SignUpScreen() {
   async function handleSignUp(values: SignUpFormValues) {
     try {
       await signUp({
-        email: values.email,
+        signupType: 'ACCOUNT',
+        email: values.email.trim().toLowerCase(),
         password: values.password,
       });
-
-      router.replace('/home');
     } catch (error) {
+      if (
+        isAxiosError<{ message?: string }>(error) &&
+        error.response?.status === 409
+      ) {
+        setError(
+          'email',
+          {
+            type: 'server',
+            message:
+              error.response.data?.message ??
+              'This email is already registered.',
+          },
+          {
+            shouldFocus: true,
+          },
+        );
+
+        return;
+      }
+
       setError('root', {
         message: getApiErrorMessage(
           error,

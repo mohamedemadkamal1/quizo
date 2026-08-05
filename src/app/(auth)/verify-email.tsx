@@ -3,27 +3,19 @@ import { useEffect, useState } from 'react';
 import { Text } from 'react-native';
 
 import { AppButton } from '@/components/atoms/AppButton';
-import { AuthPromptLink } from '@/components/atoms/AuthLink';
 import { OtpInput } from '@/components/atoms/OtpInput';
 import { AuthScreenLayout } from '@/components/templates/AuthScreenLayout';
-import {
-  resendPasswordResetCode,
-  verifyPasswordResetCode,
-} from '../../features/auth/services/auth.service';
-
+import { verifyPasswordResetCode } from '@/features/auth/services/auth.service';
 import { usePasswordResetStore } from '@/features/auth/stores/password-reset.store';
 import { getApiErrorMessage } from '@/features/auth/utils/get-api-error-message';
 
 export default function VerifyEmailScreen() {
   const email = usePasswordResetStore((state) => state.email);
-
   const markVerified = usePasswordResetStore((state) => state.markVerified);
 
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [isResending, setIsResending] = useState(false);
 
   useEffect(() => {
     if (!email) {
@@ -44,7 +36,6 @@ export default function VerifyEmailScreen() {
     }
 
     setError(null);
-    setMessage(null);
     setIsVerifying(true);
 
     try {
@@ -62,36 +53,10 @@ export default function VerifyEmailScreen() {
     }
   }
 
-  async function handleResend() {
-    setError(null);
-    setMessage(null);
-    setIsResending(true);
-
-    try {
-      await resendPasswordResetCode({ email: verifiedEmail });
-      setCode('');
-      setMessage('A new verification code was sent.');
-    } catch (requestError) {
-      setError(getApiErrorMessage(requestError, 'Unable to resend the code.'));
-    } finally {
-      setIsResending(false);
-    }
-  }
-
   return (
     <AuthScreenLayout
       title="Verify Your Email"
       subtitle="Enter the 6-digit code sent to your email."
-      footer={
-        <AuthPromptLink
-          prefix="Didn’t receive a code?"
-          action={isResending ? 'Sending...' : 'Resend'}
-          disabled={isResending}
-          onPress={() => {
-            void handleResend();
-          }}
-        />
-      }
     >
       <OtpInput
         value={code}
@@ -100,13 +65,8 @@ export default function VerifyEmailScreen() {
           setError(null);
         }}
         autoFocus
+        editable={!isVerifying}
       />
-
-      {message ? (
-        <Text className="text-center font-nunito text-xs font-medium leading-4 text-green-600">
-          {message}
-        </Text>
-      ) : null}
 
       {error ? (
         <Text className="text-center font-nunito text-xs font-medium leading-4 text-red-500">

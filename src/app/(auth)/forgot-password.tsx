@@ -53,6 +53,7 @@ export default function ForgotPasswordScreen() {
         <AuthPromptLink
           prefix="Back to"
           action="Sign In"
+          disabled={isSubmitting}
           onPress={() => {
             router.replace('/sign-in');
           }}
@@ -76,6 +77,7 @@ export default function ForgotPasswordScreen() {
               autoComplete="email"
               textContentType="emailAddress"
               returnKeyType="send"
+              editable={!isSubmitting}
               onSubmitEditing={() => {
                 void handleSubmit(handleSend)();
               }}

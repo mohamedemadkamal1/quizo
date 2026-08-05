@@ -5,6 +5,7 @@ type OtpInputProps = {
   value: string;
   onChange: (value: string) => void;
   autoFocus?: boolean;
+  editable?: boolean;
 };
 
 const OTP_LENGTH = 6;
@@ -13,6 +14,7 @@ export function OtpInput({
   value,
   onChange,
   autoFocus = false,
+  editable = true,
 }: OtpInputProps) {
   const inputRef = useRef<TextInput>(null);
   const [focused, setFocused] = useState(false);
@@ -34,6 +36,7 @@ export function OtpInput({
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         autoFocus={autoFocus}
+        editable={editable}
         keyboardType="number-pad"
         maxLength={OTP_LENGTH}
         textContentType="oneTimeCode"

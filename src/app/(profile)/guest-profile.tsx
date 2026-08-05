@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { router } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
 import { Text, View } from 'react-native';
 
@@ -14,7 +13,12 @@ import {
 } from '@/features/auth/validation/auth.schemas';
 
 export default function GuestProfileScreen() {
+  const session = useAuthStore((state) => state.session);
+  const completeAccountProfile = useAuthStore(
+    (state) => state.completeAccountProfile,
+  );
   const continueAsGuest = useAuthStore((state) => state.continueAsGuest);
+  const isAccountFlow = Boolean(session);
 
   const {
     control,
@@ -30,18 +34,24 @@ export default function GuestProfileScreen() {
   });
 
   async function handleStartLearning(values: GuestProfileFormValues) {
-    try {
-      await continueAsGuest({
-        nickname: values.nickname.trim() || null,
-        age: values.age ? Number(values.age) : null,
-      });
+    const payload = {
+      nickname: values.nickname.trim(),
+      age: Number(values.age),
+    };
 
-      router.replace('/home');
+    try {
+      if (isAccountFlow) {
+        await completeAccountProfile(payload);
+      } else {
+        await continueAsGuest(payload);
+      }
     } catch (error) {
       setError('root', {
         message: getApiErrorMessage(
           error,
-          'Unable to start the guest session.',
+          isAccountFlow
+            ? 'Unable to complete your profile.'
+            : 'Unable to start the guest session.',
         ),
       });
     }
@@ -50,7 +60,7 @@ export default function GuestProfileScreen() {
   return (
     <AuthScreenLayout
       title="Let's Get to Know You!"
-      subtitle="Choose a nickname and enter your age, or skip for now."
+      subtitle="Choose a nickname and enter your age to start playing."
     >
       <View className="w-[280px] max-w-full gap-4">
         <Controller

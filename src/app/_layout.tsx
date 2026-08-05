@@ -16,11 +16,30 @@ SplashScreen.preventAutoHideAsync().catch(() => {
   // It may already be prevented during Fast Refresh.
 });
 
+let authHydrationPromise: Promise<void> | null = null;
+
+function restorePersistedAuth() {
+  if (!authHydrationPromise) {
+    authHydrationPromise = Promise.resolve(
+      useAuthStore.persist.rehydrate(),
+    ).finally(() => {
+      const storedSession = useAuthStore.getState().session;
+
+      setApiAccessToken(storedSession?.accessToken ?? null);
+    });
+  }
+
+  return authHydrationPromise;
+}
+
 export default function RootLayout() {
-  const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
   const nativeSplashHidden = useRef(false);
 
   const session = useAuthStore((state) => state.session);
+
+  const hasSession = Boolean(session);
+
+  const hasCompletedProfile = session?.user.profileCompleted === true;
 
   const [splashAnimationFinished, setSplashAnimationFinished] = useState(false);
 
@@ -29,11 +48,7 @@ export default function RootLayout() {
   useEffect(() => {
     async function hydrateAuth() {
       try {
-        await useAuthStore.persist.rehydrate();
-
-        const storedSession = useAuthStore.getState().session;
-
-        setApiAccessToken(storedSession?.accessToken ?? null);
+        await restorePersistedAuth();
       } finally {
         setAuthHydrated(true);
       }
@@ -51,7 +66,7 @@ export default function RootLayout() {
 
     // The animated white screen has now been rendered,
     // so the native splash can safely disappear.
-    void SplashScreen.hideAsync();
+    SplashScreen.hide();
   }, []);
 
   const handleAnimationFinish = useCallback(() => {
@@ -63,25 +78,34 @@ export default function RootLayout() {
       <View style={styles.container} onLayout={handleRootLayout}>
         <StatusBar style="dark" />
 
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: {
-              backgroundColor: '#FFFFFF',
-            },
-          }}
-        >
-          <Stack.Protected guard={!session}>
-            <Stack.Screen name="(auth)" />
-          </Stack.Protected>
+        {authHydrated ? (
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: {
+                backgroundColor: '#FFFFFF',
+              },
+            }}
+          >
+            <Stack.Protected guard={!hasSession}>
+              <Stack.Screen name="(auth)" />
+            </Stack.Protected>
 
-          <Stack.Protected guard={Boolean(session)}>
-            <Stack.Screen name="(app)" />
-          </Stack.Protected>
-        </Stack>
+            <Stack.Protected guard={!hasSession || !hasCompletedProfile}>
+              <Stack.Screen name="(profile)" />
+            </Stack.Protected>
+
+            <Stack.Protected guard={hasSession && hasCompletedProfile}>
+              <Stack.Screen name="(app)" />
+            </Stack.Protected>
+          </Stack>
+        ) : null}
 
         {(!splashAnimationFinished || !authHydrated) && (
-          <AnimatedSplash onFinish={handleAnimationFinish} />
+          <AnimatedSplash
+            readyToFinish={authHydrated}
+            onFinish={handleAnimationFinish}
+          />
         )}
       </View>
     </KeyboardProvider>

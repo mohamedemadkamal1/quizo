@@ -11,6 +11,7 @@ import {
 import { setApiAccessToken } from '@/lib/api/api-client';
 
 import {
+  completeAccountProfile as completeAccountProfileRequest,
   createGuestSession,
   signIn as signInRequest,
   signUp as signUpRequest,
@@ -26,13 +27,14 @@ type AuthStore = {
   session: AuthSession | null;
   signIn: (payload: SignInPayload) => Promise<void>;
   signUp: (payload: SignUpPayload) => Promise<void>;
+  completeAccountProfile: (payload: GuestProfilePayload) => Promise<void>;
   continueAsGuest: (payload: GuestProfilePayload) => Promise<void>;
   signOut: () => void;
 };
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       session: null,
 
       signIn: async (payload) => {
@@ -44,6 +46,25 @@ export const useAuthStore = create<AuthStore>()(
 
       signUp: async (payload) => {
         const session = await signUpRequest(payload);
+
+        setApiAccessToken(session.accessToken);
+        set({ session });
+      },
+
+      completeAccountProfile: async (payload) => {
+        const currentSession = get().session;
+
+        if (!currentSession) {
+          throw new Error(
+            'An account session is required to complete a profile.',
+          );
+        }
+
+        const user = await completeAccountProfileRequest(payload);
+        const session = {
+          accessToken: currentSession.accessToken,
+          user,
+        };
 
         setApiAccessToken(session.accessToken);
         set({ session });

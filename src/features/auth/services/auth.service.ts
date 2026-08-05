@@ -1,54 +1,121 @@
 import {
   ApiEnvelope,
+  AuthUser,
   AuthSession,
+  BackendAuthUserDto,
+  CompleteAccountProfileApiPayload,
   EmailPayload,
+  GuestSignUpApiPayload,
   GuestProfilePayload,
   ResetPasswordPayload,
+  SignInApiData,
   SignInPayload,
+  SignUpApiData,
   SignUpPayload,
+  VerifyOtpApiData,
+  VerifyOtpApiPayload,
   VerifyResetCodePayload,
 } from '@/features/auth/types/auth.types';
 
 import { apiClient } from '@/lib/api/api-client';
 
+function mapBackendUser(
+  user: BackendAuthUserDto,
+  role: AuthUser['role'],
+): AuthUser {
+  return {
+    id: String(user.id),
+    displayName: user.username,
+    email: user.email,
+    age: user.age,
+    role,
+    profileCompleted: user.profileCompleted,
+  };
+}
+
 export async function signIn(payload: SignInPayload): Promise<AuthSession> {
-  const response = await apiClient.post<ApiEnvelope<AuthSession>>(
-    '/auth/sign-in',
-    payload,
+  const response = await apiClient.post<ApiEnvelope<SignInApiData>>(
+    '/auth/login',
+    {
+      ...payload,
+      email: payload.email.trim().toLowerCase(),
+    },
   );
 
-  return response.data.data;
+  const { accessToken, user } = response.data.data;
+
+  return {
+    accessToken,
+    user: mapBackendUser(user, 'learner'),
+  };
 }
 
 export async function createGuestSession(
   payload: GuestProfilePayload,
 ): Promise<AuthSession> {
-  const response = await apiClient.post<ApiEnvelope<AuthSession>>(
-    '/auth/guest',
-    payload,
+  const apiPayload: GuestSignUpApiPayload = {
+    signupType: 'GUEST',
+    username: payload.nickname,
+    age: payload.age,
+  };
+
+  const response = await apiClient.post<ApiEnvelope<SignUpApiData>>(
+    '/auth/signup',
+    apiPayload,
   );
 
-  return response.data.data;
+  const { accessToken, user } = response.data.data;
+
+  return {
+    accessToken,
+    user: {
+      ...mapBackendUser(user, 'guest'),
+      profileCompleted: true,
+    },
+  };
+}
+
+export async function completeAccountProfile(
+  payload: GuestProfilePayload,
+): Promise<AuthUser> {
+  const apiPayload: CompleteAccountProfileApiPayload = {
+    username: payload.nickname,
+    age: payload.age,
+  };
+
+  const response = await apiClient.put<ApiEnvelope<BackendAuthUserDto>>(
+    '/auth/profile',
+    apiPayload,
+  );
+
+  return {
+    ...mapBackendUser(response.data.data, 'learner'),
+    profileCompleted: true,
+  };
 }
 
 export async function requestPasswordReset(
   payload: EmailPayload,
 ): Promise<void> {
-  await apiClient.post('/auth/forgot-password', payload);
-}
-
-export async function resendPasswordResetCode(
-  payload: EmailPayload,
-): Promise<void> {
-  await apiClient.post('/auth/resend-reset-code', payload);
+  await apiClient.post<ApiEnvelope<{ message: string }>>(
+    '/auth/forgot-password',
+    {
+      email: payload.email.trim().toLowerCase(),
+    },
+  );
 }
 
 export async function verifyPasswordResetCode(
   payload: VerifyResetCodePayload,
 ): Promise<string> {
-  const response = await apiClient.post<ApiEnvelope<{ resetToken: string }>>(
-    '/auth/verify-reset-code',
-    payload,
+  const apiPayload: VerifyOtpApiPayload = {
+    email: payload.email.trim().toLowerCase(),
+    otp: payload.code,
+  };
+
+  const response = await apiClient.post<ApiEnvelope<VerifyOtpApiData>>(
+    '/auth/verify',
+    apiPayload,
   );
 
   return response.data.data.resetToken;
@@ -57,14 +124,35 @@ export async function verifyPasswordResetCode(
 export async function resetPassword(
   payload: ResetPasswordPayload,
 ): Promise<void> {
-  await apiClient.post('/auth/reset-password', payload);
+  await apiClient.post(
+    '/auth/reset-password',
+    {
+      password: payload.password,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${payload.resetToken}`,
+      },
+    },
+  );
 }
 
 export async function signUp(payload: SignUpPayload): Promise<AuthSession> {
-  const response = await apiClient.post<ApiEnvelope<AuthSession>>(
-    '/auth/sign-up',
-    payload,
+  const response = await apiClient.post<ApiEnvelope<SignUpApiData>>(
+    '/auth/signup',
+    {
+      ...payload,
+      email: payload.email.trim().toLowerCase(),
+    },
   );
 
-  return response.data.data;
+  const { accessToken, user } = response.data.data;
+
+  return {
+    accessToken,
+    user: {
+      ...mapBackendUser(user, 'learner'),
+      profileCompleted: false,
+    },
+  };
 }

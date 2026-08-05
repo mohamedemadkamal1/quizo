@@ -59,15 +59,12 @@ export const guestProfileSchema = z
     nickname: z
       .string()
       .trim()
+      .min(1, 'Nickname is required.')
       .max(24, 'Nickname cannot exceed 24 characters.'),
 
-    age: z.string().trim(),
+    age: z.string().trim().min(1, 'Age is required.'),
   })
   .superRefine(({ age }, context) => {
-    if (!age) {
-      return;
-    }
-
     if (!/^\d+$/.test(age)) {
       context.addIssue({
         code: 'custom',

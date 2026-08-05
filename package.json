@@ -8,7 +8,6 @@
     "@expo/ui": "~57.0.7",
     "@hookform/resolvers": "^5.5.7",
     "axios": "^1.18.1",
-    "axios-mock-adapter": "^2.1.0",
     "expo": "~57.0.8",
     "expo-constants": "~57.0.7",
     "expo-device": "~57.0.1",
@@ -43,6 +42,8 @@
   "devDependencies": {
     "@types/react": "~19.2.2",
     "babel-preset-expo": "^57.0.4",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "~57.0.1",
     "prettier-plugin-tailwindcss": "^0.5.14",
     "tailwindcss": "^3.4.19",
     "typescript": "~6.0.3"

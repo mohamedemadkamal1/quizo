@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ImageSourcePropType,
   StyleSheet,
@@ -20,13 +20,18 @@ const character: ImageSourcePropType = require('../../../assets/images/splash/2.
 const quizoLogo: ImageSourcePropType = require('../../../assets/images/splash/3.png');
 
 type AnimatedSplashProps = {
+  readyToFinish: boolean;
   onFinish: () => void;
 };
 
 const SLIDE_DURATION = 1000;
 
-export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
+export function AnimatedSplash({
+  readyToFinish,
+  onFinish,
+}: AnimatedSplashProps) {
   const { width, height } = useWindowDimensions();
+  const [minimumDisplayFinished, setMinimumDisplayFinished] = useState(false);
 
   // Make the composition responsive without letting it become too large.
   const stageSize = Math.min(width - 32, 430);
@@ -51,29 +56,35 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
     // Image 3: from the bottom, after image 2.
     logoTranslateY.value = withDelay(1000, withTiming(0, slideAnimation));
 
-    // Keep the completed logo visible briefly, then fade the splash out.
-    const fadeTimer = setTimeout(() => {
-      splashOpacity.value = withTiming(0, {
-        duration: 250,
-        easing: Easing.out(Easing.quad),
-      });
+    const minimumDisplayTimer = setTimeout(() => {
+      setMinimumDisplayFinished(true);
     }, 2300);
 
-    const finishTimer = setTimeout(() => {
-      onFinish();
-    }, 2550);
-
     return () => {
-      clearTimeout(fadeTimer);
-      clearTimeout(finishTimer);
+      clearTimeout(minimumDisplayTimer);
     };
   }, [
     backgroundTranslateX,
     characterTranslateX,
     logoTranslateY,
-    onFinish,
-    splashOpacity,
   ]);
+
+  useEffect(() => {
+    if (!minimumDisplayFinished || !readyToFinish) {
+      return;
+    }
+
+    splashOpacity.value = withTiming(0, {
+      duration: 250,
+      easing: Easing.out(Easing.quad),
+    });
+
+    const finishTimer = setTimeout(onFinish, 250);
+
+    return () => {
+      clearTimeout(finishTimer);
+    };
+  }, [minimumDisplayFinished, onFinish, readyToFinish, splashOpacity]);
 
   const containerAnimatedStyle = useAnimatedStyle(() => ({
     opacity: splashOpacity.value,

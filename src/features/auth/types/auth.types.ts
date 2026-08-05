@@ -1,9 +1,10 @@
 export type AuthUser = {
   id: string;
-  displayName: string;
+  displayName: string | null;
   email: string | null;
   age: number | null;
   role: 'learner' | 'guest';
+  profileCompleted: boolean;
 };
 
 export type AuthSession = {
@@ -17,13 +18,44 @@ export type SignInPayload = {
 };
 
 export type SignUpPayload = {
+  signupType: 'ACCOUNT';
   email: string;
   password: string;
 };
 
+export type SignUpApiData = {
+  accessToken: string;
+  user: BackendAuthUserDto;
+};
+
+export type SignInApiData = {
+  accessToken: string;
+  user: BackendAuthUserDto;
+};
+
 export type GuestProfilePayload = {
-  nickname: string | null;
+  nickname: string;
+  age: number;
+};
+
+export type BackendAuthUserDto = {
+  id: number;
+  username: string | null;
+  email: string | null;
+  role: 'USER' | 'ADMIN';
   age: number | null;
+  profileCompleted: boolean;
+};
+
+export type GuestSignUpApiPayload = {
+  signupType: 'GUEST';
+  username: string;
+  age: number;
+};
+
+export type CompleteAccountProfileApiPayload = {
+  username: string;
+  age: number;
 };
 
 export type EmailPayload = {
@@ -35,12 +67,24 @@ export type VerifyResetCodePayload = {
   code: string;
 };
 
+export type VerifyOtpApiPayload = {
+  email: string;
+  otp: string;
+};
+
+export type VerifyOtpApiData = {
+  resetToken: string;
+  expiresIn: number;
+};
+
 export type ResetPasswordPayload = {
   resetToken: string;
-  newPassword: string;
+  password: string;
 };
 
 export type ApiEnvelope<T> = {
+  success: boolean;
+  statusCode: number;
   data: T;
-  message: string;
+  message?: string;
 };
