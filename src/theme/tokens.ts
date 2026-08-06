@@ -1,6 +1,15 @@
 export const colors = {
   muvBlue300: '#485BDD',
 
+  activity: {
+    cardBackground: '#F0F2F5',
+    iconBackground: '#ECFDF5',
+    completed: '#10B981',
+    title: '#1E1A4D',
+    xp: '#613EEA',
+    day: 'rgba(49, 46, 129, 0.5)',
+  },
+
   navigation: {
     activeTab: '#8B5CF6',
     inactiveTab: '#94A3B8',
@@ -45,8 +54,8 @@ export const gradients = {
       '#C6D2FF',
     ] as const,
     locations: [
-      0, 0.0393, 0.0786, 0.1179, 0.1571, 0.1964, 0.2357, 0.275, 0.3143,
-      0.3536, 0.3929, 0.4321, 0.4714, 0.5107, 0.55,
+      0, 0.0393, 0.0786, 0.1179, 0.1571, 0.1964, 0.2357, 0.275, 0.3143, 0.3536,
+      0.3929, 0.4321, 0.4714, 0.5107, 0.55,
     ] as const,
   },
 } as const;

@@ -1,12 +1,12 @@
 import {
   ApiEnvelope,
-  AuthUser,
   AuthSession,
+  AuthUser,
   BackendAuthUserDto,
   CompleteAccountProfileApiPayload,
   EmailPayload,
-  GuestSignUpApiPayload,
   GuestProfilePayload,
+  GuestSignUpApiPayload,
   ResetPasswordPayload,
   SignInApiData,
   SignInPayload,
@@ -97,7 +97,7 @@ export async function completeAccountProfile(
 export async function requestPasswordReset(
   payload: EmailPayload,
 ): Promise<void> {
-  await apiClient.post<ApiEnvelope<{ message: string }>>(
+  const test = await apiClient.post<ApiEnvelope<{ message: string }>>(
     '/auth/forgot-password',
     {
       email: payload.email.trim().toLowerCase(),

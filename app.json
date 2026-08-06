@@ -31,6 +31,14 @@
                 "fontFamily": "Fredoka",
                 "fontDefinitions": [
                   {
+                    "path": "node_modules/@expo-google-fonts/fredoka/400Regular/Fredoka_400Regular.ttf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "node_modules/@expo-google-fonts/fredoka/500Medium/Fredoka_500Medium.ttf",
+                    "weight": 500
+                  },
+                  {
                     "path": "node_modules/@expo-google-fonts/fredoka/600SemiBold/Fredoka_600SemiBold.ttf",
                     "weight": 600
                   }
@@ -49,6 +57,8 @@
           },
           "ios": {
             "fonts": [
+              "node_modules/@expo-google-fonts/fredoka/400Regular/Fredoka_400Regular.ttf",
+              "node_modules/@expo-google-fonts/fredoka/500Medium/Fredoka_500Medium.ttf",
               "node_modules/@expo-google-fonts/fredoka/600SemiBold/Fredoka_600SemiBold.ttf",
               "node_modules/@expo-google-fonts/nunito/500Medium/Nunito_500Medium.ttf"
             ]

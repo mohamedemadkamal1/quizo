@@ -35,6 +35,7 @@ function restorePersistedAuth() {
 export default function RootLayout() {
   const nativeSplashHidden = useRef(false);
 
+  // const session = useAuthStore((state) => state.session);
   const session = useAuthStore((state) => state.session);
 
   const hasSession = Boolean(session);
