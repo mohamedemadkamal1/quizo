@@ -4,17 +4,17 @@
     "slug": "quizo",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./src/assets/images/icon.png",
     "scheme": "quizo",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/images/icon.png",
+      "icon": "./src/assets/images/icon.png",
       "bundleIdentifier": "com.amergroup.quizo",
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./src/assets/images/adaptive-icon.png",
         "backgroundColor": "#06142B"
       },
       "predictiveBackGestureEnabled": false,
@@ -69,7 +69,7 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#FFFFFF",
-          "image": "./assets/images/splash/white-splash.png",
+          "image": "./src/assets/images/splash/white-splash.png",
           "imageWidth": 200
         }
       ],
