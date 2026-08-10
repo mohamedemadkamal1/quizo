@@ -5,7 +5,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HomeTabIcon } from '@/components/common/icons/HomeTabIcon';
 import { LeaderboardTabIcon } from '@/components/common/icons/LeaderboardTabIcon';
-import { ProfileTabIcon } from '@/components/common/icons/ProfileTabIcon';
 import { SettingsTabIcon } from '@/components/common/icons/SettingsTabIcon';
 import type { NavigationIconProps } from '@/components/common/icons/types';
 import {
@@ -22,22 +21,16 @@ function TabBarBackground() {
 
 const tabs = [
   {
-    name: 'home',
-    label: 'Home',
-    Icon: HomeTabIcon,
-    inactiveIconColor: colors.navigation.inactiveHomeIcon,
-  },
-  {
-    name: 'profile',
-    label: 'Profile',
-    Icon: ProfileTabIcon,
-    inactiveIconColor: undefined,
-  },
-  {
     name: 'rank',
     label: 'Rank',
     Icon: LeaderboardTabIcon,
     inactiveIconColor: undefined,
+  },
+  {
+    name: 'home',
+    label: 'Home',
+    Icon: HomeTabIcon,
+    inactiveIconColor: colors.navigation.inactiveHomeIcon,
   },
   {
     name: 'settings',
@@ -88,9 +81,7 @@ export default function AppLayout() {
                 icon={
                   <Icon
                     color={
-                      !focused && inactiveIconColor
-                        ? inactiveIconColor
-                        : color
+                      !focused && inactiveIconColor ? inactiveIconColor : color
                     }
                     focused={focused}
                   />
@@ -100,6 +91,13 @@ export default function AppLayout() {
           }}
         />
       ))}
+      <Tabs.Screen
+        name="level-map"
+        options={{
+          tabBarButton: () => null,
+          tabBarItemStyle: styles.hiddenTab,
+        }}
+      />
     </Tabs>
   );
 }
@@ -134,5 +132,9 @@ const styles = StyleSheet.create({
   tabBarIcon: {
     width: '100%',
     height: 75,
+  },
+
+  hiddenTab: {
+    display: 'none',
   },
 });

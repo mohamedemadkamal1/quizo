@@ -30,7 +30,12 @@ type CategoryLevelModalProps = {
   category: HomeCategory | null;
   levels: CategoryLevel[];
   onDismissed: () => void;
-  onSelectLevel: (level: CategoryLevel) => void;
+  onSelectLevel: (category: HomeCategory, level: CategoryLevel) => void;
+};
+
+type PendingSelection = {
+  category: HomeCategory;
+  level: CategoryLevel;
 };
 
 export function CategoryLevelModal({
@@ -45,11 +50,18 @@ export function CategoryLevelModal({
   const sheetTranslateY = useSharedValue(windowHeight);
   const backdropOpacity = useSharedValue(0);
   const closingRef = useRef(false);
+  const pendingSelectionRef = useRef<PendingSelection | null>(null);
 
   const finishDismiss = useCallback(() => {
+    const pendingSelection = pendingSelectionRef.current;
+    pendingSelectionRef.current = null;
     closingRef.current = false;
     onDismissed();
-  }, [onDismissed]);
+
+    if (pendingSelection) {
+      onSelectLevel(pendingSelection.category, pendingSelection.level);
+    }
+  }, [onDismissed, onSelectLevel]);
 
   const requestDismiss = useCallback(() => {
     if (closingRef.current || !visible) {
@@ -87,12 +99,30 @@ export function CategoryLevelModal({
     windowHeight,
   ]);
 
+  const dismissWithoutSelection = useCallback(() => {
+    pendingSelectionRef.current = null;
+    requestDismiss();
+  }, [requestDismiss]);
+
+  const selectLevel = useCallback(
+    (level: CategoryLevel) => {
+      if (!category || closingRef.current) {
+        return;
+      }
+
+      pendingSelectionRef.current = { category, level };
+      requestDismiss();
+    },
+    [category, requestDismiss],
+  );
+
   useEffect(() => {
     if (!visible || !category) {
       return;
     }
 
     closingRef.current = false;
+    pendingSelectionRef.current = null;
     sheetTranslateY.set(windowHeight);
     backdropOpacity.set(0);
 
@@ -134,7 +164,7 @@ export function CategoryLevelModal({
     <Modal
       animationType="none"
       navigationBarTranslucent
-      onRequestClose={requestDismiss}
+      onRequestClose={dismissWithoutSelection}
       statusBarTranslucent
       transparent
       visible={visible && category !== null}
@@ -144,7 +174,7 @@ export function CategoryLevelModal({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Close level chooser"
-            onPress={requestDismiss}
+            onPress={dismissWithoutSelection}
             style={styles.backdrop}
           />
         </Animated.View>
@@ -190,7 +220,7 @@ export function CategoryLevelModal({
                 <CategoryLevelOption
                   key={level.id}
                   level={level}
-                  onPress={onSelectLevel}
+                  onPress={selectLevel}
                 />
               ))}
             </View>
