@@ -34,6 +34,27 @@ export const colors = {
     tabBarBackground: '#FFFFFF',
   },
 
+  settings: {
+    background: '#C6D2FF',
+    headerStart: '#8B5CF6',
+    headerEnd: '#A78BFA',
+    heading: '#1E1A4D',
+    body: '#475569',
+    muted: '#94A3B8',
+    surfaceSoft: 'rgba(255, 255, 255, 0.42)',
+    violet: '#7C3AED',
+    violetSoft: '#EDE9FE',
+    cyan: '#08BBD2',
+    cyanEnd: '#22D3EE',
+    coral: '#F55D6E',
+    coralSoft: '#FCE7EA',
+    green: '#10B981',
+    sliderTrack: 'rgba(255, 255, 255, 0.58)',
+    sliderYellow: '#FFDF20',
+    sliderOrange: '#FF9F0A',
+    modalBackdrop: 'rgba(30, 26, 77, 0.55)',
+  },
+
   button: {
     primaryBorder: '#A3B3FF',
     secondaryBackground: '#F0F2F5',
