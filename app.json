@@ -73,7 +73,8 @@
           "imageWidth": 200
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "./plugins/with-react-native-view-recycling-workaround"
     ],
     "experiments": {
       "typedRoutes": true,

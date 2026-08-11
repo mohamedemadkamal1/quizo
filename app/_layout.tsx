@@ -37,6 +37,14 @@ export default function RootLayout() {
               guard={app.hasSession && app.hasCompletedProfile}
             >
               <Stack.Screen name="(tabs)" />
+              <Stack.Screen
+                name="questions"
+                options={{ gestureEnabled: false }}
+              />
+              <Stack.Screen
+                name="level-complete"
+                options={{ gestureEnabled: false }}
+              />
             </Stack.Protected>
           </Stack>
         ) : null}

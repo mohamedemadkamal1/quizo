@@ -21,8 +21,8 @@ function TabBarBackground() {
 
 const tabs = [
   {
-    name: 'rank',
-    label: 'Rank',
+    name: 'leaderboard',
+    label: 'Leaderboard',
     Icon: LeaderboardTabIcon,
     inactiveIconColor: undefined,
   },

@@ -154,16 +154,30 @@ export function useLevelMapScreen() {
   }, []);
 
   const handleStartSelectedLevel = useCallback(() => {
-    if (!selectedLevel || isStartingLevelRef.current) {
+    if (
+      !selectedLevel ||
+      !isCategoryId(categoryIdParam) ||
+      !isLevelMapDifficulty(difficultyParam) ||
+      isStartingLevelRef.current
+    ) {
       return;
     }
 
+    const levelToStart = selectedLevel;
     isStartingLevelRef.current = true;
     setIsLevelStartModalVisible(false);
     setSelectedLevel(null);
 
-    // Questions navigation will be added with the gameplay route and contract.
-  }, [selectedLevel]);
+    router.push({
+      pathname: '/questions',
+      params: {
+        categoryId: categoryIdParam,
+        difficulty: difficultyParam,
+        levelId: levelToStart.id,
+        levelNumber: levelToStart.number,
+      },
+    });
+  }, [categoryIdParam, difficultyParam, router, selectedLevel]);
 
   return {
     status: !routeIsValid
