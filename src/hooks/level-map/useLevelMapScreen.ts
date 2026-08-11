@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useBottomTabBarHeight } from 'expo-router/js-tabs';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { HOME_CATEGORIES } from '@/constants/home';
 import {
@@ -52,6 +52,12 @@ export function useLevelMapScreen() {
   const [loadState, setLoadState] = useState<LoadState>({
     status: 'loading',
   });
+  const [selectedLevel, setSelectedLevel] = useState<LevelMapLevel | null>(
+    null,
+  );
+  const [isLevelStartModalVisible, setIsLevelStartModalVisible] =
+    useState(false);
+  const isStartingLevelRef = useRef(false);
 
   useEffect(() => {
     if (!routeIsValid) {
@@ -136,9 +142,28 @@ export function useLevelMapScreen() {
       return;
     }
 
-    // Gameplay navigation will be added when that route and backend contract
-    // are defined. Locked and completed levels intentionally never reach it.
+    isStartingLevelRef.current = false;
+    setSelectedLevel(level);
+    setIsLevelStartModalVisible(true);
   }, []);
+
+  const handleCloseLevelStartModal = useCallback(() => {
+    isStartingLevelRef.current = false;
+    setIsLevelStartModalVisible(false);
+    setSelectedLevel(null);
+  }, []);
+
+  const handleStartSelectedLevel = useCallback(() => {
+    if (!selectedLevel || isStartingLevelRef.current) {
+      return;
+    }
+
+    isStartingLevelRef.current = true;
+    setIsLevelStartModalVisible(false);
+    setSelectedLevel(null);
+
+    // Questions navigation will be added with the gameplay route and contract.
+  }, [selectedLevel]);
 
   return {
     status: !routeIsValid
@@ -163,7 +188,11 @@ export function useLevelMapScreen() {
     presentationLevels,
     initialScrollIndex,
     contentBottomPadding: tabBarHeight + 24,
+    selectedLevel,
+    isLevelStartModalVisible,
     handleClose,
     handlePressLevel,
+    handleCloseLevelStartModal,
+    handleStartSelectedLevel,
   };
 }

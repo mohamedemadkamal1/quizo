@@ -13,6 +13,7 @@ import { LevelFogBoundary } from '@/components/level-map/LevelFogBoundary';
 import { LevelMapEnd } from '@/components/level-map/LevelMapEnd';
 import { LevelMapHeader } from '@/components/level-map/LevelMapHeader';
 import { LevelMapRow } from '@/components/level-map/LevelMapRow';
+import { LevelStartConfirmationModal } from '@/components/level-map/LevelStartConfirmationModal';
 import {
   LEVEL_MAP_BOUNDARY_HEIGHT,
   LEVEL_MAP_ROW_HEIGHT,
@@ -187,6 +188,13 @@ export function LevelMapContent({ screen }: LevelMapContentProps) {
           />
         </LinearGradient>
       </SafeAreaView>
+
+      <LevelStartConfirmationModal
+        levelNumber={screen.selectedLevel?.number ?? null}
+        onClose={screen.handleCloseLevelStartModal}
+        onStart={screen.handleStartSelectedLevel}
+        visible={screen.isLevelStartModalVisible}
+      />
     </View>
   );
 }
