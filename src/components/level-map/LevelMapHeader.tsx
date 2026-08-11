@@ -1,10 +1,10 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import type { HomeCategory } from '@/types/home.types';
+import type { GameplayCategory } from '@/types/home.types';
 import type { LevelMapTheme } from '@/types/level-map.types';
 
 type LevelMapHeaderProps = {
-  category: HomeCategory;
+  category: GameplayCategory;
   totalLevels: number;
   theme: LevelMapTheme;
   onClose: () => void;
@@ -141,4 +141,3 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
   },
 });
-

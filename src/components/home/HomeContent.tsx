@@ -1,5 +1,13 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { StyleSheet, useWindowDimensions } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
@@ -10,7 +18,7 @@ import { CategoriesSection } from '@/components/home/CategoriesSection';
 import { CategoryLevelModal } from '@/components/home/CategoryLevelModal';
 import { HomeWelcomeSection } from '@/components/home/HomeWelcomeSection';
 import { RecentActivitySection } from '@/components/home/RecentActivitySection';
-import { gradients } from '@/constants/colors';
+import { colors, gradients } from '@/constants/colors';
 import type { useHomeScreen } from '@/hooks/home/useHomeScreen';
 
 type HomeContentProps = {
@@ -54,6 +62,13 @@ export function HomeContent({ screen }: HomeContentProps) {
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              onRefresh={() => void screen.refresh()}
+              refreshing={screen.isRefreshing}
+              tintColor={colors.home.heading}
+            />
+          }
           contentContainerStyle={[
             styles.content,
             { paddingBottom: screen.contentBottomPadding },
@@ -61,19 +76,46 @@ export function HomeContent({ screen }: HomeContentProps) {
         >
           <HomeWelcomeSection displayName={screen.displayName} />
 
-          <RecentActivitySection
-            activities={screen.recentActivities}
-            illustrationSource={require('../../assets/images/illustrations/home/home-student.png')}
-          />
+          {screen.isInitialLoading ? (
+            <View accessibilityLabel="Loading Home" style={styles.statePanel}>
+              <ActivityIndicator color={colors.home.heading} size="large" />
+              <Text style={styles.stateText}>Loading your categories...</Text>
+            </View>
+          ) : screen.isInitialError ? (
+            <View style={styles.statePanel}>
+              <Text style={styles.stateText}>{screen.errorMessage}</Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={screen.retry}
+                style={({ pressed }) => [
+                  styles.retryButton,
+                  pressed && styles.retryButtonPressed,
+                ]}
+              >
+                <Text style={styles.retryText}>Retry</Text>
+              </Pressable>
+            </View>
+          ) : screen.isEmpty ? (
+            <View style={styles.statePanel}>
+              <Text style={styles.stateText}>No categories available yet.</Text>
+            </View>
+          ) : (
+            <>
+              <RecentActivitySection
+                activities={screen.recentActivities}
+                illustrationSource={require('../../assets/images/illustrations/home/home-student.png')}
+              />
 
-          <CategoriesSection
-            categories={screen.categories}
-            scrollY={scrollY}
-            scrollDirection={scrollDirection}
-            viewportHeight={viewportHeight}
-            viewportWidth={viewportWidth}
-            onPressCategory={screen.openCategoryModal}
-          />
+              <CategoriesSection
+                categories={screen.categories}
+                scrollY={scrollY}
+                scrollDirection={scrollDirection}
+                viewportHeight={viewportHeight}
+                viewportWidth={viewportWidth}
+                onPressCategory={screen.openCategoryModal}
+              />
+            </>
+          )}
         </Animated.ScrollView>
       </SafeAreaView>
 
@@ -94,5 +136,37 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingTop: 16,
     paddingHorizontal: 16,
+  },
+  statePanel: {
+    minHeight: 240,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    paddingHorizontal: 24,
+  },
+  stateText: {
+    fontFamily: 'Nunito',
+    fontWeight: '500',
+    fontSize: 15,
+    lineHeight: 21,
+    textAlign: 'center',
+    color: colors.home.heading,
+    includeFontPadding: false,
+  },
+  retryButton: {
+    borderRadius: 999,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: colors.muvBlue300,
+  },
+  retryButtonPressed: {
+    opacity: 0.85,
+  },
+  retryText: {
+    fontFamily: 'Fredoka',
+    fontWeight: '500',
+    fontSize: 14,
+    color: '#FFFFFF',
+    includeFontPadding: false,
   },
 });
