@@ -1,34 +1,21 @@
-import type { CategoryId } from '@/types/home.types';
 import type {
   LevelMapDifficulty,
   LevelMapTheme,
 } from '@/types/level-map.types';
 
-export const LOCKED_PREVIEW_COUNT = 5;
 export const LEVEL_MAP_ROW_HEIGHT = 132;
 export const LEVEL_MAP_BOUNDARY_HEIGHT = 148;
 export const LEVEL_MAP_NODE_SIZE = 68;
 
-export const CATEGORY_IDS = [
-  'quran',
-  'seerah',
-  'duas',
-  'prophets',
-  'good-manners',
-  'islamic-quiz',
-  'companions',
-  'ramadan',
-] as const satisfies readonly CategoryId[];
-
 export const LEVEL_MAP_DIFFICULTIES = [
-  'beginner',
-  'intermediate',
-  'advanced',
+  'BEGINNER',
+  'INTERMEDIATE',
+  'ADVANCED',
 ] as const satisfies readonly LevelMapDifficulty[];
 
 export const levelMapThemes = {
-  beginner: {
-    difficulty: 'beginner',
+  BEGINNER: {
+    difficulty: 'BEGINNER',
     label: 'Beginner',
     icon: '\u{1F331}',
     stars: 1,
@@ -52,8 +39,8 @@ export const levelMapThemes = {
     mascotSource: require('../assets/images/illustrations/level-map/beginner-mascot.png'),
     mascotSide: 'left',
   },
-  intermediate: {
-    difficulty: 'intermediate',
+  INTERMEDIATE: {
+    difficulty: 'INTERMEDIATE',
     label: 'Intermediate',
     icon: '\u26A1',
     stars: 2,
@@ -77,8 +64,8 @@ export const levelMapThemes = {
     mascotSource: require('../assets/images/illustrations/level-map/intermediate-mascot.png'),
     mascotSide: 'left',
   },
-  advanced: {
-    difficulty: 'advanced',
+  ADVANCED: {
+    difficulty: 'ADVANCED',
     label: 'Advanced',
     icon: '\u{1F525}',
     stars: 3,
@@ -104,13 +91,6 @@ export const levelMapThemes = {
   },
 } satisfies Record<LevelMapDifficulty, LevelMapTheme>;
 
-export function isCategoryId(value: unknown): value is CategoryId {
-  return (
-    typeof value === 'string' &&
-    CATEGORY_IDS.some((categoryId) => categoryId === value)
-  );
-}
-
 export function isLevelMapDifficulty(
   value: unknown,
 ): value is LevelMapDifficulty {
@@ -126,4 +106,3 @@ export function getLevelNodePosition(
 ): number {
   return theme.positionPattern[(levelNumber - 1) % theme.positionPattern.length];
 }
-

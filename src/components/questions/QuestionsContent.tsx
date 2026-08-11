@@ -69,8 +69,8 @@ function QuestionsStatePanel({
 }
 
 function getAnswerVisualState(
-  optionId: string,
-  selectedOptionId: string | null,
+  optionId: number,
+  selectedOptionId: number | null,
   feedback: QuestionAnswerResult | null,
 ): AnswerVisualState {
   if (!feedback || selectedOptionId !== optionId) {
@@ -104,6 +104,16 @@ export function QuestionsContent({ screen }: QuestionsContentProps) {
         actionLabel="Try again"
         message={screen.state.message}
         onAction={screen.handleRetry}
+      />
+    );
+  }
+
+  if (screen.state.status === 'completed') {
+    return (
+      <QuestionsStatePanel
+        actionLabel="Back to Map"
+        message={screen.state.message}
+        onAction={screen.handleCompleted}
       />
     );
   }
@@ -174,23 +184,55 @@ export function QuestionsContent({ screen }: QuestionsContentProps) {
               },
             ]}
           >
-            {currentQuestion.options.map((option) => (
-              <AnswerOption
-                key={option.id}
-                disabled={answersDisabled}
-                onPress={screen.handleSelectAnswer}
-                option={option}
-                questionType={currentQuestion.type}
-                scale={scale}
-                selected={readyState.selectedOptionId === option.id}
-                visualState={getAnswerVisualState(
-                  option.id,
-                  readyState.selectedOptionId,
-                  readyState.feedback,
-                )}
-              />
-            ))}
+            {currentQuestion.options.map((option) => {
+              const isSelected = readyState.selectedOptionId === option.id;
+
+              return (
+                <AnswerOption
+                  key={option.id}
+                  disabled={
+                    answersDisabled ||
+                    (readyState.submissionError !== null && !isSelected)
+                  }
+                  onPress={screen.handleSelectAnswer}
+                  option={option}
+                  questionType={currentQuestion.type}
+                  scale={scale}
+                  selected={isSelected}
+                  visualState={getAnswerVisualState(
+                    option.id,
+                    readyState.selectedOptionId,
+                    readyState.feedback,
+                  )}
+                />
+              );
+            })}
           </View>
+
+          {readyState.submissionError ? (
+            <View
+              accessibilityRole="alert"
+              style={[
+                styles.submissionError,
+                {
+                  top: 306 * verticalScale,
+                  left: 20 * scale,
+                  width: 360 * scale,
+                },
+              ]}
+            >
+              <Text style={styles.submissionErrorMessage} numberOfLines={2}>
+                {readyState.submissionError}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={screen.handleRetrySubmission}
+                style={styles.submissionRetry}
+              >
+                <Text style={styles.submissionRetryLabel}>Retry</Text>
+              </Pressable>
+            </View>
+          ) : null}
 
           {readyState.phase === 'completing' ? (
             <View
@@ -246,6 +288,36 @@ const styles = StyleSheet.create({
     bottom: 18,
     left: 0,
     alignItems: 'center',
+  },
+  submissionError: {
+    position: 'absolute',
+    zIndex: 5,
+    minHeight: 42,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 8,
+  },
+  submissionErrorMessage: {
+    flex: 1,
+    color: '#B42318',
+    fontFamily: 'Nunito',
+    fontSize: 12,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  submissionRetry: {
+    minWidth: 52,
+    minHeight: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  submissionRetryLabel: {
+    color: gameplayColors.primaryText,
+    fontFamily: 'Nunito',
+    fontSize: 13,
+    fontWeight: '700',
   },
   stateSafeArea: {
     flex: 1,

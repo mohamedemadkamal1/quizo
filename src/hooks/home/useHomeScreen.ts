@@ -9,7 +9,12 @@ import {
   HOME_CATEGORY_COLOR_PALETTE,
   HOME_CATEGORY_ICONS,
 } from '@/constants/home';
-import { getHome, HOME_QUERY_KEY } from '@/services/home.service';
+import {
+  getHome,
+  getSubCategoryLevelCounts,
+  getSubCategoryLevelCountsQueryKey,
+  HOME_QUERY_KEY,
+} from '@/services/home.service';
 import { useAuthStore } from '@/store/auth.store';
 import type {
   CategoryLevel,
@@ -37,6 +42,10 @@ function shuffle<T>(values: readonly T[]): T[] {
 
 function clampPercentage(value: number) {
   return Math.min(100, Math.max(0, value));
+}
+
+function isPositiveInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value > 0;
 }
 
 function formatLastPlayedAt(value: string | null) {
@@ -83,6 +92,20 @@ export function useHomeScreen() {
     queryFn: getHome,
     enabled: Boolean(userId),
     refetchOnWindowFocus: false,
+  });
+
+  const subCatId = selectedCategory?.id ?? null;
+  const hasValidSubCatId = isPositiveInteger(subCatId);
+  const levelCountsQuery = useQuery({
+    queryKey: getSubCategoryLevelCountsQueryKey(subCatId),
+    queryFn: () => {
+      if (!isPositiveInteger(subCatId)) {
+        throw new Error('A valid subcategory ID is required.');
+      }
+
+      return getSubCategoryLevelCounts(subCatId);
+    },
+    enabled: isCategoryModalVisible && hasValidSubCatId,
   });
 
   const refetchHome = homeQuery.refetch;
@@ -146,6 +169,17 @@ export function useHomeScreen() {
     [items],
   );
 
+  const categoryLevels = useMemo<CategoryLevel[]>(
+    () =>
+      levelCountsQuery.data
+        ? CATEGORY_LEVELS.map((config) => ({
+            ...config,
+            levelCount: levelCountsQuery.data[config.difficulty],
+          }))
+        : [],
+    [levelCountsQuery.data],
+  );
+
   const openCategoryModal = useCallback((category: HomeCategory) => {
     if (isOpeningCategoryRef.current || navigationLockedRef.current) {
       return;
@@ -164,7 +198,7 @@ export function useHomeScreen() {
 
   const handleSelectCategoryLevel = useCallback(
     (category: HomeCategory, level: CategoryLevel) => {
-      if (navigationLockedRef.current) {
+      if (navigationLockedRef.current || level.levelCount <= 0) {
         return;
       }
 
@@ -173,7 +207,9 @@ export function useHomeScreen() {
         pathname: '/(tabs)/level-map',
         params: {
           categoryId: category.id,
-          difficulty: level.id,
+          categoryName: category.name,
+          categoryIcon: category.icon,
+          difficulty: level.difficulty,
         },
       });
     },
@@ -183,6 +219,14 @@ export function useHomeScreen() {
   const retry = useCallback(() => {
     void refetchHome();
   }, [refetchHome]);
+
+  const retryCategoryLevels = useCallback(() => {
+    if (!hasValidSubCatId || levelCountsQuery.isFetching) {
+      return;
+    }
+
+    void levelCountsQuery.refetch();
+  }, [hasValidSubCatId, levelCountsQuery]);
 
   const refresh = useCallback(async () => {
     if (isPullRefreshing) {
@@ -205,9 +249,23 @@ export function useHomeScreen() {
     homeData: homeQuery.data,
     recentActivities,
     categories,
-    categoryLevels: CATEGORY_LEVELS,
+    categoryLevels,
     selectedCategory,
     isCategoryModalVisible,
+    categoryLevelStatus: !hasValidSubCatId
+      ? ('invalid' as const)
+      : levelCountsQuery.data
+        ? ('ready' as const)
+        : levelCountsQuery.isError
+          ? ('error' as const)
+          : ('loading' as const),
+    categoryLevelErrorMessage: levelCountsQuery.isError
+      ? getApiErrorMessage(
+          levelCountsQuery.error,
+          'Unable to load difficulty levels.',
+        )
+      : null,
+    isRetryingCategoryLevels: levelCountsQuery.isFetching,
     isInitialLoading: homeQuery.isPending && !hasHomeData,
     isInitialError: homeQuery.isError && !hasHomeData,
     errorMessage: homeQuery.isError
@@ -216,6 +274,7 @@ export function useHomeScreen() {
     isRefreshing: isPullRefreshing,
     isEmpty: hasHomeData && items.length === 0,
     retry,
+    retryCategoryLevels,
     refresh,
     openCategoryModal,
     finishClosingCategoryModal,

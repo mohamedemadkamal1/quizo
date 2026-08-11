@@ -13,7 +13,7 @@ type AnswerOptionProps = {
   disabled: boolean;
   selected: boolean;
   scale: number;
-  onPress: (optionId: string) => void;
+  onPress: (optionId: number) => void;
 };
 
 export function AnswerOption({
@@ -64,7 +64,10 @@ export function AnswerOption({
               ? '#D91F2D'
               : visualState === 'correct'
                 ? gameplayColors.correct
+                : selected
+                  ? gameplayColors.primaryText
                 : gameplayColors.border,
+          borderWidth: selected && !isFeedback ? 3 : 1,
           backgroundColor:
             visualState === 'correct'
               ? gameplayColors.correct
@@ -117,7 +120,6 @@ export function AnswerOption({
 const styles = StyleSheet.create({
   option: {
     justifyContent: 'center',
-    borderWidth: 1,
     shadowColor: '#475569',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.22,

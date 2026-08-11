@@ -7,8 +7,8 @@ export const GAMEPLAY_MODAL_REFERENCE_HEIGHT = 816;
 export const GAMEPLAY_MODAL_MAX_WIDTH = 430;
 
 export const QUESTION_FEEDBACK_DURATION_MS = 1200;
-export const QUESTION_TIMEOUT_FEEDBACK_MS = 800;
 export const QUESTION_TIMER_INTERVAL_MS = 250;
+export const QUESTION_DURATION_SECONDS = 30;
 
 export const gameplayColors = {
   background: '#C6D2FF',

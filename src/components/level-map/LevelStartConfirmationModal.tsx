@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Image,
   Modal,
   Pressable,
@@ -20,6 +21,8 @@ const SCREEN_MARGIN = 16;
 type LevelStartConfirmationModalProps = {
   visible: boolean;
   levelNumber: number | null;
+  isStarting: boolean;
+  errorMessage: string | null;
   onClose: () => void;
   onStart: () => void;
 };
@@ -96,6 +99,8 @@ function CloseIcon({ size }: { size: number }) {
 export function LevelStartConfirmationModal({
   visible,
   levelNumber,
+  isStarting,
+  errorMessage,
   onClose,
   onStart,
 }: LevelStartConfirmationModalProps) {
@@ -150,6 +155,8 @@ export function LevelStartConfirmationModal({
           <Pressable
             accessibilityLabel="Close level confirmation"
             accessibilityRole="button"
+            accessibilityState={{ disabled: isStarting }}
+            disabled={isStarting}
             onPress={onClose}
             style={[
               styles.closeButton,
@@ -245,11 +252,29 @@ export function LevelStartConfirmationModal({
             >
               Level {levelNumber}
             </Text>
+            {errorMessage ? (
+              <Text
+                accessibilityRole="alert"
+                style={[
+                  styles.error,
+                  {
+                    top: 478 * scale,
+                    width: 470 * scale,
+                    fontSize: 15 * scale,
+                    lineHeight: 19 * scale,
+                  },
+                ]}
+              >
+                {errorMessage}
+              </Text>
+            ) : null}
           </View>
 
           <Pressable
             accessibilityLabel={`Start Level ${levelNumber}`}
             accessibilityRole="button"
+            accessibilityState={{ disabled: isStarting, busy: isStarting }}
+            disabled={isStarting}
             onPress={onStart}
             style={[
               styles.startButton,
@@ -317,14 +342,18 @@ export function LevelStartConfirmationModal({
                     },
                   ]}
                 >
-                  <Text
-                    style={[
-                      styles.buttonLabel,
-                      { fontSize: 33.5 * scale, lineHeight: 42 * scale },
-                    ]}
-                  >
-                    Let’s Play
-                  </Text>
+                  {isStarting ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" />
+                  ) : (
+                    <Text
+                      style={[
+                        styles.buttonLabel,
+                        { fontSize: 33.5 * scale, lineHeight: 42 * scale },
+                      ]}
+                    >
+                      Let’s Play
+                    </Text>
+                  )}
                 </View>
               </View>
             )}
@@ -407,6 +436,14 @@ const styles = StyleSheet.create({
     color: colors.navigation.activeTab,
     fontFamily: 'Fredoka',
     fontWeight: '600',
+    includeFontPadding: false,
+    textAlign: 'center',
+  },
+  error: {
+    position: 'absolute',
+    color: '#B42318',
+    fontFamily: 'Nunito',
+    fontWeight: '700',
     includeFontPadding: false,
     textAlign: 'center',
   },

@@ -13,12 +13,25 @@ export function CategoryLevelOption({
   level,
   onPress,
 }: CategoryLevelOptionProps) {
+  const isDisabled = level.levelCount === 0;
+  const levelLabel = level.levelCount === 1 ? 'Level' : 'Levels';
+
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Choose ${level.title}, ${level.levelCount} levels. ${level.description}`}
+      accessibilityLabel={
+        isDisabled
+          ? `${level.title}, no levels available`
+          : `Choose ${level.title}, ${level.levelCount} ${levelLabel}. ${level.description}`
+      }
+      accessibilityState={{ disabled: isDisabled }}
+      disabled={isDisabled}
       onPress={() => onPress(level)}
-      style={({ pressed }) => [styles.shadow, pressed && styles.pressed]}
+      style={({ pressed }) => [
+        styles.shadow,
+        pressed && styles.pressed,
+        isDisabled && styles.disabled,
+      ]}
     >
       <LinearGradient
         colors={level.gradient}
@@ -38,7 +51,7 @@ export function CategoryLevelOption({
             numberOfLines={1}
             style={styles.description}
           >
-            {level.levelCount} Levels · {level.description}
+            {level.levelCount} {levelLabel} · {level.description}
           </Text>
         </View>
 
@@ -69,6 +82,9 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.88,
     transform: [{ scale: 0.99 }],
+  },
+  disabled: {
+    opacity: 0.55,
   },
   option: {
     width: '100%',

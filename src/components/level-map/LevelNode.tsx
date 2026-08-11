@@ -13,21 +13,33 @@ type LevelNodeProps = {
 };
 
 function getAccessibilityLabel(level: LevelMapLevel) {
-  if (level.status === 'locked') {
+  if (!level.published || !level.hasRecognizedStatus) {
+    return `Level ${level.number}, unavailable.`;
+  }
+
+  if (level.viewState === 'locked') {
     return `Level ${level.number}, locked.`;
   }
 
-  if (level.status === 'completed') {
+  if (level.viewState === 'completed') {
     return `Level ${level.number}, completed.`;
   }
 
-  return `Level ${level.number}, current. Play.`;
+  if (level.viewState === 'in-progress') {
+    return level.isPlayable
+      ? `Level ${level.number}, in progress. Resume.`
+      : `Level ${level.number}, in progress but unavailable.`;
+  }
+
+  return `Level ${level.number}, available. Play.`;
 }
 
 export function LevelNode({ level, theme, onPress }: LevelNodeProps) {
-  const isCurrent = level.status === 'current';
-  const isCompleted = level.status === 'completed';
-  const isDisabled = !isCurrent;
+  const isPlayableState =
+    level.viewState === 'in-progress' || level.viewState === 'available';
+  const isCompleted = level.viewState === 'completed';
+  const isLocked = level.viewState === 'locked';
+  const isDisabled = !level.isPlayable;
 
   return (
     <Pressable
@@ -45,11 +57,11 @@ export function LevelNode({ level, theme, onPress }: LevelNodeProps) {
             backgroundColor: theme.completedColor,
             borderColor: '#FFFFFF',
           },
-          isCurrent && {
+          isPlayableState && {
             backgroundColor: theme.currentColor,
             borderColor: '#FFFFFF',
           },
-          level.status === 'locked' && {
+          isLocked && {
             backgroundColor: theme.lockedFillColor,
             borderColor: theme.lockedBorderColor,
           },
@@ -58,18 +70,18 @@ export function LevelNode({ level, theme, onPress }: LevelNodeProps) {
         <Text
           style={[
             styles.nodeText,
-            level.status === 'locked' && styles.lockedText,
+            isLocked && styles.lockedText,
           ]}
         >
           {isCompleted
             ? '\u2713'
-            : level.status === 'locked'
+            : isLocked
               ? '\u{1F512}'
               : level.number}
         </Text>
       </View>
 
-      {isCurrent ? (
+      {level.isPlayable ? (
         <View style={[styles.playPill, { backgroundColor: theme.playColor }]}>
           <Text style={styles.playText}>{'\u25B6'} Play</Text>
         </View>
@@ -128,4 +140,3 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
   },
 });
-

@@ -4,15 +4,17 @@ import type { ApiEnvelope } from '@/types/auth.types';
 
 export type GradientColors = readonly [string, string];
 
-export type CategoryId =
-  | 'quran'
-  | 'seerah'
-  | 'duas'
-  | 'prophets'
-  | 'good-manners'
-  | 'islamic-quiz'
-  | 'companions'
-  | 'ramadan';
+export type SubCategoryId = number;
+
+export type Difficulty = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+
+export type SubCategoryLevelCounts = Record<Difficulty, number>;
+
+export type SubCategoryLevelsApiResponse =
+  ApiEnvelope<SubCategoryLevelCounts> & {
+    success: true;
+    statusCode: 200;
+  };
 
 export type HomeItem = {
   id: number;
@@ -59,22 +61,19 @@ export type HomeCategory = {
   gradient: GradientColors;
 };
 
-export type GameplayCategory = Omit<HomeCategory, 'id'> & {
-  id: CategoryId;
-};
-
-export type CategoryLevelId = 'beginner' | 'intermediate' | 'advanced';
-
 export type CategoryLevelStarCount = 1 | 2 | 3;
 
-export type CategoryLevel = {
-  id: CategoryLevelId;
+export type CategoryLevelConfig = {
+  difficulty: Difficulty;
   title: string;
   icon: string;
-  levelCount: number;
   description: string;
   stars: CategoryLevelStarCount;
   gradient: GradientColors;
+};
+
+export type CategoryLevel = CategoryLevelConfig & {
+  levelCount: number;
 };
 
 export type RecentActivity = {

@@ -1,14 +1,23 @@
-import type { CategoryId } from '@/types/home.types';
-import type { LevelMapDifficulty } from '@/types/level-map.types';
+import type { SubCategoryId } from "@/types/home.types";
+import type { LevelMapDifficulty } from "@/types/level-map.types";
 
-export type LevelCompleteSummary = {
-  categoryId: CategoryId;
-  difficulty: LevelMapDifficulty;
-  levelId: string;
-  levelNumber: number;
-  totalQuestions: number;
+export type LevelFinalScoreViewModel = {
+  sessionId: number;
+  score: number;
+  xpEarned: number;
   correctAnswers: number;
   wrongAnswers: number;
-  points: number;
-  weeklyRank: number;
+  totalAnswers: number;
+  durationSeconds: number;
+  isReplay: boolean;
+  alreadyCompleted: boolean;
+};
+
+export type LevelCompleteSummary = LevelFinalScoreViewModel & {
+  categoryId: SubCategoryId;
+  categoryName: string;
+  categoryIcon: string;
+  difficulty: LevelMapDifficulty;
+  levelId: number;
+  levelNumber: number;
 };

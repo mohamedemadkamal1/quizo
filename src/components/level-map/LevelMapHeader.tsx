@@ -1,10 +1,12 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import type { GameplayCategory } from '@/types/home.types';
-import type { LevelMapTheme } from '@/types/level-map.types';
+import type {
+  LevelMapCategory,
+  LevelMapTheme,
+} from '@/types/level-map.types';
 
 type LevelMapHeaderProps = {
-  category: GameplayCategory;
+  category: LevelMapCategory;
   totalLevels: number;
   theme: LevelMapTheme;
   onClose: () => void;

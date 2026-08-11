@@ -1,7 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useEffect, useRef } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
+  Pressable,
   StyleSheet,
   Text,
   useWindowDimensions,
@@ -27,18 +29,39 @@ type LevelMapContentProps = {
 
 function LevelMapStatePanel({
   message,
-  onClose,
+  actionLabel,
+  actionDisabled = false,
+  isLoading = false,
+  onAction,
 }: {
   message: string;
-  onClose: () => void;
+  actionLabel: string;
+  actionDisabled?: boolean;
+  isLoading?: boolean;
+  onAction: () => void;
 }) {
   return (
     <SafeAreaView style={styles.stateSafeArea}>
       <View style={styles.statePanel}>
+        {isLoading ? (
+          <ActivityIndicator
+            accessibilityLabel="Loading level map"
+            size="large"
+          />
+        ) : null}
         <Text style={styles.stateMessage}>{message}</Text>
-        <Text accessibilityRole="button" onPress={onClose} style={styles.backLink}>
-          Back to Home
-        </Text>
+        <Pressable
+          accessibilityRole="button"
+          disabled={actionDisabled}
+          onPress={onAction}
+          style={({ pressed }) => [
+            styles.stateAction,
+            pressed && styles.stateActionPressed,
+            actionDisabled && styles.stateActionDisabled,
+          ]}
+        >
+          <Text style={styles.backLink}>{actionLabel}</Text>
+        </Pressable>
       </View>
     </SafeAreaView>
   );
@@ -55,7 +78,7 @@ export function LevelMapContent({ screen }: LevelMapContentProps) {
       return;
     }
 
-    const positionKey = `${screen.response?.difficulty}:${screen.derived?.currentLevel?.number ?? 'complete'}:${screen.presentationLevels.length}`;
+    const positionKey = `${screen.theme?.difficulty}:${screen.currentLevel?.number ?? 'none'}:${screen.presentationLevels.length}`;
     if (positionedKeyRef.current === positionKey) {
       return;
     }
@@ -77,8 +100,9 @@ export function LevelMapContent({ screen }: LevelMapContentProps) {
   if (screen.status === 'invalid') {
     return (
       <LevelMapStatePanel
+        actionLabel="Back to Home"
         message="This level-map link is invalid."
-        onClose={screen.handleClose}
+        onAction={screen.handleClose}
       />
     );
   }
@@ -86,8 +110,10 @@ export function LevelMapContent({ screen }: LevelMapContentProps) {
   if (screen.status === 'loading') {
     return (
       <LevelMapStatePanel
+        actionLabel="Back"
+        isLoading
         message="Loading level map…"
-        onClose={screen.handleClose}
+        onAction={screen.handleClose}
       />
     );
   }
@@ -95,22 +121,29 @@ export function LevelMapContent({ screen }: LevelMapContentProps) {
   if (screen.status === 'error') {
     return (
       <LevelMapStatePanel
+        actionDisabled={screen.isRetrying}
+        actionLabel="Retry"
         message={screen.errorMessage ?? 'Unable to load this level map.'}
-        onClose={screen.handleClose}
+        onAction={screen.handleRetry}
       />
     );
   }
 
-  if (!screen.category || !screen.theme || !screen.response || !screen.derived) {
+  if (screen.status === 'empty') {
     return (
       <LevelMapStatePanel
+        actionLabel="Back to Home"
         message="No levels are available yet."
-        onClose={screen.handleClose}
+        onAction={screen.handleClose}
       />
     );
   }
 
-  const { category, theme, response, derived } = screen;
+  if (!screen.category || !screen.theme || !screen.data) {
+    return null;
+  }
+
+  const { category, theme, data } = screen;
 
   return (
     <View style={styles.screen}>
@@ -122,7 +155,7 @@ export function LevelMapContent({ screen }: LevelMapContentProps) {
         >
           <LevelMapHeader
             category={category}
-            totalLevels={response.totalLevels}
+            totalLevels={data.meta.total}
             theme={theme}
             onClose={screen.handleClose}
           />
@@ -139,14 +172,11 @@ export function LevelMapContent({ screen }: LevelMapContentProps) {
                 LEVEL_MAP_BOUNDARY_HEIGHT + index * LEVEL_MAP_ROW_HEIGHT,
             })}
             initialNumToRender={10}
-            keyExtractor={(level) => level.id}
+            keyExtractor={(level) => String(level.id)}
             ListHeaderComponent={
-              derived.hasHiddenLevels ? (
+              screen.hasMoreLevels ? (
                 <LevelFogBoundary
-                  revealKey={
-                    derived.visibleLevels[derived.visibleLevels.length - 1]
-                      ?.number ?? 0
-                  }
+                  revealKey={screen.presentationLevels[0]?.number ?? 0}
                   theme={theme}
                 />
               ) : (
@@ -190,6 +220,8 @@ export function LevelMapContent({ screen }: LevelMapContentProps) {
       </SafeAreaView>
 
       <LevelStartConfirmationModal
+        errorMessage={screen.startLevelErrorMessage}
+        isStarting={screen.isStartingLevel}
         levelNumber={screen.selectedLevel?.number ?? null}
         onClose={screen.handleCloseLevelStartModal}
         onStart={screen.handleStartSelectedLevel}
@@ -235,5 +267,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#6D4DE8',
+  },
+  stateAction: {
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  stateActionPressed: {
+    opacity: 0.72,
+  },
+  stateActionDisabled: {
+    opacity: 0.5,
   },
 });

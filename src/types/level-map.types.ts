@@ -1,31 +1,91 @@
 import type { ImageSourcePropType } from 'react-native';
 
-import type { CategoryId, CategoryLevelId } from '@/types/home.types';
+import type { ApiEnvelope } from '@/types/auth.types';
+import type {
+  Difficulty,
+  HomeMeta,
+  SubCategoryId,
+} from '@/types/home.types';
 
-export type LevelMapDifficulty = CategoryLevelId;
+export type Stage = Difficulty;
+export type LevelMapDifficulty = Stage;
+export type PaginationMeta = HomeMeta;
 
-export type LevelStatus = 'completed' | 'current' | 'locked';
+export type LevelStatus =
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'AVAILABLE'
+  | 'LOCKED';
+
+export type LevelNodeViewState =
+  | 'in-progress'
+  | 'completed'
+  | 'available'
+  | 'locked';
+
+export type LevelMapItemDto = {
+  id: number;
+  order: number;
+  stage: Stage;
+  isBoss: boolean;
+  published: boolean;
+  questionsCount: number;
+  status: LevelStatus;
+  activeSessionId: number | null;
+};
+
+export type LevelMapProgressDto = {
+  currentLevel: number;
+  completedLevels: number;
+  totalXp: number;
+  lastPlayedAt: string | null;
+};
+
+export type LevelMapData = {
+  items: LevelMapItemDto[];
+  meta: PaginationMeta;
+  progress: LevelMapProgressDto;
+};
+
+export type LevelMapApiResponse = ApiEnvelope<LevelMapData> & {
+  success: true;
+  statusCode: 200;
+};
+
+export type ValidatedLevelMapItem = Omit<LevelMapItemDto, 'status'> & {
+  status: string;
+  hasRecognizedStatus: boolean;
+};
+
+export type ValidatedLevelMapData = Omit<LevelMapData, 'items'> & {
+  items: ValidatedLevelMapItem[];
+};
+
+export type GetLevelMapParams = {
+  subCategoryId: SubCategoryId;
+  stage: Stage;
+  page?: number;
+  limit?: number;
+};
+
+export type LevelMapCategory = {
+  id: SubCategoryId;
+  name: string;
+  icon: string;
+};
 
 export type LevelMapLevel = {
-  id: string;
+  id: number;
   number: number;
+  positionIndex: number;
   title: string;
-  xp: number;
-  status: LevelStatus;
-};
-
-export type LevelMapResponse = {
-  categoryId: CategoryId;
-  difficulty: LevelMapDifficulty;
-  totalLevels: number;
-  levels: LevelMapLevel[];
-};
-
-export type VisibleLevelMap = {
-  visibleLevels: LevelMapLevel[];
-  currentLevel: LevelMapLevel | null;
-  hasHiddenLevels: boolean;
-  hiddenLevelCount: number;
+  viewState: LevelNodeViewState;
+  isPlayable: boolean;
+  hasRecognizedStatus: boolean;
+  isBoss: boolean;
+  published: boolean;
+  questionsCount: number;
+  activeSessionId: number | null;
 };
 
 export type LevelMapTheme = {
@@ -49,4 +109,3 @@ export type LevelMapTheme = {
   mascotSource: ImageSourcePropType;
   mascotSide: 'left' | 'right';
 };
-

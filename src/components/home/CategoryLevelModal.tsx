@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useEffect, useRef } from 'react';
 import {
+  ActivityIndicator,
   Image,
   Modal,
   Pressable,
@@ -29,7 +30,11 @@ type CategoryLevelModalProps = {
   visible: boolean;
   category: HomeCategory | null;
   levels: CategoryLevel[];
+  status: 'loading' | 'error' | 'invalid' | 'ready';
+  errorMessage: string | null;
+  retryDisabled: boolean;
   onDismissed: () => void;
+  onRetry: () => void;
   onSelectLevel: (category: HomeCategory, level: CategoryLevel) => void;
 };
 
@@ -42,7 +47,11 @@ export function CategoryLevelModal({
   visible,
   category,
   levels,
+  status,
+  errorMessage,
+  retryDisabled,
   onDismissed,
+  onRetry,
   onSelectLevel,
 }: CategoryLevelModalProps) {
   const insets = useSafeAreaInsets();
@@ -106,7 +115,7 @@ export function CategoryLevelModal({
 
   const selectLevel = useCallback(
     (level: CategoryLevel) => {
-      if (!category || closingRef.current) {
+      if (!category || level.levelCount <= 0 || closingRef.current) {
         return;
       }
 
@@ -216,13 +225,56 @@ export function CategoryLevelModal({
             </View>
 
             <View style={styles.levels}>
-              {levels.map((level) => (
-                <CategoryLevelOption
-                  key={level.id}
-                  level={level}
-                  onPress={selectLevel}
-                />
-              ))}
+              {status === 'loading' ? (
+                <View
+                  accessibilityLabel="Loading difficulty levels"
+                  style={styles.statePanel}
+                >
+                  <ActivityIndicator color={colors.home.heading} size="large" />
+                </View>
+              ) : status === 'error' ? (
+                <View style={styles.statePanel}>
+                  <Text accessibilityRole="alert" style={styles.stateText}>
+                    {errorMessage ?? 'Unable to load difficulty levels.'}
+                  </Text>
+                  <Pressable
+                    accessibilityRole="button"
+                    disabled={retryDisabled}
+                    onPress={onRetry}
+                    style={({ pressed }) => [
+                      styles.stateButton,
+                      pressed && styles.stateButtonPressed,
+                      retryDisabled && styles.stateButtonDisabled,
+                    ]}
+                  >
+                    <Text style={styles.stateButtonText}>Retry</Text>
+                  </Pressable>
+                </View>
+              ) : status === 'invalid' ? (
+                <View style={styles.statePanel}>
+                  <Text accessibilityRole="alert" style={styles.stateText}>
+                    This category link is invalid.
+                  </Text>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={dismissWithoutSelection}
+                    style={({ pressed }) => [
+                      styles.stateButton,
+                      pressed && styles.stateButtonPressed,
+                    ]}
+                  >
+                    <Text style={styles.stateButtonText}>Return to Home</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                levels.map((level) => (
+                  <CategoryLevelOption
+                    key={level.difficulty}
+                    level={level}
+                    onPress={selectLevel}
+                  />
+                ))
+              )}
             </View>
           </Animated.View>
         ) : null}
@@ -306,5 +358,41 @@ const styles = StyleSheet.create({
     height: 274,
     gap: 12,
     paddingTop: 16,
+  },
+  statePanel: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+  },
+  stateText: {
+    fontFamily: 'Nunito',
+    fontWeight: '500',
+    fontSize: 15,
+    lineHeight: 21,
+    textAlign: 'center',
+    color: colors.home.heading,
+    includeFontPadding: false,
+  },
+  stateButton: {
+    borderRadius: 999,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: colors.muvBlue300,
+  },
+  stateButtonPressed: {
+    opacity: 0.85,
+  },
+  stateButtonDisabled: {
+    opacity: 0.5,
+  },
+  stateButtonText: {
+    fontFamily: 'Fredoka',
+    fontWeight: '500',
+    fontSize: 14,
+    color: '#FFFFFF',
+    includeFontPadding: false,
   },
 });

@@ -123,7 +123,11 @@ export function HomeContent({ screen }: HomeContentProps) {
         visible={screen.isCategoryModalVisible}
         category={screen.selectedCategory}
         levels={screen.categoryLevels}
+        status={screen.categoryLevelStatus}
+        errorMessage={screen.categoryLevelErrorMessage}
+        retryDisabled={screen.isRetryingCategoryLevels}
         onDismissed={screen.finishClosingCategoryModal}
+        onRetry={screen.retryCategoryLevels}
         onSelectLevel={screen.handleSelectCategoryLevel}
       />
     </LinearGradient>

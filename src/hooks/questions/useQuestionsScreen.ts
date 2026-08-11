@@ -1,4 +1,5 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   useCallback,
   useEffect,
@@ -6,218 +7,292 @@ import {
   useReducer,
   useRef,
   useState,
-} from 'react';
+} from "react";
 import {
   AccessibilityInfo,
   AppState,
   BackHandler,
   type AppStateStatus,
-} from 'react-native';
+} from "react-native";
 
-import { isCategoryId, isLevelMapDifficulty } from '@/constants/level-map';
+import { isLevelMapDifficulty } from "@/constants/level-map";
 import {
   QUESTION_FEEDBACK_DURATION_MS,
-  QUESTION_TIMEOUT_FEEDBACK_MS,
   QUESTION_TIMER_INTERVAL_MS,
-} from '@/constants/questions';
+} from "@/constants/questions";
 import {
-  completeQuestionSession,
-  getQuestionSession,
-  submitQuestionAnswer,
-} from '@/services/questions.service';
+  getLevelMapQueryKey,
+  LEVEL_MAP_LIMIT,
+  LEVEL_MAP_PAGE,
+} from "@/services/level-map.service";
+import { HOME_QUERY_KEY } from "@/services/home.service";
+import {
+  getSessionQuestions,
+  getSessionQuestionsQueryKey,
+  submitAnswer,
+} from "@/services/questions.service";
 import type {
   GameplayOverlay,
   QuestionAnswerResult,
   QuestionSession,
-  QuestionSessionRequest,
+  QuestionsInteractionState,
   QuestionsReadyState,
+  QuestionsRouteContext,
   QuestionsState,
   QuitDestination,
-} from '@/types/questions.types';
+  LevelCompletionData,
+} from "@/types/questions.types";
+import { useAuthStore } from "@/store/auth.store";
+import { getApiErrorMessage } from "@/utils/get-api-error-message";
 
 type RouteParams = {
   categoryId?: string | string[];
+  categoryName?: string | string[];
+  categoryIcon?: string | string[];
   difficulty?: string | string[];
   levelId?: string | string[];
   levelNumber?: string | string[];
+  sessionId?: string | string[];
 };
 
 type QuestionsAction =
-  | { type: 'load-start' }
-  | { type: 'load-success'; session: QuestionSession }
-  | { type: 'invalid' }
-  | { type: 'error'; message: string }
-  | { type: 'tick'; remainingMs: number }
-  | { type: 'submission-start'; optionId: string | null }
-  | { type: 'submission-result'; result: QuestionAnswerResult }
+  | { type: "reset" }
   | {
-      type: 'show-overlay';
+      type: "initialize";
+      sessionId: number;
+      questionIndex: number;
+      durationMs: number;
+    }
+  | { type: "tick"; remainingMs: number }
+  | { type: "submission-start"; optionId: number }
+  | { type: "submission-result"; result: QuestionAnswerResult }
+  | { type: "submission-error"; message: string }
+  | {
+      type: "show-overlay";
       overlay: Exclude<GameplayOverlay, null>;
       destination?: QuitDestination;
       remainingMs?: number;
     }
-  | { type: 'cancel-quit' }
-  | { type: 'resume' }
-  | { type: 'next-question' }
-  | { type: 'completing' };
+  | { type: "cancel-quit" }
+  | { type: "resume" }
+  | { type: "next-question"; questionIndex: number; durationMs: number };
 
-const initialState: QuestionsState = { status: 'loading' };
+const initialInteractionState: QuestionsInteractionState = {
+  sessionId: null,
+  questionIndex: 0,
+  phase: "answering",
+  selectedOptionId: null,
+  feedback: null,
+  remainingMs: 0,
+  overlay: null,
+  pendingDestination: null,
+  submissionError: null,
+};
 
 function questionsReducer(
-  state: QuestionsState,
+  state: QuestionsInteractionState,
   action: QuestionsAction,
-): QuestionsState {
+): QuestionsInteractionState {
   switch (action.type) {
-    case 'load-start':
-      return { status: 'loading' };
-    case 'load-success':
+    case "reset":
+      return initialInteractionState;
+    case "initialize":
       return {
-        status: 'ready',
-        session: action.session,
-        questionIndex: 0,
-        phase: 'answering',
-        selectedOptionId: null,
-        feedback: null,
-        remainingMs: action.session.questions[0].durationSeconds * 1000,
-        overlay: null,
-        pendingDestination: null,
+        ...initialInteractionState,
+        sessionId: action.sessionId,
+        questionIndex: action.questionIndex,
+        remainingMs: action.durationMs,
       };
-    case 'invalid':
-      return { status: 'invalid' };
-    case 'error':
-      return { status: 'error', message: action.message };
-    default:
-      break;
-  }
-
-  if (state.status !== 'ready') {
-    return state;
-  }
-
-  switch (action.type) {
-    case 'tick':
+    case "tick":
       return {
         ...state,
         remainingMs: Math.max(0, action.remainingMs),
       };
-    case 'submission-start':
+    case "submission-start":
       return {
         ...state,
-        phase: 'submitting',
+        phase: "submitting",
         selectedOptionId: action.optionId,
+        feedback: null,
+        submissionError: null,
       };
-    case 'submission-result':
+    case "submission-result":
       return {
         ...state,
-        phase: 'feedback',
+        phase: "feedback",
         feedback: action.result,
+        submissionError: null,
       };
-    case 'show-overlay':
+    case "submission-error":
+      return {
+        ...state,
+        phase: "answering",
+        feedback: null,
+        submissionError: action.message,
+      };
+    case "show-overlay":
       return {
         ...state,
         overlay: action.overlay,
         pendingDestination: action.destination ?? state.pendingDestination,
         remainingMs: action.remainingMs ?? state.remainingMs,
       };
-    case 'cancel-quit':
+    case "cancel-quit":
       return {
         ...state,
-        overlay: 'pause',
+        overlay: "pause",
         pendingDestination: null,
       };
-    case 'resume':
+    case "resume":
       return {
         ...state,
         overlay: null,
         pendingDestination: null,
       };
-    case 'next-question': {
-      const questionIndex = state.questionIndex + 1;
-      const nextQuestion = state.session.questions[questionIndex];
-
-      if (!nextQuestion) {
-        return { ...state, phase: 'completing' };
-      }
-
+    case "next-question":
       return {
         ...state,
-        questionIndex,
-        phase: 'answering',
+        questionIndex: action.questionIndex,
+        phase: "answering",
         selectedOptionId: null,
         feedback: null,
-        remainingMs: nextQuestion.durationSeconds * 1000,
+        remainingMs: action.durationMs,
+        submissionError: null,
       };
-    }
-    case 'completing':
-      return { ...state, phase: 'completing' };
-    default:
-      return state;
   }
 }
 
 function getSingleParam(value: string | string[] | undefined) {
-  return typeof value === 'string' ? value : undefined;
+  return typeof value === "string" ? value : undefined;
 }
 
-function getRouteRequest(params: RouteParams): QuestionSessionRequest | null {
-  const categoryId = getSingleParam(params.categoryId);
+function getPositiveIntegerParam(value: string | string[] | undefined) {
+  const singleValue = getSingleParam(value);
+  const parsedValue = singleValue === undefined ? NaN : Number(singleValue);
+
+  return Number.isInteger(parsedValue) && parsedValue > 0 ? parsedValue : null;
+}
+
+function getRouteContext(params: RouteParams): QuestionsRouteContext | null {
+  const categoryId = getPositiveIntegerParam(params.categoryId);
+  const categoryName = getSingleParam(params.categoryName);
+  const categoryIcon = getSingleParam(params.categoryIcon);
   const difficulty = getSingleParam(params.difficulty);
-  const levelId = getSingleParam(params.levelId);
-  const levelNumberValue = getSingleParam(params.levelNumber);
-  const levelNumber = levelNumberValue ? Number(levelNumberValue) : NaN;
+  const levelId = getPositiveIntegerParam(params.levelId);
+  const levelNumber = getPositiveIntegerParam(params.levelNumber);
+  const sessionId = getPositiveIntegerParam(params.sessionId);
 
   if (
-    !isCategoryId(categoryId) ||
+    categoryId === null ||
+    !categoryName?.trim() ||
+    !categoryIcon ||
     !isLevelMapDifficulty(difficulty) ||
-    !levelId ||
-    !Number.isInteger(levelNumber) ||
-    levelNumber <= 0
+    levelId === null ||
+    levelNumber === null ||
+    sessionId === null
   ) {
     return null;
   }
 
-  return { categoryId, difficulty, levelId, levelNumber };
+  return {
+    categoryId,
+    categoryName,
+    categoryIcon,
+    difficulty,
+    levelId,
+    levelNumber,
+    sessionId,
+  };
 }
 
-function getErrorMessage(error: unknown) {
-  return error instanceof Error
-    ? error.message
-    : 'Unable to load this question session.';
+function getFirstUnansweredQuestionIndex(session: QuestionSession) {
+  return session.questions.findIndex(
+    (question) => question.submittedAnswerId === null,
+  );
 }
 
 export function useQuestionsScreen() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const userId = useAuthStore((state) => state.session?.user.id);
   const params = useLocalSearchParams<RouteParams>();
   const categoryIdParam = params.categoryId;
+  const categoryNameParam = params.categoryName;
+  const categoryIconParam = params.categoryIcon;
   const difficultyParam = params.difficulty;
   const levelIdParam = params.levelId;
   const levelNumberParam = params.levelNumber;
-  const routeRequest = useMemo(
+  const sessionIdParam = params.sessionId;
+  const routeContext = useMemo(
     () =>
-      getRouteRequest({
+      getRouteContext({
         categoryId: categoryIdParam,
+        categoryName: categoryNameParam,
+        categoryIcon: categoryIconParam,
         difficulty: difficultyParam,
         levelId: levelIdParam,
         levelNumber: levelNumberParam,
+        sessionId: sessionIdParam,
       }),
-    [categoryIdParam, difficultyParam, levelIdParam, levelNumberParam],
+    [
+      categoryIconParam,
+      categoryIdParam,
+      categoryNameParam,
+      difficultyParam,
+      levelIdParam,
+      levelNumberParam,
+      sessionIdParam,
+    ],
   );
-  const routeKey = routeRequest
-    ? `${routeRequest.categoryId}:${routeRequest.difficulty}:${routeRequest.levelId}:${routeRequest.levelNumber}`
+  const routeKey = routeContext
+    ? `${routeContext.categoryId}:${routeContext.difficulty}:${routeContext.levelId}:${routeContext.levelNumber}:${routeContext.sessionId}`
     : null;
-  const [state, dispatch] = useReducer(questionsReducer, initialState);
-  const [retryKey, setRetryKey] = useState(0);
-  const stateRef = useRef(state);
+  const sessionId = routeContext?.sessionId ?? 0;
+  const questionsQuery = useQuery({
+    queryKey: getSessionQuestionsQueryKey(sessionId),
+    queryFn: () => getSessionQuestions(sessionId),
+    enabled: routeContext !== null,
+    refetchOnWindowFocus: false,
+  });
+  const submitAnswerMutation = useMutation({
+    mutationFn: submitAnswer,
+    retry: false,
+  });
+  const [interaction, dispatch] = useReducer(
+    questionsReducer,
+    initialInteractionState,
+  );
+  const [fatalSessionError, setFatalSessionError] = useState<{
+    routeKey: string | null;
+    message: string;
+  } | null>(null);
+  const interactionRef = useRef(interaction);
+  const sessionRef = useRef<QuestionSession | null>(null);
+  const routeContextRef = useRef(routeContext);
   const mountedRef = useRef(true);
-  const requestGenerationRef = useRef(0);
+  const submissionGenerationRef = useRef(0);
   const submissionInFlightRef = useRef(false);
+  const submittedQuestionIdsRef = useRef(new Set<number>());
+  const completionRef = useRef<LevelCompletionData | null>(null);
   const navigationLockedRef = useRef(false);
   const pauseRequestRef = useRef(false);
   const timerDeadlineRef = useRef<number | null>(null);
+  const timerExpiredQuestionRef = useRef<number | null>(null);
   const feedbackDeadlineRef = useRef<number | null>(null);
   const feedbackRemainingRef = useRef(QUESTION_FEEDBACK_DURATION_MS);
   const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+
+  const session = useMemo<QuestionSession | null>(() => {
+    if (!routeContext || !questionsQuery.data) {
+      return null;
+    }
+
+    return {
+      ...routeContext,
+      ...questionsQuery.data,
+    };
+  }, [questionsQuery.data, routeContext]);
 
   const clearFeedbackTimeout = useCallback(() => {
     if (feedbackTimeoutRef.current) {
@@ -230,13 +305,21 @@ export function useQuestionsScreen() {
     clearFeedbackTimeout();
     timerDeadlineRef.current = null;
     feedbackDeadlineRef.current = null;
-    requestGenerationRef.current += 1;
+    submissionGenerationRef.current += 1;
     submissionInFlightRef.current = false;
   }, [clearFeedbackTimeout]);
 
   useEffect(() => {
-    stateRef.current = state;
-  }, [state]);
+    interactionRef.current = interaction;
+  }, [interaction]);
+
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
+
+  useEffect(() => {
+    routeContextRef.current = routeContext;
+  }, [routeContext]);
 
   useEffect(() => {
     return () => {
@@ -246,211 +329,311 @@ export function useQuestionsScreen() {
   }, [clearGameplayWork]);
 
   useEffect(() => {
-    if (!routeRequest || !routeKey) {
-      requestGenerationRef.current += 1;
-      dispatch({ type: 'invalid' });
+    clearGameplayWork();
+    submittedQuestionIdsRef.current = new Set();
+    completionRef.current = null;
+    navigationLockedRef.current = false;
+    pauseRequestRef.current = false;
+    timerExpiredQuestionRef.current = null;
+    dispatch({ type: "reset" });
+  }, [clearGameplayWork, routeKey]);
+
+  useEffect(() => {
+    if (!session || interaction.sessionId === session.sessionId) {
       return;
     }
 
-    const generation = ++requestGenerationRef.current;
-    dispatch({ type: 'load-start' });
-    navigationLockedRef.current = false;
-    pauseRequestRef.current = false;
+    submittedQuestionIdsRef.current = new Set(
+      session.questions
+        .filter((question) => question.submittedAnswerId !== null)
+        .map((question) => question.id),
+    );
+    const questionIndex = getFirstUnansweredQuestionIndex(session);
+    if (questionIndex < 0) {
+      return;
+    }
 
-    void getQuestionSession(routeRequest)
-      .then((session) => {
-        if (
-          !mountedRef.current ||
-          generation !== requestGenerationRef.current
-        ) {
-          return;
-        }
-
-        if (
-          session.categoryId !== routeRequest.categoryId ||
-          session.difficulty !== routeRequest.difficulty ||
-          session.levelId !== routeRequest.levelId ||
-          session.levelNumber !== routeRequest.levelNumber ||
-          session.totalQuestions !== session.questions.length ||
-          session.questions.length === 0
-        ) {
-          throw new Error('The question session does not match the request.');
-        }
-
-        timerDeadlineRef.current = null;
-        feedbackDeadlineRef.current = null;
-        dispatch({ type: 'load-success', session });
-      })
-      .catch((error: unknown) => {
-        if (
-          !mountedRef.current ||
-          generation !== requestGenerationRef.current
-        ) {
-          return;
-        }
-
-        dispatch({ type: 'error', message: getErrorMessage(error) });
-      });
-  }, [retryKey, routeKey, routeRequest]);
+    const question = session.questions[questionIndex];
+    timerExpiredQuestionRef.current = null;
+    dispatch({
+      type: "initialize",
+      sessionId: session.sessionId,
+      questionIndex,
+      durationMs: question.durationSeconds * 1000,
+    });
+  }, [interaction.sessionId, session]);
 
   const currentQuestion =
-    state.status === 'ready'
-      ? state.session.questions[state.questionIndex]
+    session && interaction.sessionId === session.sessionId
+      ? (session.questions[interaction.questionIndex] ?? null)
       : null;
+  const hasNoUnansweredQuestions =
+    session !== null && getFirstUnansweredQuestionIndex(session) < 0;
+  const isReady =
+    session !== null &&
+    currentQuestion !== null &&
+    interaction.sessionId === session.sessionId;
+  const fatalSessionErrorMessage =
+    fatalSessionError?.routeKey === routeKey ? fatalSessionError.message : null;
+
+  let state: QuestionsState;
+  if (!routeContext) {
+    state = { status: "invalid" };
+  } else if (fatalSessionErrorMessage) {
+    state = { status: "error", message: fatalSessionErrorMessage };
+  } else if (questionsQuery.isPending && !questionsQuery.data) {
+    state = { status: "loading" };
+  } else if (questionsQuery.isError && !questionsQuery.data) {
+    state = {
+      status: "error",
+      message: getApiErrorMessage(
+        questionsQuery.error,
+        "Unable to load this question session.",
+      ),
+    };
+  } else if (hasNoUnansweredQuestions && interaction.sessionId === null) {
+    state = {
+      status: "completed",
+      message:
+        "All answers have been submitted. Return to the Map to refresh your progress.",
+    };
+  } else if (isReady && session) {
+    state = {
+      ...interaction,
+      status: "ready",
+      session,
+    };
+  } else {
+    state = { status: "loading" };
+  }
+
+  const readyState: QuestionsReadyState | null =
+    state.status === "ready" ? state : null;
   const effectStatus = state.status;
-  const effectQuestionIndex =
-    state.status === 'ready' ? state.questionIndex : -1;
-  const effectPhase = state.status === 'ready' ? state.phase : null;
-  const effectOverlay = state.status === 'ready' ? state.overlay : null;
+  const effectQuestionIndex = readyState?.questionIndex ?? -1;
+  const effectPhase = readyState?.phase ?? null;
+  const effectOverlay = readyState?.overlay ?? null;
 
-  const advanceAfterFeedback = useCallback(async () => {
-    const currentState = stateRef.current;
-
+  const advanceAfterFeedback = useCallback(() => {
+    const currentInteraction = interactionRef.current;
+    const currentSession = sessionRef.current;
     if (
-      currentState.status !== 'ready' ||
-      currentState.phase !== 'feedback' ||
-      currentState.overlay !== null
+      !currentSession ||
+      currentInteraction.sessionId !== currentSession.sessionId ||
+      currentInteraction.phase !== "feedback" ||
+      currentInteraction.overlay !== null
     ) {
       return;
     }
 
     feedbackDeadlineRef.current = null;
     feedbackRemainingRef.current = QUESTION_FEEDBACK_DURATION_MS;
-    const isFinalQuestion =
-      currentState.questionIndex >= currentState.session.totalQuestions - 1;
 
-    if (!isFinalQuestion) {
-      requestGenerationRef.current += 1;
-      submissionInFlightRef.current = false;
-      timerDeadlineRef.current = null;
-      dispatch({ type: 'next-question' });
-      return;
-    }
-
-    if (navigationLockedRef.current) {
-      return;
-    }
-
-    dispatch({ type: 'completing' });
-    const generation = ++requestGenerationRef.current;
-
-    try {
-      const completion = await completeQuestionSession({
-        sessionId: currentState.session.sessionId,
-      });
-
-      if (!mountedRef.current || generation !== requestGenerationRef.current) {
-        return;
-      }
-
-      if (navigationLockedRef.current) {
+    const completion = completionRef.current;
+    const currentRoute = routeContextRef.current;
+    if (completion) {
+      if (
+        !currentRoute ||
+        completion.sessionId !== currentSession.sessionId ||
+        navigationLockedRef.current
+      ) {
         return;
       }
 
       navigationLockedRef.current = true;
       clearGameplayWork();
       router.replace({
-        pathname: '/level-complete',
+        pathname: "/level-complete",
         params: {
-          categoryId: currentState.session.categoryId,
-          difficulty: currentState.session.difficulty,
-          levelId: currentState.session.levelId,
-          levelNumber: currentState.session.levelNumber,
-          totalQuestions: completion.totalQuestions,
+          categoryId: currentRoute.categoryId,
+          categoryName: currentRoute.categoryName,
+          categoryIcon: currentRoute.categoryIcon,
+          difficulty: currentRoute.difficulty,
+          levelId: currentRoute.levelId,
+          levelNumber: currentRoute.levelNumber,
+          sessionId: completion.sessionId,
+          score: completion.score,
+          xpEarned: completion.xpEarned,
           correctAnswers: completion.correctAnswers,
           wrongAnswers: completion.wrongAnswers,
-          points: completion.points,
-          weeklyRank: completion.weeklyRank,
+          durationSeconds: completion.durationSeconds,
+          isReplay: String(completion.isReplay),
+          alreadyCompleted: String(completion.alreadyCompleted),
         },
       });
-    } catch (error: unknown) {
-      if (!mountedRef.current || generation !== requestGenerationRef.current) {
-        return;
-      }
-
-      dispatch({ type: 'error', message: getErrorMessage(error) });
+      return;
     }
+
+    const nextQuestionIndex = currentSession.questions.findIndex(
+      (question, index) =>
+        index > currentInteraction.questionIndex &&
+        question.submittedAnswerId === null &&
+        !submittedQuestionIdsRef.current.has(question.id),
+    );
+    const nextQuestion = currentSession.questions[nextQuestionIndex];
+    if (!nextQuestion) {
+      submissionInFlightRef.current = false;
+      setFatalSessionError({
+        routeKey:
+          routeContextRef.current === null
+            ? null
+            : `${routeContextRef.current.categoryId}:${routeContextRef.current.difficulty}:${routeContextRef.current.levelId}:${routeContextRef.current.levelNumber}:${routeContextRef.current.sessionId}`,
+        message:
+          "The session has no remaining question, but the level was not marked complete.",
+      });
+      return;
+    }
+
+    submissionGenerationRef.current += 1;
+    submissionInFlightRef.current = false;
+    timerDeadlineRef.current = null;
+    timerExpiredQuestionRef.current = null;
+    dispatch({
+      type: "next-question",
+      questionIndex: nextQuestionIndex,
+      durationMs: nextQuestion.durationSeconds * 1000,
+    });
   }, [clearGameplayWork, router]);
 
   const submitCurrentAnswer = useCallback(
-    async (optionId: string | null, timedOut = false) => {
-      const currentState = stateRef.current;
-
+    async (optionId: number) => {
+      const currentInteraction = interactionRef.current;
+      const currentSession = sessionRef.current;
+      const currentRoute = routeContextRef.current;
       if (
-        currentState.status !== 'ready' ||
-        currentState.phase !== 'answering' ||
-        currentState.overlay !== null ||
-        submissionInFlightRef.current
+        !currentSession ||
+        !currentRoute ||
+        currentInteraction.sessionId !== currentSession.sessionId ||
+        currentInteraction.phase !== "answering" ||
+        currentInteraction.overlay !== null ||
+        submissionInFlightRef.current ||
+        (currentInteraction.submissionError !== null &&
+          currentInteraction.selectedOptionId !== optionId)
       ) {
         return;
       }
 
       const question =
-        currentState.session.questions[currentState.questionIndex];
+        currentSession.questions[currentInteraction.questionIndex];
+      if (!question?.options.some((option) => option.id === optionId)) {
+        return;
+      }
+
       submissionInFlightRef.current = true;
+      completionRef.current = null;
       timerDeadlineRef.current = null;
-      dispatch({ type: 'submission-start', optionId });
-      const generation = ++requestGenerationRef.current;
+      dispatch({ type: "submission-start", optionId });
+      const generation = ++submissionGenerationRef.current;
 
       try {
-        const result = await submitQuestionAnswer({
-          sessionId: currentState.session.sessionId,
+        const result = await submitAnswerMutation.mutateAsync({
+          sessionId: currentSession.sessionId,
           questionId: question.id,
-          selectedOptionId: optionId,
-          timedOut,
+          answerId: optionId,
         });
 
+        const latestInteraction = interactionRef.current;
+        const latestSession = sessionRef.current;
         if (
           !mountedRef.current ||
-          generation !== requestGenerationRef.current ||
-          result.questionId !== question.id
+          generation !== submissionGenerationRef.current ||
+          latestSession?.sessionId !== currentSession.sessionId ||
+          latestInteraction.questionIndex !==
+            currentInteraction.questionIndex ||
+          result.questionId !== question.id ||
+          result.answerId !== optionId
         ) {
           return;
         }
 
-        submissionInFlightRef.current = false;
-        feedbackRemainingRef.current = timedOut
-          ? QUESTION_TIMEOUT_FEEDBACK_MS
-          : QUESTION_FEEDBACK_DURATION_MS;
-        feedbackDeadlineRef.current = null;
-        dispatch({ type: 'submission-result', result });
-
-        if (!timedOut) {
-          AccessibilityInfo.announceForAccessibility(
-            result.isCorrect ? 'Correct answer' : 'Wrong answer',
+        if (
+          result.isLevelCompleted &&
+          result.completion.correctAnswers + result.completion.wrongAnswers !==
+            currentSession.totalQuestions
+        ) {
+          void queryClient.invalidateQueries({
+            exact: true,
+            queryKey: getSessionQuestionsQueryKey(currentSession.sessionId),
+          });
+          throw new Error(
+            "The completed level result does not match this question session.",
           );
         }
+
+        submittedQuestionIdsRef.current.add(question.id);
+        completionRef.current = result.isLevelCompleted
+          ? result.completion
+          : null;
+        submissionInFlightRef.current = false;
+        feedbackRemainingRef.current = QUESTION_FEEDBACK_DURATION_MS;
+        feedbackDeadlineRef.current = null;
+        dispatch({
+          type: "submission-result",
+          result: {
+            questionId: result.questionId,
+            answerId: result.answerId,
+            isCorrect: result.isCorrect,
+          },
+        });
+        void queryClient.invalidateQueries({
+          exact: true,
+          queryKey: getSessionQuestionsQueryKey(currentSession.sessionId),
+        });
+
+        if (result.isLevelCompleted) {
+          void queryClient.invalidateQueries({
+            exact: true,
+            queryKey: getLevelMapQueryKey({
+              subCategoryId: currentRoute.categoryId,
+              stage: currentRoute.difficulty,
+              page: LEVEL_MAP_PAGE,
+              limit: LEVEL_MAP_LIMIT,
+            }),
+          });
+          if (userId) {
+            void queryClient.invalidateQueries({
+              exact: true,
+              queryKey: [...HOME_QUERY_KEY, userId],
+            });
+          }
+        }
+
+        AccessibilityInfo.announceForAccessibility(
+          result.isCorrect ? "Correct answer" : "Wrong answer",
+        );
       } catch (error: unknown) {
         if (
           !mountedRef.current ||
-          generation !== requestGenerationRef.current
+          generation !== submissionGenerationRef.current
         ) {
           return;
         }
 
         submissionInFlightRef.current = false;
-        dispatch({ type: 'error', message: getErrorMessage(error) });
+        dispatch({
+          type: "submission-error",
+          message: getApiErrorMessage(
+            error,
+            "Unable to submit this answer. Please try again.",
+          ),
+        });
       }
     },
-    [],
+    [queryClient, submitAnswerMutation, userId],
   );
 
   useEffect(() => {
     if (
-      effectStatus !== 'ready' ||
-      effectPhase !== 'answering' ||
+      effectStatus !== "ready" ||
+      effectPhase !== "answering" ||
       effectOverlay !== null
     ) {
       return;
     }
 
     if (timerDeadlineRef.current === null) {
-      const currentState = stateRef.current;
-      if (currentState.status !== 'ready') {
-        return;
-      }
-
-      timerDeadlineRef.current = Date.now() + currentState.remainingMs;
+      const currentInteraction = interactionRef.current;
+      timerDeadlineRef.current = Date.now() + currentInteraction.remainingMs;
     }
 
     const tick = () => {
@@ -459,29 +642,32 @@ export function useQuestionsScreen() {
       }
 
       const remainingMs = Math.max(0, timerDeadlineRef.current - Date.now());
-      dispatch({ type: 'tick', remainingMs });
+      dispatch({ type: "tick", remainingMs });
 
       if (remainingMs === 0) {
         timerDeadlineRef.current = null;
-        void submitCurrentAnswer(null, true);
+        const currentSession = sessionRef.current;
+        const currentInteraction = interactionRef.current;
+        const question =
+          currentSession?.questions[currentInteraction.questionIndex];
+        if (question && timerExpiredQuestionRef.current !== question.id) {
+          timerExpiredQuestionRef.current = question.id;
+          AccessibilityInfo.announceForAccessibility(
+            "Time expired. Select an answer to continue.",
+          );
+        }
       }
     };
 
     tick();
     const interval = setInterval(tick, QUESTION_TIMER_INTERVAL_MS);
     return () => clearInterval(interval);
-  }, [
-    effectOverlay,
-    effectPhase,
-    effectQuestionIndex,
-    effectStatus,
-    submitCurrentAnswer,
-  ]);
+  }, [effectOverlay, effectPhase, effectQuestionIndex, effectStatus]);
 
   useEffect(() => {
     if (
-      effectStatus !== 'ready' ||
-      effectPhase !== 'feedback' ||
+      effectStatus !== "ready" ||
+      effectPhase !== "feedback" ||
       effectOverlay !== null
     ) {
       return;
@@ -492,7 +678,7 @@ export function useQuestionsScreen() {
     feedbackDeadlineRef.current = Date.now() + remaining;
     feedbackTimeoutRef.current = setTimeout(() => {
       feedbackTimeoutRef.current = null;
-      void advanceAfterFeedback();
+      advanceAfterFeedback();
     }, remaining);
 
     return clearFeedbackTimeout;
@@ -510,11 +696,10 @@ export function useQuestionsScreen() {
       overlay: Exclude<GameplayOverlay, null>,
       destination?: QuitDestination,
     ) => {
-      const currentState = stateRef.current;
-
+      const currentInteraction = interactionRef.current;
       if (
-        currentState.status !== 'ready' ||
-        currentState.overlay !== null ||
+        currentInteraction.sessionId === null ||
+        currentInteraction.overlay !== null ||
         pauseRequestRef.current
       ) {
         return;
@@ -524,7 +709,7 @@ export function useQuestionsScreen() {
       let remainingMs: number | undefined;
 
       if (
-        currentState.phase === 'answering' &&
+        currentInteraction.phase === "answering" &&
         timerDeadlineRef.current !== null
       ) {
         remainingMs = Math.max(0, timerDeadlineRef.current - Date.now());
@@ -532,7 +717,7 @@ export function useQuestionsScreen() {
       }
 
       if (
-        currentState.phase === 'feedback' &&
+        currentInteraction.phase === "feedback" &&
         feedbackDeadlineRef.current !== null
       ) {
         feedbackRemainingRef.current = Math.max(
@@ -544,7 +729,7 @@ export function useQuestionsScreen() {
       }
 
       dispatch({
-        type: 'show-overlay',
+        type: "show-overlay",
         overlay,
         destination,
         remainingMs,
@@ -554,98 +739,86 @@ export function useQuestionsScreen() {
   );
 
   const handlePause = useCallback(() => {
-    freezeAndShowOverlay('pause');
+    freezeAndShowOverlay("pause");
   }, [freezeAndShowOverlay]);
 
   const handleResume = useCallback(() => {
-    const currentState = stateRef.current;
-
-    if (currentState.status !== 'ready' || currentState.overlay !== 'pause') {
+    const currentInteraction = interactionRef.current;
+    if (currentInteraction.overlay !== "pause") {
       return;
     }
 
     pauseRequestRef.current = false;
     timerDeadlineRef.current = null;
     feedbackDeadlineRef.current = null;
-    dispatch({ type: 'resume' });
+    dispatch({ type: "resume" });
   }, []);
 
   const handleRequestQuit = useCallback(
     (destination: QuitDestination) => {
-      const currentState = stateRef.current;
-
-      if (currentState.status !== 'ready') {
+      const currentInteraction = interactionRef.current;
+      if (currentInteraction.sessionId === null) {
         return;
       }
 
-      if (currentState.overlay === 'pause') {
-        dispatch({ type: 'show-overlay', overlay: 'quit', destination });
+      if (currentInteraction.overlay === "pause") {
+        dispatch({ type: "show-overlay", overlay: "quit", destination });
         return;
       }
 
-      freezeAndShowOverlay('quit', destination);
+      freezeAndShowOverlay("quit", destination);
     },
     [freezeAndShowOverlay],
   );
 
   const handleCancelQuit = useCallback(() => {
-    const currentState = stateRef.current;
-
-    if (currentState.status !== 'ready' || currentState.overlay !== 'quit') {
+    if (interactionRef.current.overlay !== "quit") {
       return;
     }
 
-    dispatch({ type: 'cancel-quit' });
+    dispatch({ type: "cancel-quit" });
   }, []);
 
   const handleConfirmQuit = useCallback(() => {
-    const currentState = stateRef.current;
-
+    const currentInteraction = interactionRef.current;
     if (
-      currentState.status !== 'ready' ||
-      currentState.overlay !== 'quit' ||
-      !currentState.pendingDestination ||
+      currentInteraction.overlay !== "quit" ||
+      !currentInteraction.pendingDestination ||
       navigationLockedRef.current
     ) {
       return;
     }
 
     navigationLockedRef.current = true;
-    const destination = currentState.pendingDestination;
+    const destination = currentInteraction.pendingDestination;
     clearGameplayWork();
 
-    if (destination === 'map') {
+    if (destination === "map") {
       if (router.canGoBack()) {
         router.back();
       } else {
-        router.replace('/(tabs)/home');
+        router.replace("/(tabs)/home");
       }
       return;
     }
 
-    router.dismissTo('/(tabs)/home');
+    router.dismissTo("/(tabs)/home");
   }, [clearGameplayWork, router]);
 
   const handleOverlayRequestClose = useCallback(() => {
-    const currentState = stateRef.current;
-
-    if (currentState.status !== 'ready') {
-      return;
-    }
-
-    if (currentState.overlay === 'quit') {
+    if (interactionRef.current.overlay === "quit") {
       handleCancelQuit();
-    } else if (currentState.overlay === 'pause') {
+    } else if (interactionRef.current.overlay === "pause") {
       handleResume();
     }
   }, [handleCancelQuit, handleResume]);
 
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextState) => {
-      const wasActive = appStateRef.current === 'active';
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      const wasActive = appStateRef.current === "active";
       appStateRef.current = nextState;
 
-      if (wasActive && nextState !== 'active') {
+      if (wasActive && nextState !== "active") {
         handlePause();
       }
     });
@@ -655,19 +828,18 @@ export function useQuestionsScreen() {
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener(
-      'hardwareBackPress',
+      "hardwareBackPress",
       () => {
-        const currentState = stateRef.current;
-
-        if (currentState.status !== 'ready') {
+        const currentInteraction = interactionRef.current;
+        if (currentInteraction.sessionId === null) {
           return false;
         }
 
-        if (currentState.overlay !== null) {
+        if (currentInteraction.overlay !== null) {
           return true;
         }
 
-        handleRequestQuit('map');
+        handleRequestQuit("map");
         return true;
       },
     );
@@ -676,21 +848,43 @@ export function useQuestionsScreen() {
   }, [handleRequestQuit]);
 
   const handleRetry = useCallback(() => {
-    clearGameplayWork();
-    mountedRef.current = true;
-    setRetryKey((value) => value + 1);
-  }, [clearGameplayWork]);
+    if (!routeContext || questionsQuery.isFetching) {
+      return;
+    }
+
+    setFatalSessionError(null);
+    void questionsQuery.refetch();
+  }, [questionsQuery, routeContext]);
+
+  const handleRetrySubmission = useCallback(() => {
+    const selectedOptionId = interactionRef.current.selectedOptionId;
+    if (selectedOptionId !== null) {
+      void submitCurrentAnswer(selectedOptionId);
+    }
+  }, [submitCurrentAnswer]);
 
   const handleInvalidRoute = useCallback(() => {
     if (router.canGoBack()) {
       router.back();
     } else {
-      router.replace('/(tabs)/home');
+      router.replace("/(tabs)/home");
     }
   }, [router]);
 
-  const readyState: QuestionsReadyState | null =
-    state.status === 'ready' ? state : null;
+  const handleCompleted = useCallback(() => {
+    if (navigationLockedRef.current) {
+      return;
+    }
+
+    navigationLockedRef.current = true;
+    clearGameplayWork();
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(tabs)/home");
+    }
+  }, [clearGameplayWork, router]);
+
   const durationMs = currentQuestion
     ? currentQuestion.durationSeconds * 1000
     : 1;
@@ -707,8 +901,9 @@ export function useQuestionsScreen() {
     currentQuestion,
     currentNumber: readyState ? readyState.questionIndex + 1 : 0,
     timerRatio,
-    formattedTime: `00:${remainingSeconds.toString().padStart(2, '0')}`,
+    formattedTime: `00:${remainingSeconds.toString().padStart(2, "0")}`,
     handleSelectAnswer: submitCurrentAnswer,
+    handleRetrySubmission,
     handlePause,
     handleResume,
     handleRequestQuit,
@@ -717,5 +912,6 @@ export function useQuestionsScreen() {
     handleOverlayRequestClose,
     handleRetry,
     handleInvalidRoute,
+    handleCompleted,
   };
 }

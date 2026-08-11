@@ -25,7 +25,7 @@ function getConnectorColor(
   second: LevelMapLevel,
   theme: LevelMapTheme,
 ) {
-  return first.status === 'locked' || second.status === 'locked'
+  return first.viewState === 'locked' || second.viewState === 'locked'
     ? theme.lockedConnectorColor
     : theme.connectorColor;
 }
@@ -36,7 +36,7 @@ function getNodeX(
   theme: LevelMapTheme,
 ) {
   const horizontalInset = 52;
-  const normalizedX = getLevelNodePosition(theme, level.number);
+  const normalizedX = getLevelNodePosition(theme, level.positionIndex + 1);
   return horizontalInset + normalizedX * (mapWidth - horizontalInset * 2);
 }
 
@@ -55,8 +55,8 @@ export function LevelMapRow({
   const nextNodeX = nextLevel
     ? getNodeX(nextLevel, mapWidth, theme)
     : null;
-  const showMascot = level.number === 2;
-  const showSparkle = level.number % 3 === 0;
+  const showMascot = level.positionIndex === 1;
+  const showSparkle = (level.positionIndex + 1) % 3 === 0;
 
   return (
     <View style={styles.row}>
@@ -85,7 +85,9 @@ export function LevelMapRow({
           importantForAccessibility="no-hide-descendants"
           style={[
             styles.sparkle,
-            level.number % 2 === 0 ? styles.sparkleLeft : styles.sparkleRight,
+            (level.positionIndex + 1) % 2 === 0
+              ? styles.sparkleLeft
+              : styles.sparkleRight,
           ]}
         >
           {'\u2726'}

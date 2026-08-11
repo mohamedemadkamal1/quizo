@@ -1,4 +1,4 @@
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from "expo-linear-gradient";
 import {
   Image,
   Pressable,
@@ -6,31 +6,37 @@ import {
   Text,
   useWindowDimensions,
   View,
-} from 'react-native';
+} from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
-} from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
+} from "react-native-safe-area-context";
+import Svg, { Path } from "react-native-svg";
 
 import {
   CompletionChevron,
   CompletionStar,
-} from '@/components/level-complete/CompletionIcons';
-import { CompletionProgressRing } from '@/components/level-complete/CompletionProgressRing';
-import { CompletionStatCard } from '@/components/level-complete/CompletionStatCard';
+} from "@/components/level-complete/CompletionIcons";
+import { CompletionProgressRing } from "@/components/level-complete/CompletionProgressRing";
+import { CompletionStatCard } from "@/components/level-complete/CompletionStatCard";
 import {
   LEVEL_COMPLETE_MAX_WIDTH,
   LEVEL_COMPLETE_REFERENCE_CONTENT_HEIGHT,
   LEVEL_COMPLETE_REFERENCE_WIDTH,
   levelCompleteColors,
   levelCompleteGradients,
-} from '@/constants/level-complete';
-import type { useLevelCompleteScreen } from '@/hooks/level-complete/useLevelCompleteScreen';
+} from "@/constants/level-complete";
+import type { useLevelCompleteScreen } from "@/hooks/level-complete/useLevelCompleteScreen";
 
 type LevelCompleteContentProps = {
   screen: ReturnType<typeof useLevelCompleteScreen>;
 };
+
+function formatDuration(durationSeconds: number) {
+  const minutes = Math.floor(durationSeconds / 60);
+  const seconds = durationSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
 
 function CompletionDecorations({
   scale,
@@ -120,7 +126,7 @@ function CompletionActionButton({
                 borderRadius: 28 * scale,
                 backgroundColor: primary
                   ? levelCompleteColors.orange
-                  : 'rgba(71, 85, 105, 0.22)',
+                  : "rgba(71, 85, 105, 0.22)",
               },
             ]}
           />
@@ -215,11 +221,12 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
   );
   const earnedStars = isPerfect
     ? 3
-    : summary.correctAnswers >= summary.totalQuestions * 0.7
+    : summary.correctAnswers >= summary.totalAnswers * 0.7
       ? 2
-      : summary.correctAnswers >= summary.totalQuestions * 0.4
+      : summary.correctAnswers >= summary.totalAnswers * 0.4
         ? 1
         : 0;
+  const formattedDuration = formatDuration(summary.durationSeconds);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -270,7 +277,7 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
             correctAnswers={summary.correctAnswers}
             isPerfect={isPerfect}
             scale={scale}
-            totalQuestions={summary.totalQuestions}
+            totalQuestions={summary.totalAnswers}
           />
         </View>
 
@@ -322,7 +329,7 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
             <Image
               accessibilityIgnoresInvertColors
               resizeMode="contain"
-              source={require('../../assets/images/illustrations/level-complete/celebrating-character.png')}
+              source={require("../../assets/images/illustrations/level-complete/celebrating-character.png")}
               style={styles.character}
             />
           </View>
@@ -338,7 +345,7 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
             },
           ]}
         >
-          {isPerfect ? 'Well Done! 🚀' : 'Nice Work 🌟'}
+          {isPerfect ? "Well Done! 🚀" : "Nice Work 🌟"}
         </Text>
         <Text
           style={[
@@ -350,7 +357,7 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
             },
           ]}
         >
-          {isPerfect ? 'Awesome work!' : "You're doing great, keep it up!"}
+          {isPerfect ? "Awesome work!" : "You're doing great, keep it up!"}
         </Text>
 
         <View
@@ -384,18 +391,18 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
           />
           <CompletionStatCard
             icon="⚡"
-            label="Points"
+            label="Score"
             scale={scale}
-            value={summary.points}
+            value={summary.score}
             verticalScale={verticalScale}
           />
         </View>
 
         <Pressable
-          accessibilityLabel={`You ranked number ${summary.weeklyRank} this week`}
+          accessibilityLabel={`${summary.xpEarned} XP earned. Completed in ${formattedDuration}`}
           accessibilityHint="Opens the Leaderboard tab"
           accessibilityRole="button"
-          android_ripple={{ color: 'rgba(72, 91, 221, 0.08)' }}
+          android_ripple={{ color: "rgba(72, 91, 221, 0.08)" }}
           onPress={screen.handleLeaderboard}
           style={[
             styles.ranking,
@@ -424,7 +431,7 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
                 { fontSize: 14 * scale, lineHeight: 19 * scale },
               ]}
             >
-              You ranked #{summary.weeklyRank} this week!
+              {summary.xpEarned} XP earned
             </Text>
             <Text
               numberOfLines={1}
@@ -433,7 +440,7 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
                 { fontSize: 12 * scale, lineHeight: 16 * scale },
               ]}
             >
-              {isPerfect ? 'You are The Best' : 'Keep playing to climb higher'}
+              Completed in {formattedDuration}
             </Text>
           </View>
           <CompletionChevron size={24 * scale} />
@@ -464,87 +471,87 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
   },
   surface: {
     flex: 1,
-    position: 'relative',
-    overflow: 'hidden',
+    position: "relative",
+    overflow: "hidden",
     backgroundColor: levelCompleteColors.background,
   },
   decorations: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
   },
   title: {
-    position: 'absolute',
+    position: "absolute",
     right: 0,
     left: 0,
     color: levelCompleteColors.heading,
-    fontFamily: 'Fredoka',
-    fontWeight: '600',
+    fontFamily: "Fredoka",
+    fontWeight: "600",
     includeFontPadding: false,
-    textAlign: 'center',
+    textAlign: "center",
   },
   milestone: {
-    position: 'absolute',
+    position: "absolute",
     right: 0,
     left: 0,
     color: levelCompleteColors.primaryText,
-    fontFamily: 'Nunito',
-    fontWeight: '500',
+    fontFamily: "Nunito",
+    fontWeight: "500",
     includeFontPadding: false,
-    textAlign: 'center',
+    textAlign: "center",
   },
   progress: {
-    position: 'absolute',
+    position: "absolute",
   },
   stars: {
-    position: 'absolute',
+    position: "absolute",
     zIndex: 2,
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   characterSlot: {
-    position: 'absolute',
+    position: "absolute",
     zIndex: 1,
   },
   character: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   praise: {
-    position: 'absolute',
+    position: "absolute",
     zIndex: 2,
     right: 0,
     left: 0,
     color: levelCompleteColors.heading,
-    fontFamily: 'Fredoka',
-    fontWeight: '600',
+    fontFamily: "Fredoka",
+    fontWeight: "600",
     includeFontPadding: false,
-    textAlign: 'center',
+    textAlign: "center",
   },
   supporting: {
-    position: 'absolute',
+    position: "absolute",
     right: 0,
     left: 0,
     color: levelCompleteColors.primaryText,
-    fontFamily: 'Fredoka',
-    fontWeight: '500',
+    fontFamily: "Fredoka",
+    fontWeight: "500",
     includeFontPadding: false,
-    textAlign: 'center',
+    textAlign: "center",
   },
   stats: {
-    position: 'absolute',
+    position: "absolute",
     zIndex: 3,
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   ranking: {
-    position: 'absolute',
+    position: "absolute",
     zIndex: 3,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1.5,
     borderColor: levelCompleteColors.border,
     backgroundColor: levelCompleteColors.surface,
@@ -555,18 +562,18 @@ const styles = StyleSheet.create({
   },
   rankingTitle: {
     color: levelCompleteColors.heading,
-    fontFamily: 'Fredoka',
-    fontWeight: '600',
+    fontFamily: "Fredoka",
+    fontWeight: "600",
     includeFontPadding: false,
   },
   rankingSupporting: {
     color: levelCompleteColors.muted,
-    fontFamily: 'Fredoka',
-    fontWeight: '400',
+    fontFamily: "Fredoka",
+    fontWeight: "400",
     includeFontPadding: false,
   },
   actionButton: {
-    position: 'absolute',
+    position: "absolute",
     zIndex: 4,
   },
   actionVisual: {
@@ -577,41 +584,41 @@ const styles = StyleSheet.create({
     transform: [{ translateY: 2 }, { scale: 0.995 }],
   },
   actionShadow: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
-    shadowColor: '#475569',
+    shadowColor: "#475569",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.22,
     shadowRadius: 4,
     elevation: 4,
   },
   actionSurface: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 6,
   },
   secondarySurface: {
     borderWidth: 1,
-    borderColor: 'rgba(163, 179, 255, 0.7)',
+    borderColor: "rgba(163, 179, 255, 0.7)",
     backgroundColor: levelCompleteColors.track,
   },
   primaryActionLabel: {
     color: levelCompleteColors.surface,
-    fontFamily: 'Fredoka',
-    fontWeight: '600',
+    fontFamily: "Fredoka",
+    fontWeight: "600",
     includeFontPadding: false,
-    textAlign: 'center',
+    textAlign: "center",
   },
   secondaryActionLabel: {
     color: levelCompleteColors.primaryText,
-    fontFamily: 'Fredoka',
-    fontWeight: '600',
+    fontFamily: "Fredoka",
+    fontWeight: "600",
     includeFontPadding: false,
-    textAlign: 'center',
+    textAlign: "center",
   },
   invalidSafeArea: {
     flex: 1,
@@ -619,30 +626,30 @@ const styles = StyleSheet.create({
   },
   invalidPanel: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     gap: 18,
     padding: 24,
   },
   invalidMessage: {
     color: levelCompleteColors.heading,
-    fontFamily: 'Fredoka',
+    fontFamily: "Fredoka",
     fontSize: 20,
-    fontWeight: '500',
-    textAlign: 'center',
+    fontWeight: "500",
+    textAlign: "center",
   },
   invalidAction: {
     minWidth: 150,
     minHeight: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: 24,
     backgroundColor: levelCompleteColors.surface,
   },
   invalidActionLabel: {
     color: levelCompleteColors.primaryText,
-    fontFamily: 'Fredoka',
+    fontFamily: "Fredoka",
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

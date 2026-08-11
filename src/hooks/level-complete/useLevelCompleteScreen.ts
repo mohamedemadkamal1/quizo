@@ -2,73 +2,125 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { BackHandler } from "react-native";
 
-import { isCategoryId, isLevelMapDifficulty } from "@/constants/level-map";
+import { isLevelMapDifficulty } from "@/constants/level-map";
 import type { LevelCompleteSummary } from "@/types/level-complete.types";
 
 type RouteParams = {
   categoryId?: string | string[];
+  categoryName?: string | string[];
+  categoryIcon?: string | string[];
   difficulty?: string | string[];
   levelId?: string | string[];
   levelNumber?: string | string[];
-  totalQuestions?: string | string[];
+  sessionId?: string | string[];
+  score?: string | string[];
+  xpEarned?: string | string[];
   correctAnswers?: string | string[];
   wrongAnswers?: string | string[];
-  points?: string | string[];
-  weeklyRank?: string | string[];
+  durationSeconds?: string | string[];
+  isReplay?: string | string[];
+  alreadyCompleted?: string | string[];
 };
 
 function getSingleParam(value: string | string[] | undefined) {
   return typeof value === "string" ? value : undefined;
 }
 
-function getIntegerParam(value: string | string[] | undefined) {
+function getNonNegativeIntegerParam(value: string | string[] | undefined) {
   const singleValue = getSingleParam(value);
-  const parsedValue = singleValue === undefined ? NaN : Number(singleValue);
-  return Number.isInteger(parsedValue) ? parsedValue : null;
+  if (!singleValue || !/^(0|[1-9]\d*)$/.test(singleValue)) {
+    return null;
+  }
+
+  const parsedValue = Number(singleValue);
+  return Number.isSafeInteger(parsedValue) ? parsedValue : null;
+}
+
+function getPositiveIntegerParam(value: string | string[] | undefined) {
+  const parsedValue = getNonNegativeIntegerParam(value);
+  return parsedValue !== null && parsedValue > 0 ? parsedValue : null;
+}
+
+function getNonNegativeNumberParam(value: string | string[] | undefined) {
+  const singleValue = getSingleParam(value);
+  if (
+    !singleValue ||
+    !/^(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/.test(singleValue)
+  ) {
+    return null;
+  }
+
+  const parsedValue = Number(singleValue);
+  return Number.isFinite(parsedValue) && parsedValue >= 0 ? parsedValue : null;
+}
+
+function getBooleanParam(value: string | string[] | undefined) {
+  const singleValue = getSingleParam(value);
+  if (singleValue === "true") {
+    return true;
+  }
+  if (singleValue === "false") {
+    return false;
+  }
+  return null;
 }
 
 function getSummary(params: RouteParams): LevelCompleteSummary | null {
-  const categoryId = getSingleParam(params.categoryId);
+  const categoryId = getPositiveIntegerParam(params.categoryId);
+  const categoryName = getSingleParam(params.categoryName);
+  const categoryIcon = getSingleParam(params.categoryIcon);
   const difficulty = getSingleParam(params.difficulty);
-  const levelId = getSingleParam(params.levelId);
-  const levelNumber = getIntegerParam(params.levelNumber);
-  const totalQuestions = getIntegerParam(params.totalQuestions);
-  const correctAnswers = getIntegerParam(params.correctAnswers);
-  const wrongAnswers = getIntegerParam(params.wrongAnswers);
-  const points = getIntegerParam(params.points);
-  const weeklyRank = getIntegerParam(params.weeklyRank);
+  const levelId = getPositiveIntegerParam(params.levelId);
+  const levelNumber = getPositiveIntegerParam(params.levelNumber);
+  const sessionId = getPositiveIntegerParam(params.sessionId);
+  const score = getNonNegativeNumberParam(params.score);
+  const xpEarned = getNonNegativeNumberParam(params.xpEarned);
+  const correctAnswers = getNonNegativeIntegerParam(params.correctAnswers);
+  const wrongAnswers = getNonNegativeIntegerParam(params.wrongAnswers);
+  const durationSeconds = getNonNegativeIntegerParam(params.durationSeconds);
+  const isReplay = getBooleanParam(params.isReplay);
+  const alreadyCompleted = getBooleanParam(params.alreadyCompleted);
 
   if (
-    !isCategoryId(categoryId) ||
+    categoryId === null ||
+    !categoryName?.trim() ||
+    !categoryIcon ||
     !isLevelMapDifficulty(difficulty) ||
-    !levelId ||
+    levelId === null ||
     levelNumber === null ||
-    levelNumber <= 0 ||
-    totalQuestions === null ||
-    totalQuestions <= 0 ||
+    sessionId === null ||
+    score === null ||
+    xpEarned === null ||
     correctAnswers === null ||
-    correctAnswers < 0 ||
     wrongAnswers === null ||
-    wrongAnswers < 0 ||
-    correctAnswers + wrongAnswers !== totalQuestions ||
-    points === null ||
-    points < 0 ||
-    weeklyRank === null ||
-    weeklyRank <= 0
+    durationSeconds === null ||
+    isReplay === null ||
+    alreadyCompleted === null
   ) {
+    return null;
+  }
+
+  const totalAnswers = correctAnswers + wrongAnswers;
+  if (!Number.isSafeInteger(totalAnswers) || totalAnswers <= 0) {
     return null;
   }
 
   return {
     categoryId,
+    categoryName,
+    categoryIcon,
     difficulty,
     levelId,
     levelNumber,
-    totalQuestions,
+    sessionId,
+    score,
+    xpEarned,
     correctAnswers,
     wrongAnswers,
-    points,
-    weeklyRank,
+    totalAnswers,
+    durationSeconds,
+    isReplay,
+    alreadyCompleted,
   };
 }
 
@@ -76,18 +128,59 @@ export function useLevelCompleteScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<RouteParams>();
   const navigationLockedRef = useRef(false);
-  const summary = useMemo(() => getSummary(params), [params]);
+  const summary = useMemo(
+    () =>
+      getSummary({
+        categoryId: params.categoryId,
+        categoryName: params.categoryName,
+        categoryIcon: params.categoryIcon,
+        difficulty: params.difficulty,
+        levelId: params.levelId,
+        levelNumber: params.levelNumber,
+        sessionId: params.sessionId,
+        score: params.score,
+        xpEarned: params.xpEarned,
+        correctAnswers: params.correctAnswers,
+        wrongAnswers: params.wrongAnswers,
+        durationSeconds: params.durationSeconds,
+        isReplay: params.isReplay,
+        alreadyCompleted: params.alreadyCompleted,
+      }),
+    [
+      params.alreadyCompleted,
+      params.categoryIcon,
+      params.categoryId,
+      params.categoryName,
+      params.correctAnswers,
+      params.difficulty,
+      params.durationSeconds,
+      params.isReplay,
+      params.levelId,
+      params.levelNumber,
+      params.score,
+      params.sessionId,
+      params.wrongAnswers,
+      params.xpEarned,
+    ],
+  );
 
   const handleBackToMap = useCallback(() => {
-    if (navigationLockedRef.current || !summary) {
+    if (navigationLockedRef.current) {
       return;
     }
 
     navigationLockedRef.current = true;
+    if (!summary) {
+      router.dismissTo("/(tabs)/home");
+      return;
+    }
+
     router.dismissTo({
       pathname: "/(tabs)/level-map",
       params: {
         categoryId: summary.categoryId,
+        categoryName: summary.categoryName,
+        categoryIcon: summary.categoryIcon,
         difficulty: summary.difficulty,
       },
     });
@@ -126,7 +219,7 @@ export function useLevelCompleteScreen() {
   return {
     summary,
     isPerfect: summary
-      ? summary.correctAnswers === summary.totalQuestions
+      ? summary.correctAnswers === summary.totalAnswers
       : false,
     handleBackToMap,
     handleHome,
