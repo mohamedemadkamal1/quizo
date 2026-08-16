@@ -168,20 +168,23 @@ export function LevelMapContent({ screen }: LevelMapContentProps) {
             getItemLayout={(_, index) => ({
               index,
               length: LEVEL_MAP_ROW_HEIGHT,
-              offset:
-                LEVEL_MAP_BOUNDARY_HEIGHT + index * LEVEL_MAP_ROW_HEIGHT,
+              offset: LEVEL_MAP_BOUNDARY_HEIGHT + index * LEVEL_MAP_ROW_HEIGHT,
             })}
             initialNumToRender={10}
             keyExtractor={(level) => String(level.id)}
             ListHeaderComponent={
-              screen.hasMoreLevels ? (
+              <View style={styles.boundaryHeader}>
                 <LevelFogBoundary
+                  mapWidth={mapWidth}
                   revealKey={screen.presentationLevels[0]?.number ?? 0}
                   theme={theme}
                 />
-              ) : (
-                <LevelMapEnd />
-              )
+                {!screen.hasMoreLevels ? (
+                  <View style={StyleSheet.absoluteFill}>
+                    <LevelMapEnd />
+                  </View>
+                ) : null}
+              </View>
             }
             maxToRenderPerBatch={10}
             onContentSizeChange={positionCurrentLevel}
@@ -200,6 +203,7 @@ export function LevelMapContent({ screen }: LevelMapContentProps) {
               <LevelMapRow
                 level={item}
                 mapWidth={mapWidth}
+                decoration={screen.decorationPlan.get(item.id) ?? null}
                 nextLevel={screen.presentationLevels[index + 1] ?? null}
                 onPressLevel={screen.handlePressLevel}
                 previousLevel={screen.presentationLevels[index - 1] ?? null}
@@ -244,6 +248,9 @@ const styles = StyleSheet.create({
   },
   list: {
     flex: 1,
+  },
+  boundaryHeader: {
+    height: LEVEL_MAP_BOUNDARY_HEIGHT,
   },
   stateSafeArea: {
     flex: 1,

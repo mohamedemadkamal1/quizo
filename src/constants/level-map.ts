@@ -4,7 +4,7 @@ import type {
 } from '@/types/level-map.types';
 
 export const LEVEL_MAP_ROW_HEIGHT = 132;
-export const LEVEL_MAP_BOUNDARY_HEIGHT = 148;
+export const LEVEL_MAP_BOUNDARY_HEIGHT = 204;
 export const LEVEL_MAP_NODE_SIZE = 68;
 
 export const LEVEL_MAP_DIFFICULTIES = [
@@ -104,5 +104,7 @@ export function getLevelNodePosition(
   theme: LevelMapTheme,
   levelNumber: number,
 ): number {
-  return theme.positionPattern[(levelNumber - 1) % theme.positionPattern.length];
+  return theme.positionPattern[
+    (levelNumber - 1) % theme.positionPattern.length
+  ];
 }

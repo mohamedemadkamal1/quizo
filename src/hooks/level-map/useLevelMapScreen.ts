@@ -1,18 +1,9 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useBottomTabBarHeight } from 'expo-router/js-tabs';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import {
-  isLevelMapDifficulty,
-  levelMapThemes,
-} from '@/constants/level-map';
+import { isLevelMapDifficulty, levelMapThemes } from '@/constants/level-map';
 import {
   getLevelMap,
   getLevelMapQueryKey,
@@ -23,6 +14,7 @@ import { startLevel } from '@/services/questions.service';
 import type { LevelMapLevel } from '@/types/level-map.types';
 import { getApiErrorMessage } from '@/utils/get-api-error-message';
 import { mapLevelMapItems } from '@/utils/map-level-map-items';
+import { createLevelMapDecorationPlan } from '@/utils/create-level-map-decoration-plan';
 
 type RouteParams = {
   categoryId?: string | string[];
@@ -39,9 +31,7 @@ function getPositiveIntegerParam(value: string | string[] | undefined) {
   const singleValue = getSingleParam(value);
   const parsedValue = singleValue === undefined ? NaN : Number(singleValue);
 
-  return Number.isInteger(parsedValue) && parsedValue > 0
-    ? parsedValue
-    : null;
+  return Number.isInteger(parsedValue) && parsedValue > 0 ? parsedValue : null;
 }
 
 export function useLevelMapScreen() {
@@ -131,6 +121,18 @@ export function useLevelMapScreen() {
       }
     : null;
   const theme = stage ? levelMapThemes[stage] : null;
+  const decorationPlan = useMemo(
+    () =>
+      subCategoryId !== null && stage && theme
+        ? createLevelMapDecorationPlan({
+            subCategoryId,
+            difficulty: stage,
+            orderedLevels: levels,
+            theme,
+          })
+        : new Map(),
+    [levels, stage, subCategoryId, theme],
+  );
   const hasData = levelMapQuery.data !== undefined;
 
   const handleClose = useCallback(() => {
@@ -145,17 +147,20 @@ export function useLevelMapScreen() {
     void refetchLevelMap();
   }, [hasValidRoute, levelMapQuery.isFetching, refetchLevelMap]);
 
-  const handlePressLevel = useCallback((level: LevelMapLevel) => {
-    if (!level.isPlayable || isSelectingLevelRef.current) {
-      return;
-    }
+  const handlePressLevel = useCallback(
+    (level: LevelMapLevel) => {
+      if (!level.isPlayable || isSelectingLevelRef.current) {
+        return;
+      }
 
-    isSelectingLevelRef.current = true;
-    isStartingLevelRef.current = false;
-    startLevelMutation.reset();
-    setSelectedLevel(level);
-    setIsLevelStartModalVisible(true);
-  }, [setIsLevelStartModalVisible, setSelectedLevel, startLevelMutation]);
+      isSelectingLevelRef.current = true;
+      isStartingLevelRef.current = false;
+      startLevelMutation.reset();
+      setSelectedLevel(level);
+      setIsLevelStartModalVisible(true);
+    },
+    [setIsLevelStartModalVisible, setSelectedLevel, startLevelMutation],
+  );
 
   const handleCloseLevelStartModal = useCallback(() => {
     if (isStartingLevelRef.current) {
@@ -253,7 +258,10 @@ export function useLevelMapScreen() {
   return {
     status,
     errorMessage: levelMapQuery.isError
-      ? getApiErrorMessage(levelMapQuery.error, 'Unable to load this level map.')
+      ? getApiErrorMessage(
+          levelMapQuery.error,
+          'Unable to load this level map.',
+        )
       : null,
     isRetrying: levelMapQuery.isFetching,
     category,
@@ -261,6 +269,7 @@ export function useLevelMapScreen() {
     data: levelMapQuery.data ?? null,
     progress: levelMapQuery.data?.progress ?? null,
     presentationLevels,
+    decorationPlan,
     currentLevel,
     initialScrollIndex,
     hasMoreLevels: levelMapQuery.data?.meta.hasNextPage ?? false,

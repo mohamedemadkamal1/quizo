@@ -11,12 +11,7 @@ type LevelPathProps = {
   nextColor: string;
 };
 
-function createPath(
-  fromX: number,
-  fromY: number,
-  toX: number,
-  toY: number,
-) {
+function createPath(fromX: number, fromY: number, toX: number, toY: number) {
   const middleY = (fromY + toY) / 2;
   return `M ${fromX} ${fromY} C ${fromX} ${middleY}, ${toX} ${middleY}, ${toX} ${toY}`;
 }
@@ -39,7 +34,7 @@ export function LevelPath({
       importantForAccessibility="no-hide-descendants"
       width={width}
       height={height}
-      style={StyleSheet.absoluteFill}
+      style={[StyleSheet.absoluteFill, styles.path]}
     >
       {previousNodeX === null ? null : (
         <Path
@@ -66,3 +61,8 @@ export function LevelPath({
   );
 }
 
+const styles = StyleSheet.create({
+  path: {
+    zIndex: 0,
+  },
+});

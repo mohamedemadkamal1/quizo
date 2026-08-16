@@ -1,21 +1,21 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
 
+import { LevelMapDecoration } from '@/components/level-map/LevelMapDecoration';
 import { LevelNode } from '@/components/level-map/LevelNode';
 import { LevelPath } from '@/components/level-map/LevelPath';
 import {
   getLevelNodePosition,
   LEVEL_MAP_ROW_HEIGHT,
 } from '@/constants/level-map';
-import type {
-  LevelMapLevel,
-  LevelMapTheme,
-} from '@/types/level-map.types';
+import type { LevelMapDecorationPlacement } from '@/constants/level-map-decorations';
+import type { LevelMapLevel, LevelMapTheme } from '@/types/level-map.types';
 
 type LevelMapRowProps = {
   level: LevelMapLevel;
   previousLevel: LevelMapLevel | null;
   nextLevel: LevelMapLevel | null;
   mapWidth: number;
+  decoration: LevelMapDecorationPlacement | null;
   theme: LevelMapTheme;
   onPressLevel: (level: LevelMapLevel) => void;
 };
@@ -45,6 +45,7 @@ export function LevelMapRow({
   previousLevel,
   nextLevel,
   mapWidth,
+  decoration,
   theme,
   onPressLevel,
 }: LevelMapRowProps) {
@@ -52,9 +53,23 @@ export function LevelMapRow({
   const previousNodeX = previousLevel
     ? getNodeX(previousLevel, mapWidth, theme)
     : null;
-  const nextNodeX = nextLevel
-    ? getNodeX(nextLevel, mapWidth, theme)
-    : null;
+  const nextNodeX = nextLevel ? getNodeX(nextLevel, mapWidth, theme) : null;
+  const connectorXs = [
+    nodeX,
+    ...(previousNodeX === null ? [] : [(previousNodeX + nodeX) / 2]),
+    ...(nextNodeX === null ? [] : [(nodeX + nextNodeX) / 2]),
+  ];
+  const pathLeft = Math.min(...connectorXs);
+  const pathRight = Math.max(...connectorXs);
+  const nodeSafetyInset = 60;
+  const pathSafetyInset = 14;
+  const edgeInset = 14;
+  const leftCorridorWidth =
+    Math.min(nodeX - nodeSafetyInset, pathLeft - pathSafetyInset) - edgeInset;
+  const rightCorridorWidth =
+    mapWidth -
+    edgeInset -
+    Math.max(nodeX + nodeSafetyInset, pathRight + pathSafetyInset);
   const showMascot = level.positionIndex === 1;
   const showSparkle = (level.positionIndex + 1) % 3 === 0;
 
@@ -77,6 +92,15 @@ export function LevelMapRow({
             : theme.connectorColor
         }
       />
+
+      {decoration ? (
+        <LevelMapDecoration
+          leftCorridorWidth={leftCorridorWidth}
+          mapWidth={mapWidth}
+          placement={decoration}
+          rightCorridorWidth={rightCorridorWidth}
+        />
+      ) : null}
 
       {showSparkle ? (
         <Text
