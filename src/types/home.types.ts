@@ -18,7 +18,6 @@ export type SubCategoryLevelsApiResponse =
 
 export type HomeItem = {
   id: number;
-  color: string;
   name: string;
   totalLevels: number;
   currentLevel: number;

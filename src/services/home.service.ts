@@ -28,7 +28,6 @@ function isHomeItem(value: unknown): value is HomeItem {
     isFiniteNumber(item.id) &&
     Number.isInteger(item.id) &&
     item.id > 0 &&
-    typeof item.color === 'string' &&
     typeof item.name === 'string' &&
     isFiniteNumber(item.totalLevels) &&
     isFiniteNumber(item.currentLevel) &&
@@ -46,9 +45,7 @@ function isValidLevelCount(value: unknown): value is number {
   return isFiniteNumber(value) && Number.isInteger(value) && value >= 0;
 }
 
-function parseSubCategoryLevelCounts(
-  value: unknown,
-): SubCategoryLevelCounts {
+function parseSubCategoryLevelCounts(value: unknown): SubCategoryLevelCounts {
   if (!value || typeof value !== 'object') {
     throw new Error('The difficulty response is malformed.');
   }
@@ -72,6 +69,7 @@ function parseSubCategoryLevelCounts(
 
 export async function getHome(): Promise<HomeData> {
   const response = await apiClient.get<HomeApiResponse>('/home');
+
   const data = response.data?.data;
 
   if (!data?.meta) {
