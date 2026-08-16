@@ -1,7 +1,8 @@
 import { Controller } from 'react-hook-form';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import { AppButton } from '@/components/common/AppButton';
+import { AuthFormError } from '@/components/auth/AuthFormError';
 import { AuthInput } from '@/components/auth/AuthInput';
 import { AuthScreenLayout } from '@/components/auth/AuthScreenLayout';
 import type { useNewPasswordScreen } from '@/hooks/auth/useNewPasswordScreen';
@@ -11,7 +12,6 @@ type NewPasswordFormProps = {
 };
 
 export function NewPasswordForm({ screen }: NewPasswordFormProps) {
-
   if (!screen.canRender) {
     return null;
   }
@@ -65,11 +65,7 @@ export function NewPasswordForm({ screen }: NewPasswordFormProps) {
           )}
         />
 
-        {screen.errors.root?.message ? (
-          <Text className="text-center font-nunito text-xs font-medium leading-4 text-red-500">
-            {screen.errors.root.message}
-          </Text>
-        ) : null}
+        <AuthFormError message={screen.errors.root?.message} />
       </View>
 
       <AppButton

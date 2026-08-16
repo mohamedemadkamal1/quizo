@@ -1,7 +1,8 @@
 import { Controller } from 'react-hook-form';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import { AppButton } from '@/components/common/AppButton';
+import { AuthFormError } from '@/components/auth/AuthFormError';
 import { AuthInput } from '@/components/auth/AuthInput';
 import { AuthPromptLink } from '@/components/auth/AuthLink';
 import { AuthScreenLayout } from '@/components/auth/AuthScreenLayout';
@@ -12,7 +13,6 @@ type ForgotPasswordFormProps = {
 };
 
 export function ForgotPasswordForm({ screen }: ForgotPasswordFormProps) {
-
   return (
     <AuthScreenLayout
       title="Forgot Password?"
@@ -49,11 +49,7 @@ export function ForgotPasswordForm({ screen }: ForgotPasswordFormProps) {
           )}
         />
 
-        {screen.errors.root?.message ? (
-          <Text className="text-center font-nunito text-xs font-medium leading-4 text-red-500">
-            {screen.errors.root.message}
-          </Text>
-        ) : null}
+        <AuthFormError message={screen.errors.root?.message} />
       </View>
 
       <AppButton

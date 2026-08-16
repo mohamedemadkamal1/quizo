@@ -1,3 +1,5 @@
+import type { AvatarId } from '@/types/avatar.types';
+
 export type AuthUser = {
   id: string;
   displayName: string | null;
@@ -5,6 +7,7 @@ export type AuthUser = {
   age: number | null;
   role: 'learner' | 'guest';
   profileCompleted: boolean;
+  avatar: AvatarId | null;
 };
 
 export type AuthSession = {
@@ -45,15 +48,11 @@ export type BackendAuthUserDto = {
   role: 'USER' | 'ADMIN';
   age: number | null;
   profileCompleted: boolean;
+  avatar: AvatarId | null;
 };
 
 export type GuestSignUpApiPayload = {
   signupType: 'GUEST';
-  username: string;
-  age: number;
-};
-
-export type CompleteAccountProfileApiPayload = {
   username: string;
   age: number;
 };

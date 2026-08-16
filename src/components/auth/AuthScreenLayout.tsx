@@ -1,5 +1,5 @@
 import { PropsWithChildren, ReactNode } from 'react';
-import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import {
   KeyboardAwareScrollView,
   useReanimatedKeyboardAnimation,
@@ -15,6 +15,7 @@ import {
 } from 'react-native-safe-area-context';
 
 import { AuthHero, getAuthHeroHeight } from '@/components/auth/AuthHero';
+import { AuthHeading } from '@/components/auth/AuthHeading';
 
 type AuthScreenLayoutProps = PropsWithChildren<{
   title: string;
@@ -116,15 +117,7 @@ export function AuthScreenLayout({
         <Animated.View style={[styles.form, formAnimatedStyle]}>
           <Animated.View style={leadingSpaceAnimatedStyle} />
 
-          <View style={styles.heading}>
-            <Text className="text-center font-fredoka text-[30px] font-semibold leading-[36px] text-muv-blue-300">
-              {title}
-            </Text>
-
-            <Text className="mt-2 max-w-[320px] text-center font-nunito text-[14px] font-medium leading-5 text-muv-blue-300">
-              {subtitle}
-            </Text>
-          </View>
+          <AuthHeading title={title} subtitle={subtitle} />
 
           <View style={styles.sectionGap} />
 
@@ -158,11 +151,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     paddingHorizontal: 24,
-  },
-
-  heading: {
-    width: '100%',
-    alignItems: 'center',
   },
 
   actions: {

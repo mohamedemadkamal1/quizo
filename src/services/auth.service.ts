@@ -3,7 +3,6 @@ import {
   AuthSession,
   AuthUser,
   BackendAuthUserDto,
-  CompleteAccountProfileApiPayload,
   EmailPayload,
   GuestProfilePayload,
   GuestSignUpApiPayload,
@@ -18,6 +17,9 @@ import {
 } from '@/types/auth.types';
 
 import { apiClient } from '@/services/api/api-client';
+import { updateProfile } from '@/services/profile.service';
+import { normalizeAvatarId } from '@/types/avatar.types';
+import { mapProfileDataToAuthUser } from '@/utils/profile';
 
 function mapBackendUser(
   user: BackendAuthUserDto,
@@ -30,6 +32,7 @@ function mapBackendUser(
     age: user.age,
     role,
     profileCompleted: user.profileCompleted,
+    avatar: normalizeAvatarId(user.avatar),
   };
 }
 
@@ -78,20 +81,12 @@ export async function createGuestSession(
 export async function completeAccountProfile(
   payload: GuestProfilePayload,
 ): Promise<AuthUser> {
-  const apiPayload: CompleteAccountProfileApiPayload = {
+  const data = await updateProfile({
     username: payload.nickname,
     age: payload.age,
-  };
+  });
 
-  const response = await apiClient.put<ApiEnvelope<BackendAuthUserDto>>(
-    '/auth/profile',
-    apiPayload,
-  );
-
-  return {
-    ...mapBackendUser(response.data.data, 'learner'),
-    profileCompleted: true,
-  };
+  return mapProfileDataToAuthUser(data, 'learner');
 }
 
 export async function requestPasswordReset(

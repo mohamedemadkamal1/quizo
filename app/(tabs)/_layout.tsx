@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HomeTabIcon } from '@/components/common/icons/HomeTabIcon';
 import { LeaderboardTabIcon } from '@/components/common/icons/LeaderboardTabIcon';
-import { SettingsTabIcon } from '@/components/common/icons/SettingsTabIcon';
+import { ProfileTabIcon } from '@/components/common/icons/ProfileTabIcon';
 import type { NavigationIconProps } from '@/components/common/icons/types';
 import {
   NavigationTabButton,
@@ -33,9 +33,9 @@ const tabs = [
     inactiveIconColor: colors.navigation.inactiveHomeIcon,
   },
   {
-    name: 'settings',
-    label: 'Settings',
-    Icon: SettingsTabIcon,
+    name: 'profile',
+    label: 'Profile',
+    Icon: ProfileTabIcon,
     inactiveIconColor: undefined,
   },
 ] as const satisfies readonly {

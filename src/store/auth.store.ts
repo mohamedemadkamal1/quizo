@@ -3,12 +3,14 @@ import { create } from 'zustand';
 import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
 
 import {
+  AuthUser,
   AuthSession,
   GuestProfilePayload,
   SignInPayload,
   SignUpPayload,
 } from '@/types/auth.types';
 import { setApiAccessToken } from '@/services/api/api-client';
+import { normalizeAvatarId } from '@/types/avatar.types';
 
 import {
   completeAccountProfile as completeAccountProfileRequest,
@@ -29,8 +31,25 @@ type AuthStore = {
   signUp: (payload: SignUpPayload) => Promise<void>;
   completeAccountProfile: (payload: GuestProfilePayload) => Promise<void>;
   continueAsGuest: (payload: GuestProfilePayload) => Promise<void>;
+  replaceSessionUser: (user: AuthUser) => void;
   signOut: () => void;
 };
+
+function normalizePersistedSession(
+  session: AuthSession | null | undefined,
+): AuthSession | null {
+  if (!session) {
+    return null;
+  }
+
+  return {
+    ...session,
+    user: {
+      ...session.user,
+      avatar: normalizeAvatarId(session.user.avatar),
+    },
+  };
+}
 
 export const useAuthStore = create<AuthStore>()(
   persist(
@@ -77,6 +96,22 @@ export const useAuthStore = create<AuthStore>()(
         set({ session });
       },
 
+      replaceSessionUser: (user) => {
+        const currentSession = get().session;
+
+        if (!currentSession) {
+          throw new Error('An authenticated session is required.');
+        }
+
+        const session = {
+          accessToken: currentSession.accessToken,
+          user,
+        };
+
+        setApiAccessToken(session.accessToken);
+        set({ session });
+      },
+
       signOut: () => {
         setApiAccessToken(null);
         set({ session: null });
@@ -89,6 +124,15 @@ export const useAuthStore = create<AuthStore>()(
         session: state.session,
       }),
       skipHydration: true,
+      merge: (persistedState, currentState) => {
+        const persisted = (persistedState ?? {}) as Partial<AuthStore>;
+
+        return {
+          ...currentState,
+          ...persisted,
+          session: normalizePersistedSession(persisted.session),
+        };
+      },
     },
   ),
 );
