@@ -1,7 +1,8 @@
-import { Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { AppButton } from '@/components/common/AppButton';
 import { AuthScreenLayout } from '@/components/auth/AuthScreenLayout';
+import { SocialOptionButtons } from '@/components/auth/SocialOptionButtons';
 import type { useWelcomeScreen } from '@/hooks/auth/useWelcomeScreen';
 
 function LegalNotice() {
@@ -20,7 +21,6 @@ type WelcomeContentProps = {
 };
 
 export function WelcomeContent({ screen }: WelcomeContentProps) {
-
   return (
     <AuthScreenLayout
       title="Welcome to Quizo !"
@@ -37,6 +37,19 @@ export function WelcomeContent({ screen }: WelcomeContentProps) {
         variant="secondary"
         onPress={screen.onContinueAsGuest}
       />
+
+      <View pointerEvents="none" style={styles.divider} />
+
+      <SocialOptionButtons />
     </AuthScreenLayout>
   );
 }
+
+const styles = StyleSheet.create({
+  divider: {
+    width: 150,
+    height: 1,
+    marginVertical: -1,
+    backgroundColor: '#777777',
+  },
+});
