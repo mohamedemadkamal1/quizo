@@ -1,49 +1,388 @@
-import { gradients } from '@/constants/colors';
-import { LinearGradient } from 'expo-linear-gradient';
-
-import { StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { LeaderboardPodium } from '@/components/leaderboard/LeaderboardPodium';
+import { LeaderboardRow } from '@/components/leaderboard/LeaderboardRow';
+import { colors } from '@/constants/colors';
+import {
+  LEADERBOARD_LIST_RADIUS,
+  LEADERBOARD_LIST_TOP_PADDING,
+  LEADERBOARD_PODIUM_GAP,
+  LEADERBOARD_ROW_GAP,
+  LEADERBOARD_SUBTITLE_GAP,
+  LEADERBOARD_SUBTITLE_LINE_HEIGHT,
+  LEADERBOARD_TITLE_LINE_HEIGHT,
+  LEADERBOARD_TITLE_TOP,
+} from '@/constants/leaderboard';
 import type { useLeaderboardScreen } from '@/hooks/leaderboard/useLeaderboardScreen';
+import type { LeaderboardRankedEntry } from '@/types/leaderboard.types';
 
 type LeaderboardContentProps = {
   screen: ReturnType<typeof useLeaderboardScreen>;
 };
 
+const TROPHY = '\u{1F3C6}';
+
+function keyExtractor(entry: LeaderboardRankedEntry) {
+  return String(entry.id);
+}
+
 export function LeaderboardContent({ screen }: LeaderboardContentProps) {
+  const { metrics } = screen;
+  const hasEntries = screen.entries.length > 0;
 
   return (
-    <LinearGradient
-      colors={gradients.homeBackground.colors}
-      locations={gradients.homeBackground.locations}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      style={styles.background}
-    >
-      <SafeAreaView
-        edges={['top', 'left', 'right']}
-        className="flex-1 bg-white"
-      >
-        <View
-          className="flex-1 items-center justify-center px-6"
-          style={{ paddingBottom: screen.tabBarHeight }}
-        >
-          <Text className="text-center font-fredoka text-[30px] font-semibold leading-[36px] text-muv-blue-300">
-            Leaderboard
-          </Text>
-        </View>
+    <View style={styles.background}>
+      <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
+        {hasEntries ? (
+          <View
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            pointerEvents="none"
+            style={[
+              styles.listSurfaceLayer,
+              { top: metrics.listSurfaceTop + LEADERBOARD_LIST_RADIUS },
+            ]}
+          />
+        ) : null}
+
+        <FlatList
+          data={screen.entries}
+          keyExtractor={keyExtractor}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.content}
+          onEndReached={screen.loadMore}
+          onEndReachedThreshold={0.4}
+          onScrollBeginDrag={screen.markListScrolled}
+          onMomentumScrollBegin={screen.markListScrolled}
+          refreshControl={
+            <RefreshControl
+              onRefresh={() => void screen.refresh()}
+              refreshing={screen.isRefreshing}
+              tintColor={colors.leaderboard.title}
+            />
+          }
+          ListHeaderComponent={
+            <View style={styles.header}>
+              <View
+                accessible
+                accessibilityRole="header"
+                accessibilityLabel="Leaderboard"
+                style={styles.titleRow}
+              >
+                <Text style={styles.title}>Leaderboard</Text>
+                <Text style={styles.trophy}>{TROPHY}</Text>
+              </View>
+
+              <Text style={styles.subtitle}>
+                See where you stand among the top players!
+              </Text>
+
+              {screen.podiumEntries.length > 0 ? (
+                <View style={styles.podium}>
+                  <LeaderboardPodium
+                    entries={screen.podiumEntries}
+                    metrics={metrics}
+                  />
+                </View>
+              ) : null}
+
+              {hasEntries ? (
+                <View style={styles.surfaceCap}>
+                  <View style={styles.surfaceCapInner} />
+                </View>
+              ) : null}
+            </View>
+          }
+          renderItem={({ item }) => (
+            <View style={styles.rowWrapper}>
+              <View style={{ width: metrics.rowWidth }}>
+                <LeaderboardRow entry={item} />
+              </View>
+            </View>
+          )}
+          ListEmptyComponent={
+            <View style={styles.statePanel}>
+              {screen.isInitialLoading ? (
+                <View accessible accessibilityLabel="Loading the leaderboard">
+                  <ActivityIndicator
+                    color={colors.leaderboard.title}
+                    size="large"
+                  />
+                </View>
+              ) : screen.isInitialError ? (
+                <>
+                  <Text accessibilityRole="alert" style={styles.stateTitle}>
+                    The leaderboard could not be loaded
+                  </Text>
+                  <Text style={styles.stateText}>{screen.errorMessage}</Text>
+                  <Pressable
+                    accessibilityLabel="Retry loading the leaderboard"
+                    accessibilityRole="button"
+                    disabled={screen.isRetrying}
+                    hitSlop={8}
+                    onPress={screen.retry}
+                    style={({ pressed }) => pressed && styles.buttonPressed}
+                  >
+                    <View style={styles.retryButton}>
+                      {screen.isRetrying ? (
+                        <ActivityIndicator color="#FFFFFF" size="small" />
+                      ) : (
+                        <Text style={styles.retryText}>Retry</Text>
+                      )}
+                    </View>
+                  </Pressable>
+                </>
+              ) : screen.isEmpty ? (
+                <>
+                  <Text style={styles.stateEmoji}>{'\u{1F31F}'}</Text>
+                  <Text style={styles.stateTitle}>
+                    No leaderboard results yet
+                  </Text>
+                  <Text style={styles.stateText}>
+                    Play a few levels and you will be the first one here.
+                  </Text>
+                </>
+              ) : null}
+            </View>
+          }
+          ListFooterComponent={
+            <View
+              style={[
+                hasEntries ? styles.footer : styles.emptyFooter,
+                { paddingBottom: screen.contentBottomPadding },
+              ]}
+            >
+              {screen.isLoadingNextPage ? (
+                <View accessible accessibilityLabel="Loading more players">
+                  <ActivityIndicator
+                    color={colors.leaderboard.title}
+                    size="small"
+                  />
+                </View>
+              ) : null}
+
+              {screen.footerErrorMessage ? (
+                <>
+                  <Text accessibilityRole="alert" style={styles.footerText}>
+                    {screen.footerErrorMessage}
+                  </Text>
+                  <Pressable
+                    accessibilityLabel={`${screen.footerActionLabel}, retry loading the leaderboard`}
+                    accessibilityRole="button"
+                    hitSlop={8}
+                    onPress={screen.retryFooterAction}
+                    style={({ pressed }) => pressed && styles.buttonPressed}
+                  >
+                    <View style={styles.footerButton}>
+                      <Text style={styles.footerButtonText}>
+                        {screen.footerActionLabel}
+                      </Text>
+                    </View>
+                  </Pressable>
+                </>
+              ) : null}
+            </View>
+          }
+        />
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   background: {
     flex: 1,
+    backgroundColor: colors.leaderboard.background,
+  },
+
+  safeArea: {
+    flex: 1,
+  },
+
+  // Keeps the ranked surface behind the list so short result sets still reach
+  // the bottom of the screen. It starts below the rounded cap so the corner
+  // cut-outs keep showing the lavender background.
+  listSurfaceLayer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: colors.leaderboard.listSurface,
   },
 
   content: {
     flexGrow: 1,
-    paddingTop: 16,
-    paddingHorizontal: 16,
+  },
+
+  header: {
+    paddingTop: LEADERBOARD_TITLE_TOP,
+    backgroundColor: colors.leaderboard.background,
+  },
+
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+
+  title: {
+    color: colors.leaderboard.title,
+    fontFamily: 'Fredoka',
+    fontSize: 24,
+    fontWeight: '600',
+    lineHeight: LEADERBOARD_TITLE_LINE_HEIGHT,
+    includeFontPadding: false,
+    textAlign: 'center',
+  },
+
+  trophy: {
+    fontSize: 21,
+    lineHeight: LEADERBOARD_TITLE_LINE_HEIGHT,
+    includeFontPadding: false,
+  },
+
+  subtitle: {
+    marginTop: LEADERBOARD_SUBTITLE_GAP,
+    color: colors.leaderboard.subtitle,
+    fontFamily: 'Nunito',
+    fontSize: 12,
+    fontWeight: '500',
+    lineHeight: LEADERBOARD_SUBTITLE_LINE_HEIGHT,
+    includeFontPadding: false,
+    textAlign: 'center',
+  },
+
+  podium: {
+    marginTop: LEADERBOARD_PODIUM_GAP,
+  },
+
+  surfaceCap: {
+    height: LEADERBOARD_LIST_TOP_PADDING,
+    overflow: 'hidden',
+  },
+
+  surfaceCapInner: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: LEADERBOARD_LIST_TOP_PADDING + LEADERBOARD_LIST_RADIUS,
+    borderTopLeftRadius: LEADERBOARD_LIST_RADIUS,
+    borderTopRightRadius: LEADERBOARD_LIST_RADIUS,
+    backgroundColor: colors.leaderboard.listSurface,
+  },
+
+  rowWrapper: {
+    alignItems: 'center',
+    paddingBottom: LEADERBOARD_ROW_GAP,
+    backgroundColor: colors.leaderboard.listSurface,
+  },
+
+  footer: {
+    alignItems: 'center',
+    gap: 12,
+    paddingTop: 4,
+    backgroundColor: colors.leaderboard.listSurface,
+  },
+
+  emptyFooter: {
+    alignItems: 'center',
+    gap: 12,
+  },
+
+  statePanel: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    paddingHorizontal: 32,
+    paddingVertical: 48,
+  },
+
+  stateEmoji: {
+    fontSize: 32,
+    lineHeight: 38,
+  },
+
+  stateTitle: {
+    color: colors.leaderboard.title,
+    fontFamily: 'Fredoka',
+    fontSize: 17,
+    fontWeight: '600',
+    lineHeight: 22,
+    includeFontPadding: false,
+    textAlign: 'center',
+  },
+
+  stateText: {
+    color: colors.leaderboard.subtitle,
+    fontFamily: 'Nunito',
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
+    includeFontPadding: false,
+    textAlign: 'center',
+  },
+
+  retryButton: {
+    width: 140,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 22,
+    backgroundColor: colors.muvBlue300,
+  },
+
+  buttonPressed: {
+    opacity: 0.85,
+  },
+
+  retryText: {
+    color: '#FFFFFF',
+    fontFamily: 'Fredoka',
+    fontSize: 15,
+    fontWeight: '600',
+    lineHeight: 20,
+    includeFontPadding: false,
+  },
+
+  footerText: {
+    color: colors.leaderboard.rowScore,
+    fontFamily: 'Nunito',
+    fontSize: 13,
+    fontWeight: '500',
+    lineHeight: 18,
+    includeFontPadding: false,
+    textAlign: 'center',
+    paddingHorizontal: 32,
+  },
+
+  footerButton: {
+    minHeight: 44,
+    minWidth: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 999,
+    paddingHorizontal: 20,
+    backgroundColor: colors.leaderboard.rankPill,
+  },
+
+  footerButtonText: {
+    color: colors.leaderboard.rankPillText,
+    fontFamily: 'Fredoka',
+    fontSize: 15,
+    fontWeight: '600',
+    lineHeight: 20,
+    includeFontPadding: false,
   },
 });

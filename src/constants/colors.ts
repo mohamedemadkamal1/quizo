@@ -26,6 +26,40 @@ export const colors = {
     levelStar: '#FFDF20',
   },
 
+  leaderboard: {
+    background: '#C6D2FF',
+    title: '#0B1020',
+    subtitle: '#6B7A99',
+
+    listSurface: '#F1F2F6',
+    rowBackground: '#E2E7EF',
+    rowBorder: '#CDD5DF',
+    rowName: '#0B1020',
+    rowScore: '#7A8699',
+    rowShadow: '#1E1A4D',
+    rankPill: '#00D492',
+    rankPillText: '#FFFFFF',
+
+    podiumFirst: '#FF9F00',
+    podiumFirstTop: '#FFC44D',
+    podiumSecond: '#13BDF0',
+    podiumSecondTop: '#B9D3F4',
+    podiumThird: '#10D6A0',
+    podiumThirdTop: '#AFE3D4',
+    podiumEdgeHighlight: 'rgba(255, 255, 255, 0.9)',
+    podiumMark: 'rgba(255, 255, 255, 0.92)',
+    podiumNumber: '#FFFFFF',
+    crown: '#FFC300',
+    crownShade: '#FFA500',
+
+    podiumName: '#0B1020',
+    scorePill: 'rgba(255, 255, 255, 0.45)',
+    scorePillText: '#5A6A87',
+
+    avatarFallback: '#8E9BB5',
+    avatarFallbackText: '#FFFFFF',
+  },
+
   navigation: {
     activeTab: '#8B5CF6',
     inactiveTab: '#94A3B8',
