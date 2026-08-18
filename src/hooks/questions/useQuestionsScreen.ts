@@ -19,6 +19,7 @@ import { isLevelMapDifficulty } from "@/constants/level-map";
 import {
   gameplayColors,
   QUESTION_FEEDBACK_DURATION_MS,
+  QUESTION_REVEAL_FEEDBACK_DURATION_MS,
   QUESTION_TIMER_INTERVAL_MS,
 } from "@/constants/questions";
 import {
@@ -72,7 +73,11 @@ type QuestionsAction =
       optionId: number;
       revealedCorrectOptionId: number | null;
     }
-  | { type: "submission-result"; result: QuestionAnswerResult }
+  | {
+      type: "submission-result";
+      result: QuestionAnswerResult;
+      revealedCorrectOptionId: number | null;
+    }
   | { type: "submission-error"; message: string }
   | {
       type: "show-overlay";
@@ -131,6 +136,8 @@ function questionsReducer(
         ...state,
         phase: "feedback",
         feedback: action.result,
+        revealedCorrectOptionId:
+          action.revealedCorrectOptionId ?? state.revealedCorrectOptionId,
         submissionError: null,
       };
     case "submission-error":
@@ -591,7 +598,9 @@ export function useQuestionsScreen() {
           ? result.completion
           : null;
         submissionInFlightRef.current = false;
-        feedbackRemainingRef.current = QUESTION_FEEDBACK_DURATION_MS;
+        feedbackRemainingRef.current = result.isCorrect
+          ? QUESTION_FEEDBACK_DURATION_MS
+          : QUESTION_REVEAL_FEEDBACK_DURATION_MS;
         feedbackDeadlineRef.current = null;
         dispatch({
           type: "submission-result",
@@ -600,6 +609,11 @@ export function useQuestionsScreen() {
             answerId: result.answerId,
             isCorrect: result.isCorrect,
           },
+          // A wrong answer keeps the chosen option red and also turns the
+          // correct option green for the longer reveal delay.
+          revealedCorrectOptionId: result.isCorrect
+            ? null
+            : question.correctAnswerId,
         });
         void queryClient.invalidateQueries({
           exact: true,
@@ -625,11 +639,11 @@ export function useQuestionsScreen() {
         }
 
         AccessibilityInfo.announceForAccessibility(
-          revealedCorrectOptionId === undefined
-            ? result.isCorrect
+          revealedCorrectOptionId !== undefined
+            ? "Time expired. Correct answer shown"
+            : result.isCorrect
               ? "Correct answer"
-              : "Wrong answer"
-            : "Time expired. Correct answer shown",
+              : "Wrong answer. Correct answer shown",
         );
       } catch (error: unknown) {
         if (

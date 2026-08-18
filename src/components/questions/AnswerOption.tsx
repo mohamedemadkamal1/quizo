@@ -32,12 +32,24 @@ export function AnswerOption({
     : isTrueOption
       ? gameplayColors.correct
       : gameplayColors.wrong;
+  // Only the option the player actually picked swaps its text for a verdict.
+  // A revealed correct option keeps its label so the answer stays readable.
+  const isChosenFeedback = isFeedback && selected;
   const feedbackLabel =
-    questionType === 'multiple-choice' && visualState === 'correct'
-      ? 'Right'
-      : questionType === 'multiple-choice' && visualState === 'wrong'
-        ? 'Wrong'
-        : option.label;
+    questionType === 'multiple-choice' && isChosenFeedback
+      ? visualState === 'correct'
+        ? 'Right'
+        : 'Wrong'
+      : option.label;
+  const stateDescription = !isFeedback
+    ? ''
+    : isChosenFeedback
+      ? visualState === 'correct'
+        ? ', Right'
+        : ', Wrong'
+      : visualState === 'correct'
+        ? ', correct answer'
+        : '';
   const showCheck = isFeedback
     ? visualState === 'correct'
     : questionType === 'true-false' && isTrueOption;
@@ -47,7 +59,7 @@ export function AnswerOption({
 
   return (
     <Pressable
-      accessibilityLabel={`${option.label} answer${isFeedback ? `, ${feedbackLabel}` : ''}`}
+      accessibilityLabel={`${option.label} answer${stateDescription}`}
       accessibilityRole="button"
       accessibilityState={{ disabled, selected }}
       android_ripple={{ color: 'rgba(72, 91, 221, 0.08)' }}
