@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ProfileIcon } from '@/components/profile/ProfileIcon';
 import { colors } from '@/constants/colors';
 import type { useProfileProgressScreen } from '@/hooks/profile/useProfileProgressScreen';
 import { getSafeNonNegativeValue } from '@/utils/profile';
@@ -185,11 +184,6 @@ export function ProfileProgressContent({
                       Completed Levels
                     </Text>
                   </View>
-                  <ProfileIcon
-                    color={colors.settings.muted}
-                    name="chevron"
-                    size={16}
-                  />
                 </View>
               ))}
             </View>
