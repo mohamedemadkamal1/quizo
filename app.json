@@ -10,7 +10,7 @@
     "ios": {
       "icon": "./src/assets/images/icon.png",
       "bundleIdentifier": "com.amergroup.quizo",
-      "supportsTablet": true
+      "supportsTablet": false
     },
     "android": {
       "adaptiveIcon": {
