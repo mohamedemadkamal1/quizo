@@ -3,7 +3,7 @@ import { apiClient } from "@/services/api/api-client";
 import type {
   GameplayQuestion,
   LevelCompletionData,
-  QuestionAnswerViewModel,
+  QuestionAnswerDto,
   SessionQuestionsViewData,
   StartLevelData,
   StartLevelRequest,
@@ -119,7 +119,7 @@ function parseStartLevelResponse(
   };
 }
 
-function parseQuestionAnswer(value: unknown): QuestionAnswerViewModel {
+function parseQuestionAnswer(value: unknown): QuestionAnswerDto {
   if (!isRecord(value)) {
     throw new Error("The questions response contains an invalid answer.");
   }
@@ -134,8 +134,7 @@ function parseQuestionAnswer(value: unknown): QuestionAnswerViewModel {
     throw new Error("The questions response contains an invalid answer.");
   }
 
-  // `isCorrect` is deliberately validated and discarded at the API boundary.
-  return { id, content, order };
+  return { id, content, order, isCorrect };
 }
 
 function parseSessionQuestion(value: unknown): GameplayQuestion {
@@ -161,12 +160,18 @@ function parseSessionQuestion(value: unknown): GameplayQuestion {
   const safeAnswers = answers
     .map(parseQuestionAnswer)
     .sort((first, second) => first.order - second.order);
+  const correctAnswers = safeAnswers.filter((answer) => answer.isCorrect);
+  const correctAnswer = correctAnswers[0];
+  const timeoutAnswer = safeAnswers.find((answer) => !answer.isCorrect);
   const answerIds = new Set(safeAnswers.map((answer) => answer.id));
   const answerOrders = new Set(safeAnswers.map((answer) => answer.order));
 
   if (
     answerIds.size !== safeAnswers.length ||
     answerOrders.size !== safeAnswers.length ||
+    correctAnswers.length !== 1 ||
+    !correctAnswer ||
+    !timeoutAnswer ||
     !(
       submittedAnswerId === null ||
       (isPositiveInteger(submittedAnswerId) && answerIds.has(submittedAnswerId))
@@ -186,6 +191,10 @@ function parseSessionQuestion(value: unknown): GameplayQuestion {
       label: answer.content,
       order: answer.order,
     })),
+    // The correct ID is used only for local timeout feedback. The backend
+    // continues to receive the declared wrong timeout answer.
+    correctAnswerId: correctAnswer.id,
+    timeoutAnswerId: timeoutAnswer.id,
     submittedAnswerId,
   };
 }
@@ -317,6 +326,7 @@ function parseLevelCompletion(
     durationSeconds,
     currentLevel,
     alreadyCompleted,
+    passed,
   } = value;
 
   if (
@@ -330,7 +340,8 @@ function parseLevelCompletion(
     !isNonNegativeInteger(wrongAnswers) ||
     !isNonNegativeInteger(durationSeconds) ||
     !isPositiveInteger(currentLevel) ||
-    typeof alreadyCompleted !== "boolean"
+    typeof alreadyCompleted !== "boolean" ||
+    typeof passed !== "boolean"
   ) {
     throw new Error("The completed answer response contains invalid data.");
   }
@@ -346,6 +357,7 @@ function parseLevelCompletion(
     durationSeconds,
     currentLevel,
     alreadyCompleted,
+    passed,
   };
 }
 

@@ -83,6 +83,8 @@ export type GameplayQuestion = {
   score: number;
   durationSeconds: number;
   options: QuestionOption[];
+  correctAnswerId: number;
+  timeoutAnswerId: number;
   submittedAnswerId: number | null;
 };
 
@@ -122,6 +124,7 @@ export type LevelCompletionData = {
   durationSeconds: number;
   currentLevel: number;
   alreadyCompleted: boolean;
+  passed: boolean;
 };
 
 export type SubmitAnswerBaseData = {
@@ -168,6 +171,7 @@ export type QuestionsInteractionState = {
   questionIndex: number;
   phase: GameplayPhase;
   selectedOptionId: number | null;
+  revealedCorrectOptionId: number | null;
   feedback: QuestionAnswerResult | null;
   remainingMs: number;
   overlay: GameplayOverlay;

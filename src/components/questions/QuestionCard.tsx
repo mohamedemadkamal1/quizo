@@ -4,13 +4,13 @@ import Svg, { Path } from 'react-native-svg';
 
 import { ClockGlyph } from '@/components/questions/QuestionIcons';
 import { gameplayColors, gameplayGradients } from '@/constants/questions';
-import type { GameplayPhase, GameplayQuestion } from '@/types/questions.types';
+import type { GameplayQuestion } from '@/types/questions.types';
 
 type QuestionCardProps = {
   question: GameplayQuestion;
-  phase: GameplayPhase;
   formattedTime: string;
   timerRatio: number;
+  timerColor: string;
   scale: number;
 };
 
@@ -35,13 +35,11 @@ function CardDecorations() {
 
 export function QuestionCard({
   question,
-  phase,
   formattedTime,
   timerRatio,
+  timerColor,
   scale,
 }: QuestionCardProps) {
-  const isMultipleChoiceFeedback =
-    question.type === 'multiple-choice' && phase === 'feedback';
   const trackWidth = 214 * scale;
   const fillWidth = Math.min(trackWidth, Math.max(0, trackWidth * timerRatio));
 
@@ -115,24 +113,15 @@ export function QuestionCard({
           },
         ]}
       >
-        {isMultipleChoiceFeedback ? (
-          <View
-            style={[
-              styles.timerFill,
-              {
-                width: fillWidth,
-                backgroundColor: gameplayColors.correct,
-              },
-            ]}
-          />
-        ) : (
-          <LinearGradient
-            colors={gameplayGradients.timer}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[styles.timerFill, { width: fillWidth }]}
-          />
-        )}
+        <View
+          style={[
+            styles.timerFill,
+            {
+              width: fillWidth,
+              backgroundColor: timerColor,
+            },
+          ]}
+        />
       </View>
 
       <Text
@@ -143,9 +132,7 @@ export function QuestionCard({
             bottom: 25 * scale,
             fontSize: 12 * scale,
             lineHeight: 16 * scale,
-            color: isMultipleChoiceFeedback
-              ? gameplayColors.correct
-              : gameplayColors.orange,
+            color: timerColor,
           },
         ]}
       >

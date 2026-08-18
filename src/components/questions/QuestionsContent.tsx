@@ -71,8 +71,13 @@ function QuestionsStatePanel({
 function getAnswerVisualState(
   optionId: number,
   selectedOptionId: number | null,
+  revealedCorrectOptionId: number | null,
   feedback: QuestionAnswerResult | null,
 ): AnswerVisualState {
+  if (revealedCorrectOptionId === optionId) {
+    return 'correct';
+  }
+
   if (!feedback || selectedOptionId !== optionId) {
     return 'idle';
   }
@@ -167,9 +172,9 @@ export function QuestionsContent({ screen }: QuestionsContentProps) {
           >
             <QuestionCard
               formattedTime={screen.formattedTime}
-              phase={readyState.phase}
               question={currentQuestion}
               scale={scale}
+              timerColor={screen.timerColor}
               timerRatio={screen.timerRatio}
             />
           </View>
@@ -202,6 +207,7 @@ export function QuestionsContent({ screen }: QuestionsContentProps) {
                   visualState={getAnswerVisualState(
                     option.id,
                     readyState.selectedOptionId,
+                    readyState.revealedCorrectOptionId,
                     readyState.feedback,
                   )}
                 />

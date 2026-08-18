@@ -11,6 +11,7 @@ export type LevelFinalScoreViewModel = {
   durationSeconds: number;
   isReplay: boolean;
   alreadyCompleted: boolean;
+  passed: boolean;
 };
 
 export type LevelCompleteSummary = LevelFinalScoreViewModel & {

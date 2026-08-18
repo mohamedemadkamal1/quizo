@@ -17,6 +17,7 @@ import {
 
 import { isLevelMapDifficulty } from "@/constants/level-map";
 import {
+  gameplayColors,
   QUESTION_FEEDBACK_DURATION_MS,
   QUESTION_TIMER_INTERVAL_MS,
 } from "@/constants/questions";
@@ -44,6 +45,8 @@ import type {
 } from "@/types/questions.types";
 import { useAuthStore } from "@/store/auth.store";
 import { getApiErrorMessage } from "@/utils/get-api-error-message";
+import { getLevelResultPathname } from "@/utils/get-level-result-pathname";
+import { getTimerColorState } from "@/utils/get-timer-color-state";
 
 type RouteParams = {
   categoryId?: string | string[];
@@ -64,7 +67,11 @@ type QuestionsAction =
       durationMs: number;
     }
   | { type: "tick"; remainingMs: number }
-  | { type: "submission-start"; optionId: number }
+  | {
+      type: "submission-start";
+      optionId: number;
+      revealedCorrectOptionId: number | null;
+    }
   | { type: "submission-result"; result: QuestionAnswerResult }
   | { type: "submission-error"; message: string }
   | {
@@ -82,6 +89,7 @@ const initialInteractionState: QuestionsInteractionState = {
   questionIndex: 0,
   phase: "answering",
   selectedOptionId: null,
+  revealedCorrectOptionId: null,
   feedback: null,
   remainingMs: 0,
   overlay: null,
@@ -112,7 +120,9 @@ function questionsReducer(
       return {
         ...state,
         phase: "submitting",
-        selectedOptionId: action.optionId,
+        selectedOptionId:
+          action.revealedCorrectOptionId === null ? action.optionId : null,
+        revealedCorrectOptionId: action.revealedCorrectOptionId,
         feedback: null,
         submissionError: null,
       };
@@ -155,6 +165,7 @@ function questionsReducer(
         questionIndex: action.questionIndex,
         phase: "answering",
         selectedOptionId: null,
+        revealedCorrectOptionId: null,
         feedback: null,
         remainingMs: action.durationMs,
         submissionError: null,
@@ -278,6 +289,13 @@ export function useQuestionsScreen() {
   const pauseRequestRef = useRef(false);
   const timerDeadlineRef = useRef<number | null>(null);
   const timerExpiredQuestionRef = useRef<number | null>(null);
+  const submitCurrentAnswerRef = useRef<
+    (optionId: number, revealedCorrectOptionId?: number) => Promise<void>
+  >(async () => undefined);
+  const retrySubmissionRef = useRef<{
+    optionId: number;
+    revealedCorrectOptionId?: number;
+  } | null>(null);
   const feedbackDeadlineRef = useRef<number | null>(null);
   const feedbackRemainingRef = useRef(QUESTION_FEEDBACK_DURATION_MS);
   const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -335,6 +353,7 @@ export function useQuestionsScreen() {
     navigationLockedRef.current = false;
     pauseRequestRef.current = false;
     timerExpiredQuestionRef.current = null;
+    retrySubmissionRef.current = null;
     dispatch({ type: "reset" });
   }, [clearGameplayWork, routeKey]);
 
@@ -443,7 +462,7 @@ export function useQuestionsScreen() {
       navigationLockedRef.current = true;
       clearGameplayWork();
       router.replace({
-        pathname: "/level-complete",
+        pathname: getLevelResultPathname(completion.passed),
         params: {
           categoryId: currentRoute.categoryId,
           categoryName: currentRoute.categoryName,
@@ -459,6 +478,7 @@ export function useQuestionsScreen() {
           durationSeconds: completion.durationSeconds,
           isReplay: String(completion.isReplay),
           alreadyCompleted: String(completion.alreadyCompleted),
+          passed: String(completion.passed),
         },
       });
       return;
@@ -488,6 +508,7 @@ export function useQuestionsScreen() {
     submissionInFlightRef.current = false;
     timerDeadlineRef.current = null;
     timerExpiredQuestionRef.current = null;
+    retrySubmissionRef.current = null;
     dispatch({
       type: "next-question",
       questionIndex: nextQuestionIndex,
@@ -496,7 +517,7 @@ export function useQuestionsScreen() {
   }, [clearGameplayWork, router]);
 
   const submitCurrentAnswer = useCallback(
-    async (optionId: number) => {
+    async (optionId: number, revealedCorrectOptionId?: number) => {
       const currentInteraction = interactionRef.current;
       const currentSession = sessionRef.current;
       const currentRoute = routeContextRef.current;
@@ -508,7 +529,7 @@ export function useQuestionsScreen() {
         currentInteraction.overlay !== null ||
         submissionInFlightRef.current ||
         (currentInteraction.submissionError !== null &&
-          currentInteraction.selectedOptionId !== optionId)
+          retrySubmissionRef.current?.optionId !== optionId)
       ) {
         return;
       }
@@ -520,9 +541,14 @@ export function useQuestionsScreen() {
       }
 
       submissionInFlightRef.current = true;
+      retrySubmissionRef.current = { optionId, revealedCorrectOptionId };
       completionRef.current = null;
       timerDeadlineRef.current = null;
-      dispatch({ type: "submission-start", optionId });
+      dispatch({
+        type: "submission-start",
+        optionId,
+        revealedCorrectOptionId: revealedCorrectOptionId ?? null,
+      });
       const generation = ++submissionGenerationRef.current;
 
       try {
@@ -599,7 +625,11 @@ export function useQuestionsScreen() {
         }
 
         AccessibilityInfo.announceForAccessibility(
-          result.isCorrect ? "Correct answer" : "Wrong answer",
+          revealedCorrectOptionId === undefined
+            ? result.isCorrect
+              ? "Correct answer"
+              : "Wrong answer"
+            : "Time expired. Correct answer shown",
         );
       } catch (error: unknown) {
         if (
@@ -621,6 +651,10 @@ export function useQuestionsScreen() {
     },
     [queryClient, submitAnswerMutation, userId],
   );
+
+  useEffect(() => {
+    submitCurrentAnswerRef.current = submitCurrentAnswer;
+  }, [submitCurrentAnswer]);
 
   useEffect(() => {
     if (
@@ -652,8 +686,9 @@ export function useQuestionsScreen() {
           currentSession?.questions[currentInteraction.questionIndex];
         if (question && timerExpiredQuestionRef.current !== question.id) {
           timerExpiredQuestionRef.current = question.id;
-          AccessibilityInfo.announceForAccessibility(
-            "Time expired. Select an answer to continue.",
+          void submitCurrentAnswerRef.current(
+            question.timeoutAnswerId,
+            question.correctAnswerId,
           );
         }
       }
@@ -857,9 +892,12 @@ export function useQuestionsScreen() {
   }, [questionsQuery, routeContext]);
 
   const handleRetrySubmission = useCallback(() => {
-    const selectedOptionId = interactionRef.current.selectedOptionId;
-    if (selectedOptionId !== null) {
-      void submitCurrentAnswer(selectedOptionId);
+    const retrySubmission = retrySubmissionRef.current;
+    if (retrySubmission) {
+      void submitCurrentAnswer(
+        retrySubmission.optionId,
+        retrySubmission.revealedCorrectOptionId,
+      );
     }
   }, [submitCurrentAnswer]);
 
@@ -894,6 +932,13 @@ export function useQuestionsScreen() {
   const remainingSeconds = readyState
     ? Math.max(0, Math.ceil(readyState.remainingMs / 1000))
     : 0;
+  const timerColorState = getTimerColorState(remainingSeconds);
+  const timerColor =
+    timerColorState === "green"
+      ? gameplayColors.correct
+      : timerColorState === "orange"
+        ? gameplayColors.orange
+        : gameplayColors.wrong;
 
   return {
     state,
@@ -901,6 +946,7 @@ export function useQuestionsScreen() {
     currentQuestion,
     currentNumber: readyState ? readyState.questionIndex + 1 : 0,
     timerRatio,
+    timerColor,
     formattedTime: `00:${remainingSeconds.toString().padStart(2, "0")}`,
     handleSelectAnswer: submitCurrentAnswer,
     handleRetrySubmission,
