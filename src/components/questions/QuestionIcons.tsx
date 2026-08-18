@@ -224,3 +224,44 @@ const styles = StyleSheet.create({
     backgroundColor: gameplayColors.primaryText,
   },
 });
+
+export function SparkleGlyph({ size, color = gameplayColors.gold }: IconProps) {
+  return (
+    <Svg
+      accessible={false}
+      pointerEvents="none"
+      width={size}
+      height={size}
+      viewBox="0 0 28 28"
+    >
+      <Path
+        d="M14 1.5c1.1 6.3 6.2 11.4 12.5 12.5C20.2 15.1 15.1 20.2 14 26.5 12.9 20.2 7.8 15.1 1.5 14 7.8 12.9 12.9 7.8 14 1.5Z"
+        fill={color}
+      />
+    </Svg>
+  );
+}
+
+export function SweatDropGlyph({ size, color = '#4FA8FF' }: IconProps) {
+  return (
+    <Svg
+      accessible={false}
+      pointerEvents="none"
+      width={size}
+      height={size}
+      viewBox="0 0 28 28"
+    >
+      <Path
+        d="M14 2.5c4.6 5.6 8 10 8 14a8 8 0 0 1-16 0c0-4 3.4-8.4 8-14Z"
+        fill={color}
+      />
+      <Path
+        d="M10.4 17.2a4.2 4.2 0 0 0 1.5 4"
+        fill="none"
+        stroke="rgba(255, 255, 255, 0.75)"
+        strokeLinecap="round"
+        strokeWidth="2"
+      />
+    </Svg>
+  );
+}

@@ -78,7 +78,7 @@ export function AnswerOption({
                 ? gameplayColors.correct
                 : selected
                   ? gameplayColors.primaryText
-                : gameplayColors.border,
+                  : gameplayColors.border,
           borderWidth: selected && !isFeedback ? 3 : 1,
           backgroundColor:
             visualState === 'correct'

@@ -29,6 +29,11 @@ import {
 } from "@/services/level-map.service";
 import { HOME_QUERY_KEY } from "@/services/home.service";
 import {
+  playAnswerSound,
+  prepareAnswerSounds,
+  releaseAnswerSounds,
+} from "@/services/gameplay-audio.service";
+import {
   getSessionQuestions,
   getSessionQuestionsQueryKey,
   submitAnswer,
@@ -347,9 +352,12 @@ export function useQuestionsScreen() {
   }, [routeContext]);
 
   useEffect(() => {
+    void prepareAnswerSounds();
+
     return () => {
       mountedRef.current = false;
       clearGameplayWork();
+      releaseAnswerSounds();
     };
   }, [clearGameplayWork]);
 
@@ -615,6 +623,7 @@ export function useQuestionsScreen() {
             ? null
             : question.correctAnswerId,
         });
+        void playAnswerSound(result.isCorrect ? "correct" : "wrong");
         void queryClient.invalidateQueries({
           exact: true,
           queryKey: getSessionQuestionsQueryKey(currentSession.sessionId),

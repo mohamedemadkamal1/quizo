@@ -1,7 +1,11 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
+import {
+  QuestionCharacter,
+  type CharacterReaction,
+} from '@/components/questions/QuestionCharacter';
 import { ClockGlyph } from '@/components/questions/QuestionIcons';
 import { gameplayColors, gameplayGradients } from '@/constants/questions';
 import type { GameplayQuestion } from '@/types/questions.types';
@@ -11,6 +15,7 @@ type QuestionCardProps = {
   formattedTime: string;
   timerRatio: number;
   timerColor: string;
+  reaction: CharacterReaction;
   scale: number;
 };
 
@@ -38,6 +43,7 @@ export function QuestionCard({
   formattedTime,
   timerRatio,
   timerColor,
+  reaction,
   scale,
 }: QuestionCardProps) {
   const trackWidth = 214 * scale;
@@ -74,28 +80,7 @@ export function QuestionCard({
         {question.prompt}
       </Text>
 
-      <View
-        accessible={false}
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-        pointerEvents="none"
-        style={[
-          styles.characterSlot,
-          {
-            top: 5 * scale,
-            right: 21 * scale,
-            width: 108 * scale,
-            height: 173 * scale,
-          },
-        ]}
-      >
-        <Image
-          accessibilityIgnoresInvertColors
-          resizeMode="contain"
-          source={require('../../assets/images/illustrations/questions/question-character.png')}
-          style={styles.character}
-        />
-      </View>
+      <QuestionCharacter reaction={reaction} scale={scale} />
 
       <View style={[styles.clock, { left: 30 * scale, bottom: 14 * scale }]}>
         <ClockGlyph size={37 * scale} />
@@ -158,14 +143,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Fredoka',
     fontWeight: '600',
     includeFontPadding: false,
-  },
-  characterSlot: {
-    position: 'absolute',
-    zIndex: 1,
-  },
-  character: {
-    width: '100%',
-    height: '100%',
   },
   clock: {
     position: 'absolute',

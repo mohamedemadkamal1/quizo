@@ -17,6 +17,7 @@ import {
 } from '@/components/questions/AnswerOption';
 import { GameplayOverlayHost } from '@/components/questions/GameplayOverlay';
 import { QuestionCard } from '@/components/questions/QuestionCard';
+import type { CharacterReaction } from '@/components/questions/QuestionCharacter';
 import { QuestionHeader } from '@/components/questions/QuestionHeader';
 import {
   gameplayColors,
@@ -66,6 +67,16 @@ function QuestionsStatePanel({
       </View>
     </SafeAreaView>
   );
+}
+
+function getCharacterReaction(
+  feedback: QuestionAnswerResult | null,
+): CharacterReaction {
+  if (!feedback) {
+    return 'idle';
+  }
+
+  return feedback.isCorrect ? 'correct' : 'wrong';
 }
 
 function getAnswerVisualState(
@@ -173,6 +184,7 @@ export function QuestionsContent({ screen }: QuestionsContentProps) {
             <QuestionCard
               formattedTime={screen.formattedTime}
               question={currentQuestion}
+              reaction={getCharacterReaction(readyState.feedback)}
               scale={scale}
               timerColor={screen.timerColor}
               timerRatio={screen.timerRatio}
