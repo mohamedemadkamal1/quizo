@@ -1,22 +1,24 @@
 nodeLinker: hoisted
 minimumReleaseAgeExclude:
-  - '@expo/cli@57.0.3'
-  - '@expo/fingerprint@0.20.1'
-  - '@expo/inline-modules@0.1.1'
+  - '@expo/cli@57.0.3 || 57.0.16'
+  - '@expo/fingerprint@0.20.1 || 0.20.8'
+  - '@expo/inline-modules@0.1.1 || 0.1.6'
   - '@expo/local-build-cache-provider@57.0.1'
   - '@expo/metro-config@57.0.2'
-  - '@expo/metro-runtime@57.0.2'
+  - '@expo/metro-runtime@57.0.2 || 57.0.11'
   - '@expo/prebuild-config@57.0.3'
   - '@expo/router-server@57.0.1'
   - babel-preset-expo@57.0.1
-  - expo-asset@57.0.2
-  - expo-constants@57.0.2
+  - expo-asset@57.0.2 || 57.0.12
+  - expo-constants@57.0.2 || 57.0.12
   - expo-linking@57.0.1
   - expo-modules-autolinking@57.0.3
   - expo-modules-core@57.0.1
-  - expo-router@57.0.2
-  - expo-splash-screen@57.0.1
-  - expo@57.0.1
+  - expo-router@57.0.2 || 57.0.14
+  - expo-splash-screen@57.0.1 || 57.0.7
+  - expo@57.0.1 || 57.0.14
   - expo-camera@57.0.3
+  - '@expo/config@57.0.8'
+  - '@expo/log-box@57.0.3'
 allowBuilds:
   unrs-resolver: true
