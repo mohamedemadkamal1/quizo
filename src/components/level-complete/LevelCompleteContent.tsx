@@ -225,6 +225,10 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
     summary.totalAnswers,
   );
   const formattedDuration = formatDuration(summary.durationSeconds);
+  const xpLabel =
+    summary.isReplay && summary.xpEarned === 0
+      ? 'Replay — no XP awarded'
+      : `${summary.xpEarned} XP earned`;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -397,7 +401,7 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
         </View>
 
         <Pressable
-          accessibilityLabel={`${summary.xpEarned} XP earned. Completed in ${formattedDuration}`}
+          accessibilityLabel={`${xpLabel}. Completed in ${formattedDuration}`}
           accessibilityHint="Opens the Leaderboard tab"
           accessibilityRole="button"
           android_ripple={{ color: 'rgba(72, 91, 221, 0.08)' }}
@@ -429,7 +433,7 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
                 { fontSize: 14 * scale, lineHeight: 19 * scale },
               ]}
             >
-              {summary.xpEarned} XP earned
+              {xpLabel}
             </Text>
             <Text
               numberOfLines={1}

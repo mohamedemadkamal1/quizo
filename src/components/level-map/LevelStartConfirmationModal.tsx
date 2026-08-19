@@ -21,6 +21,7 @@ const SCREEN_MARGIN = 16;
 type LevelStartConfirmationModalProps = {
   visible: boolean;
   levelNumber: number | null;
+  isReplay: boolean;
   isStarting: boolean;
   errorMessage: string | null;
   onClose: () => void;
@@ -99,6 +100,7 @@ function CloseIcon({ size }: { size: number }) {
 export function LevelStartConfirmationModal({
   visible,
   levelNumber,
+  isReplay,
   isStarting,
   errorMessage,
   onClose,
@@ -226,7 +228,7 @@ export function LevelStartConfirmationModal({
                 },
               ]}
             >
-              Ready To start?
+              {isReplay ? 'Play Again?' : 'Ready To start?'}
             </Text>
             <Text
               style={[
@@ -238,7 +240,7 @@ export function LevelStartConfirmationModal({
                 },
               ]}
             >
-              You’re about to begin
+              {isReplay ? 'You’re about to replay' : 'You’re about to begin'}
             </Text>
             <Text
               style={[
@@ -271,7 +273,11 @@ export function LevelStartConfirmationModal({
           </View>
 
           <Pressable
-            accessibilityLabel={`Start Level ${levelNumber}`}
+            accessibilityLabel={
+              isReplay
+                ? `Replay Level ${levelNumber}`
+                : `Start Level ${levelNumber}`
+            }
             accessibilityRole="button"
             accessibilityState={{ disabled: isStarting, busy: isStarting }}
             disabled={isStarting}
@@ -351,7 +357,7 @@ export function LevelStartConfirmationModal({
                         { fontSize: 33.5 * scale, lineHeight: 42 * scale },
                       ]}
                     >
-                      Let’s Play
+                      {isReplay ? 'Let’s Replay' : 'Let’s Play'}
                     </Text>
                   )}
                 </View>

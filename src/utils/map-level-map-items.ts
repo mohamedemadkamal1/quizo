@@ -23,6 +23,7 @@ export function mapLevelMapItems(
         item.published &&
         hasRecognizedStatus &&
         (viewState === 'available' ||
+          viewState === 'completed' ||
           (viewState === 'in-progress' &&
             item.activeSessionId !== null &&
             Number.isInteger(item.activeSessionId) &&

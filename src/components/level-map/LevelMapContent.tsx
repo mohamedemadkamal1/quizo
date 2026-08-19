@@ -225,6 +225,7 @@ export function LevelMapContent({ screen }: LevelMapContentProps) {
 
       <LevelStartConfirmationModal
         errorMessage={screen.startLevelErrorMessage}
+        isReplay={screen.selectedLevel?.viewState === 'completed'}
         isStarting={screen.isStartingLevel}
         levelNumber={screen.selectedLevel?.number ?? null}
         onClose={screen.handleCloseLevelStartModal}

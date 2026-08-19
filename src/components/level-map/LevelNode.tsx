@@ -22,7 +22,9 @@ function getAccessibilityLabel(level: LevelMapLevel) {
   }
 
   if (level.viewState === 'completed') {
-    return `Level ${level.number}, completed.`;
+    return level.isPlayable
+      ? `Level ${level.number}, completed. Play again.`
+      : `Level ${level.number}, completed.`;
   }
 
   if (level.viewState === 'in-progress') {
