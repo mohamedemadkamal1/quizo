@@ -174,16 +174,15 @@ export function LevelMapContent({ screen }: LevelMapContentProps) {
             keyExtractor={(level) => String(level.id)}
             ListHeaderComponent={
               <View style={styles.boundaryHeader}>
-                <LevelFogBoundary
-                  mapWidth={mapWidth}
-                  revealKey={screen.presentationLevels[0]?.number ?? 0}
-                  theme={theme}
-                />
-                {!screen.hasMoreLevels ? (
-                  <View style={StyleSheet.absoluteFill}>
-                    <LevelMapEnd />
-                  </View>
-                ) : null}
+                {screen.hasMoreLevels ? (
+                  <LevelFogBoundary
+                    mapWidth={mapWidth}
+                    revealKey={screen.presentationLevels[0]?.number ?? 0}
+                    theme={theme}
+                  />
+                ) : (
+                  <LevelMapEnd />
+                )}
               </View>
             }
             maxToRenderPerBatch={10}
