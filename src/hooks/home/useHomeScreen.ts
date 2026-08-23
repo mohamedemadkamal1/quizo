@@ -9,6 +9,7 @@ import {
   HOME_CATEGORY_COLOR_PALETTE,
   HOME_CATEGORY_ICONS,
 } from '@/constants/home';
+import { useTranslation } from '@/hooks/useTranslation';
 import {
   getHome,
   getSubCategoryLevelCounts,
@@ -48,23 +49,6 @@ function isPositiveInteger(value: unknown): value is number {
   return typeof value === 'number' && Number.isInteger(value) && value > 0;
 }
 
-function formatLastPlayedAt(value: string | null) {
-  if (value === null) {
-    return 'Not played yet';
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return 'Date unavailable';
-  }
-
-  return date.toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
 function getItemIdentityKey(items: HomeItem[]) {
   return items
     .map((item) => item.id)
@@ -74,6 +58,7 @@ function getItemIdentityKey(items: HomeItem[]) {
 
 export function useHomeScreen() {
   const router = useRouter();
+  const { t, formatShortDate } = useTranslation();
   const tabBarHeight = useBottomTabBarHeight();
   const session = useAuthStore((state) => state.session);
   const displayName = session?.user.displayName;
@@ -154,19 +139,39 @@ export function useHomeScreen() {
     [items, shuffledIcons],
   );
 
+  const formatLastPlayedAt = useCallback(
+    (value: string | null) => {
+      if (value === null) {
+        return t('home.activityNeverPlayed');
+      }
+
+      const date = new Date(value);
+
+      return Number.isNaN(date.getTime())
+        ? t('home.activityDateUnavailable')
+        : formatShortDate(date);
+    },
+    [formatShortDate, t],
+  );
+
   const recentActivities = useMemo<RecentActivity[]>(
     () =>
       items.slice(0, 2).map((item) => ({
         id: item.id,
         statusLabel: item.isCompleted
-          ? '\u2713 Completed'
-          : `${Math.round(clampPercentage(item.completedPercentage))}% Complete`,
+          ? t('home.activityCompleted')
+          : t('home.activityProgress', {
+              percent: Math.round(clampPercentage(item.completedPercentage)),
+            }),
         activityName: item.name,
         xp: item.totalXp,
-        day: `Level ${item.currentLevel} \u00B7 ${formatLastPlayedAt(item.lastPlayedAt)}`,
+        day: t('home.activityDay', {
+          level: item.currentLevel,
+          date: formatLastPlayedAt(item.lastPlayedAt),
+        }),
         icon: createElement(NotificationBellIcon, { size: 20 }),
       })),
-    [items],
+    [formatLastPlayedAt, items, t],
   );
 
   const categoryLevels = useMemo<CategoryLevel[]>(
@@ -262,14 +267,14 @@ export function useHomeScreen() {
     categoryLevelErrorMessage: levelCountsQuery.isError
       ? getApiErrorMessage(
           levelCountsQuery.error,
-          'Unable to load difficulty levels.',
+          t('home.levelModal.errorFallback'),
         )
       : null,
     isRetryingCategoryLevels: levelCountsQuery.isFetching,
     isInitialLoading: homeQuery.isPending && !hasHomeData,
     isInitialError: homeQuery.isError && !hasHomeData,
     errorMessage: homeQuery.isError
-      ? getApiErrorMessage(homeQuery.error, 'Unable to load Home.')
+      ? getApiErrorMessage(homeQuery.error, t('home.errorFallback'))
       : null,
     isRefreshing: isPullRefreshing,
     isEmpty: hasHomeData && items.length === 0,

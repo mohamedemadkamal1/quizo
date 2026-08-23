@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import type { LayoutChangeEvent } from 'react-native';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   cancelAnimation,
   Easing,
@@ -13,7 +13,9 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 
+import { AppText } from '@/components/common/AppText';
 import { colors } from '@/constants/colors';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { HomeCategory } from '@/types/home.types';
 
 const CARD_HEIGHT = 90;
@@ -42,6 +44,7 @@ export function AnimatedCategoryCard({
   viewportWidth,
   onPress,
 }: AnimatedCategoryCardProps) {
+  const { t } = useTranslation();
   const relativeY = useSharedValue(-1);
   const isVisible = useSharedValue(false);
   const hasEntered = useSharedValue(false);
@@ -131,6 +134,7 @@ export function AnimatedCategoryCard({
   };
 
   const fillWidth = `${category.visualFillRatio * 100}%` as `${number}%`;
+  const levelsLabel = t('home.levelCount', { count: category.levelCount });
 
   return (
     <Animated.View
@@ -139,7 +143,11 @@ export function AnimatedCategoryCard({
     >
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${category.name}, ${category.levelCount} levels, ${category.displayedProgress}% complete. Choose a level.`}
+        accessibilityLabel={t('home.categoryLabel', {
+          name: category.name,
+          levels: levelsLabel,
+          progress: category.displayedProgress,
+        })}
         onPress={() => onPress(category)}
         style={({ pressed }) => [styles.pressable, pressed && styles.pressed]}
       >
@@ -154,20 +162,24 @@ export function AnimatedCategoryCard({
           <View style={styles.topRow}>
             <View style={styles.identity}>
               <View style={styles.iconContainer}>
-                <Text style={styles.icon}>{category.icon}</Text>
+                <AppText style={styles.icon}>{category.icon}</AppText>
               </View>
 
               <View style={styles.labelGroup}>
-                <Text numberOfLines={1} style={styles.title}>
+                <AppText numberOfLines={1} style={styles.title}>
                   {category.name}
-                </Text>
-                <Text style={styles.levels}>{category.levelCount} Levels</Text>
+                </AppText>
+                <AppText numberOfLines={1} style={styles.levels}>
+                  {levelsLabel}
+                </AppText>
               </View>
             </View>
 
             <View style={styles.xpBadge}>
-              <Text style={styles.xpSparkle}>✦</Text>
-              <Text style={styles.xpText}>+{category.xp}</Text>
+              <AppText style={styles.xpSparkle}>✦</AppText>
+              <AppText style={styles.xpText}>
+                {t('home.xpBadge', { xp: category.xp })}
+              </AppText>
             </View>
           </View>
 
@@ -175,7 +187,9 @@ export function AnimatedCategoryCard({
             <View style={styles.progressTrack}>
               <View style={[styles.progressFill, { width: fillWidth }]} />
             </View>
-            <Text style={styles.percentage}>{category.displayedProgress}%</Text>
+            <AppText style={styles.percentage}>
+              {category.displayedProgress}%
+            </AppText>
           </View>
         </LinearGradient>
       </Pressable>
@@ -229,7 +243,7 @@ const styles = StyleSheet.create({
   decoration: {
     position: 'absolute',
     top: -12,
-    right: 16,
+    end: 16,
     width: 64,
     height: 64,
     borderRadius: 32,
@@ -248,7 +262,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingRight: 8,
+    paddingEnd: 8,
   },
   iconContainer: {
     width: 44,
@@ -324,7 +338,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 32,
     marginTop: 6,
-    paddingRight: 8,
+    paddingEnd: 8,
   },
   progressTrack: {
     height: 8,
@@ -340,12 +354,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.home.categoryText,
   },
   percentage: {
-    width: 34,
+    minWidth: 34,
+    flexShrink: 0,
     fontFamily: 'Fredoka',
     fontWeight: '400',
     fontSize: 12,
     lineHeight: 15,
-    textAlign: 'right',
+    textAlign: 'center',
     color: colors.home.categoryText,
     includeFontPadding: false,
   },

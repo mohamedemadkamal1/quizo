@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { useTranslation } from '@/hooks/useTranslation';
 import {
+  createNewPasswordSchema,
   type NewPasswordFormValues,
-  newPasswordSchema,
 } from '@/schemas/auth.schemas';
 import { resetPassword } from '@/services/auth.service';
 import { usePasswordResetStore } from '@/store/password-reset.store';
@@ -13,15 +14,17 @@ import { getApiErrorMessage } from '@/utils/get-api-error-message';
 
 export function useNewPasswordScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const resetToken = usePasswordResetStore((state) => state.resetToken);
   const clearResetFlow = usePasswordResetStore((state) => state.clear);
+  const schema = useMemo(() => createNewPasswordSchema(t), [t]);
   const {
     control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
   } = useForm<NewPasswordFormValues>({
-    resolver: zodResolver(newPasswordSchema),
+    resolver: zodResolver(schema),
     defaultValues: { password: '', confirmPassword: '' },
   });
 
@@ -42,7 +45,10 @@ export function useNewPasswordScreen() {
       router.replace({ pathname: '/sign-in', params: { reset: 'success' } });
     } catch (error) {
       setError('root', {
-        message: getApiErrorMessage(error, 'Unable to reset your password.'),
+        message: getApiErrorMessage(
+          error,
+          t('auth.errors.resetPasswordFailed'),
+        ),
       });
     }
   }

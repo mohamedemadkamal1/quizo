@@ -22,6 +22,7 @@ import {
   QUESTION_REVEAL_FEEDBACK_DURATION_MS,
   QUESTION_TIMER_INTERVAL_MS,
 } from "@/constants/questions";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   getLevelMapQueryKey,
   LEVEL_MAP_LIMIT,
@@ -236,6 +237,7 @@ function getFirstUnansweredQuestionIndex(session: QuestionSession) {
 
 export function useQuestionsScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const userId = useAuthStore((state) => state.session?.user.id);
   const params = useLocalSearchParams<RouteParams>();
@@ -422,14 +424,13 @@ export function useQuestionsScreen() {
       status: "error",
       message: getApiErrorMessage(
         questionsQuery.error,
-        "Unable to load this question session.",
+        t("questions.errorFallback"),
       ),
     };
   } else if (hasNoUnansweredQuestions && interaction.sessionId === null) {
     state = {
       status: "completed",
-      message:
-        "All answers have been submitted. Return to the Map to refresh your progress.",
+      message: t("questions.completedMessage"),
     };
   } else if (isReady && session) {
     state = {
@@ -513,8 +514,7 @@ export function useQuestionsScreen() {
           routeContextRef.current === null
             ? null
             : `${routeContextRef.current.categoryId}:${routeContextRef.current.difficulty}:${routeContextRef.current.levelId}:${routeContextRef.current.levelNumber}:${routeContextRef.current.sessionId}`,
-        message:
-          "The session has no remaining question, but the level was not marked complete.",
+        message: t("questions.noRemainingQuestion"),
       });
       return;
     }
@@ -529,7 +529,7 @@ export function useQuestionsScreen() {
       questionIndex: nextQuestionIndex,
       durationMs: nextQuestion.durationSeconds * 1000,
     });
-  }, [clearGameplayWork, router]);
+  }, [clearGameplayWork, router, t]);
 
   const submitCurrentAnswer = useCallback(
     async (optionId: number, revealedCorrectOptionId?: number) => {
@@ -596,9 +596,7 @@ export function useQuestionsScreen() {
             exact: true,
             queryKey: getSessionQuestionsQueryKey(currentSession.sessionId),
           });
-          throw new Error(
-            "The completed level result does not match this question session.",
-          );
+          throw new Error(t("questions.sessionMismatch"));
         }
 
         submittedQuestionIdsRef.current.add(question.id);
@@ -649,10 +647,10 @@ export function useQuestionsScreen() {
 
         AccessibilityInfo.announceForAccessibility(
           revealedCorrectOptionId !== undefined
-            ? "Time expired. Correct answer shown"
+            ? t("questions.announcements.timeout")
             : result.isCorrect
-              ? "Correct answer"
-              : "Wrong answer. Correct answer shown",
+              ? t("questions.announcements.correct")
+              : t("questions.announcements.wrong"),
         );
       } catch (error: unknown) {
         if (
@@ -667,12 +665,12 @@ export function useQuestionsScreen() {
           type: "submission-error",
           message: getApiErrorMessage(
             error,
-            "Unable to submit this answer. Please try again.",
+            t("questions.submissionErrorFallback"),
           ),
         });
       }
     },
-    [queryClient, submitAnswerMutation, userId],
+    [queryClient, submitAnswerMutation, t, userId],
   );
 
   useEffect(() => {

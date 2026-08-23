@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -9,8 +9,9 @@ import { AuthInput } from '@/components/auth/AuthInput';
 import { AppButton } from '@/components/common/AppButton';
 import { ProfileIcon } from '@/components/profile/ProfileIcon';
 import { ProfileModalFrame } from '@/components/profile/ProfileModalFrame';
+import { useTranslation } from '@/hooks/useTranslation';
 import {
-  changePasswordSchema,
+  createChangePasswordSchema,
   type ChangePasswordFormValues,
 } from '@/schemas/profile.schemas';
 import type { ChangePasswordRequest } from '@/types/profile.types';
@@ -36,8 +37,10 @@ export function ChangePasswordModal({
   onDismiss,
   onSubmit,
 }: ChangePasswordModalProps) {
+  const { t } = useTranslation();
+  const schema = useMemo(() => createChangePasswordSchema(t), [t]);
   const { control, handleSubmit, reset } = useForm<ChangePasswordFormValues>({
-    resolver: zodResolver(changePasswordSchema),
+    resolver: zodResolver(schema),
     defaultValues,
   });
 
@@ -59,7 +62,7 @@ export function ChangePasswordModal({
 
   return (
     <ProfileModalFrame
-      accessibilityLabel="Change password"
+      accessibilityLabel={t('profile.changePasswordModal.dialogLabel')}
       isBusy={isSubmitting}
       maxWidth={360}
       onClose={dismiss}
@@ -67,11 +70,11 @@ export function ChangePasswordModal({
     >
       <View style={styles.header}>
         <AuthHeading
-          title="Change Password"
-          subtitle="Update your password to keep your account secure."
+          title={t('profile.changePasswordModal.title')}
+          subtitle={t('profile.changePasswordModal.subtitle')}
         />
         <Pressable
-          accessibilityLabel="Close"
+          accessibilityLabel={t('common.close')}
           accessibilityRole="button"
           disabled={isSubmitting}
           hitSlop={10}
@@ -90,7 +93,9 @@ export function ChangePasswordModal({
             render={({ field: { onBlur, onChange, value }, fieldState }) => (
               <AuthInput
                 key={`current-password-${visible}`}
-                accessibilityLabel="Current password"
+                accessibilityLabel={t(
+                  'profile.changePasswordModal.currentPasswordLabel',
+                )}
                 autoCapitalize="none"
                 autoComplete="current-password"
                 autoCorrect={false}
@@ -98,7 +103,7 @@ export function ChangePasswordModal({
                 error={fieldState.error?.message}
                 onBlur={onBlur}
                 onChangeText={onChange}
-                placeholder="Current Password"
+                placeholder={t('profile.changePasswordModal.currentPassword')}
                 returnKeyType="next"
                 secureTextEntry
                 textContentType="password"
@@ -112,7 +117,9 @@ export function ChangePasswordModal({
             render={({ field: { onBlur, onChange, value }, fieldState }) => (
               <AuthInput
                 key={`new-password-${visible}`}
-                accessibilityLabel="New password"
+                accessibilityLabel={t(
+                  'profile.changePasswordModal.newPasswordLabel',
+                )}
                 autoCapitalize="none"
                 autoComplete="new-password"
                 autoCorrect={false}
@@ -121,7 +128,7 @@ export function ChangePasswordModal({
                 maxLength={128}
                 onBlur={onBlur}
                 onChangeText={onChange}
-                placeholder="New Password"
+                placeholder={t('profile.changePasswordModal.newPassword')}
                 returnKeyType="next"
                 secureTextEntry
                 textContentType="newPassword"
@@ -135,7 +142,9 @@ export function ChangePasswordModal({
             render={({ field: { onBlur, onChange, value }, fieldState }) => (
               <AuthInput
                 key={`confirm-new-password-${visible}`}
-                accessibilityLabel="Confirm new password"
+                accessibilityLabel={t(
+                  'profile.changePasswordModal.confirmNewPasswordLabel',
+                )}
                 autoCapitalize="none"
                 autoComplete="new-password"
                 autoCorrect={false}
@@ -147,7 +156,9 @@ export function ChangePasswordModal({
                 onSubmitEditing={() => {
                   void submit();
                 }}
-                placeholder="Confirm New Password"
+                placeholder={t(
+                  'profile.changePasswordModal.confirmNewPassword',
+                )}
                 returnKeyType="done"
                 secureTextEntry
                 textContentType="newPassword"
@@ -161,7 +172,7 @@ export function ChangePasswordModal({
 
         <AppButton
           isLoading={isSubmitting}
-          label="Reset Password"
+          label={t('profile.changePasswordModal.submit')}
           onPress={() => {
             void submit();
           }}
@@ -179,7 +190,7 @@ const styles = StyleSheet.create({
   closeButton: {
     position: 'absolute',
     top: -8,
-    right: -8,
+    end: -8,
     width: 40,
     height: 40,
     alignItems: 'center',

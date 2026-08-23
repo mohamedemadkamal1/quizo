@@ -1,8 +1,10 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { AppText } from '@/components/common/AppText';
 import { CloseGlyph, DoorGlyph } from '@/components/questions/QuestionIcons';
 import { gameplayColors, gameplayGradients } from '@/constants/questions';
+import { useTranslation } from '@/hooks/useTranslation';
 
 type QuitOverlayContentProps = {
   scale: number;
@@ -15,6 +17,7 @@ export function QuitOverlayContent({
   onCancel,
   onConfirm,
 }: QuitOverlayContentProps) {
+  const { t } = useTranslation();
   const closeIconSize = 48 * scale;
   const closeOffset = (44 - closeIconSize) / 2;
 
@@ -26,7 +29,7 @@ export function QuitOverlayContent({
       style={styles.panel}
     >
       <Pressable
-        accessibilityLabel="Cancel quitting"
+        accessibilityLabel={t('questions.quitOverlay.cancelLabel')}
         accessibilityRole="button"
         android_ripple={{ color: 'rgba(255, 159, 10, 0.1)' }}
         onPress={onCancel}
@@ -34,7 +37,7 @@ export function QuitOverlayContent({
           styles.close,
           {
             top: 27 * scale - closeOffset,
-            right: 30 * scale - closeOffset,
+            end: 30 * scale - closeOffset,
           },
         ]}
       >
@@ -56,11 +59,11 @@ export function QuitOverlayContent({
         <DoorGlyph size={100 * scale} />
       </View>
 
-      <Text
+      <AppText
         accessibilityRole="header"
-        numberOfLines={1}
+        numberOfLines={2}
         adjustsFontSizeToFit
-        minimumFontScale={0.85}
+        minimumFontScale={0.7}
         style={[
           styles.heading,
           {
@@ -72,11 +75,14 @@ export function QuitOverlayContent({
           },
         ]}
       >
-        Are you Sure You Want to <Text style={styles.quitAccent}>Quit?</Text>
-      </Text>
+        {t('questions.quitOverlay.titlePrefix')}
+        <AppText style={styles.quitAccent}>
+          {t('questions.quitOverlay.titleAccent')}
+        </AppText>
+      </AppText>
 
       <Pressable
-        accessibilityLabel="Yes, quit questions"
+        accessibilityLabel={t('questions.quitOverlay.confirmLabel')}
         accessibilityRole="button"
         android_ripple={{ color: 'rgba(72, 91, 221, 0.08)' }}
         onPress={onConfirm}
@@ -91,14 +97,17 @@ export function QuitOverlayContent({
           },
         ]}
       >
-        <Text
+        <AppText
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          numberOfLines={1}
           style={[
             styles.confirmLabel,
             { fontSize: 33 * scale, lineHeight: 41 * scale },
           ]}
         >
-          Yes, quit
-        </Text>
+          {t('questions.quitOverlay.confirm')}
+        </AppText>
       </Pressable>
     </LinearGradient>
   );
@@ -135,6 +144,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 20,
     borderWidth: 1,
     borderColor: gameplayColors.border,
     backgroundColor: gameplayColors.surface,

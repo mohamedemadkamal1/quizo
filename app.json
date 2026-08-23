@@ -55,6 +55,27 @@
                     "weight": 500
                   }
                 ]
+              },
+              {
+                "fontFamily": "Cairo",
+                "fontDefinitions": [
+                  {
+                    "path": "node_modules/@expo-google-fonts/cairo/400Regular/Cairo_400Regular.ttf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "node_modules/@expo-google-fonts/cairo/500Medium/Cairo_500Medium.ttf",
+                    "weight": 500
+                  },
+                  {
+                    "path": "node_modules/@expo-google-fonts/cairo/600SemiBold/Cairo_600SemiBold.ttf",
+                    "weight": 600
+                  },
+                  {
+                    "path": "node_modules/@expo-google-fonts/cairo/700Bold/Cairo_700Bold.ttf",
+                    "weight": 700
+                  }
+                ]
               }
             ]
           },
@@ -63,7 +84,11 @@
               "node_modules/@expo-google-fonts/fredoka/400Regular/Fredoka_400Regular.ttf",
               "node_modules/@expo-google-fonts/fredoka/500Medium/Fredoka_500Medium.ttf",
               "node_modules/@expo-google-fonts/fredoka/600SemiBold/Fredoka_600SemiBold.ttf",
-              "node_modules/@expo-google-fonts/nunito/500Medium/Nunito_500Medium.ttf"
+              "node_modules/@expo-google-fonts/nunito/500Medium/Nunito_500Medium.ttf",
+              "node_modules/@expo-google-fonts/cairo/400Regular/Cairo_400Regular.ttf",
+              "node_modules/@expo-google-fonts/cairo/500Medium/Cairo_500Medium.ttf",
+              "node_modules/@expo-google-fonts/cairo/600SemiBold/Cairo_600SemiBold.ttf",
+              "node_modules/@expo-google-fonts/cairo/700Bold/Cairo_700Bold.ttf"
             ]
           }
         }
@@ -87,7 +112,8 @@
           "enableBackgroundPlayback": false,
           "enableBackgroundRecording": false
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,

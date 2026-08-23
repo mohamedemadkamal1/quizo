@@ -5,12 +5,12 @@ import {
   FlatList,
   Pressable,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppText } from '@/components/common/AppText';
 import { LevelFogBoundary } from '@/components/level-map/LevelFogBoundary';
 import { LevelMapEnd } from '@/components/level-map/LevelMapEnd';
 import { LevelMapHeader } from '@/components/level-map/LevelMapHeader';
@@ -21,6 +21,7 @@ import {
   LEVEL_MAP_ROW_HEIGHT,
 } from '@/constants/level-map';
 import type { useLevelMapScreen } from '@/hooks/level-map/useLevelMapScreen';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { LevelMapLevel } from '@/types/level-map.types';
 
 type LevelMapContentProps = {
@@ -30,12 +31,14 @@ type LevelMapContentProps = {
 function LevelMapStatePanel({
   message,
   actionLabel,
+  loadingLabel,
   actionDisabled = false,
   isLoading = false,
   onAction,
 }: {
   message: string;
   actionLabel: string;
+  loadingLabel?: string;
   actionDisabled?: boolean;
   isLoading?: boolean;
   onAction: () => void;
@@ -44,12 +47,9 @@ function LevelMapStatePanel({
     <SafeAreaView style={styles.stateSafeArea}>
       <View style={styles.statePanel}>
         {isLoading ? (
-          <ActivityIndicator
-            accessibilityLabel="Loading level map"
-            size="large"
-          />
+          <ActivityIndicator accessibilityLabel={loadingLabel} size="large" />
         ) : null}
-        <Text style={styles.stateMessage}>{message}</Text>
+        <AppText style={styles.stateMessage}>{message}</AppText>
         <Pressable
           accessibilityRole="button"
           disabled={actionDisabled}
@@ -60,7 +60,7 @@ function LevelMapStatePanel({
             actionDisabled && styles.stateActionDisabled,
           ]}
         >
-          <Text style={styles.backLink}>{actionLabel}</Text>
+          <AppText style={styles.backLink}>{actionLabel}</AppText>
         </Pressable>
       </View>
     </SafeAreaView>
@@ -68,6 +68,7 @@ function LevelMapStatePanel({
 }
 
 export function LevelMapContent({ screen }: LevelMapContentProps) {
+  const { t } = useTranslation();
   const listRef = useRef<FlatList<LevelMapLevel>>(null);
   const positionedKeyRef = useRef<string | null>(null);
   const { width } = useWindowDimensions();
@@ -100,8 +101,8 @@ export function LevelMapContent({ screen }: LevelMapContentProps) {
   if (screen.status === 'invalid') {
     return (
       <LevelMapStatePanel
-        actionLabel="Back to Home"
-        message="This level-map link is invalid."
+        actionLabel={t('common.backToHome')}
+        message={t('levelMap.invalidLink')}
         onAction={screen.handleClose}
       />
     );
@@ -110,9 +111,10 @@ export function LevelMapContent({ screen }: LevelMapContentProps) {
   if (screen.status === 'loading') {
     return (
       <LevelMapStatePanel
-        actionLabel="Back"
+        actionLabel={t('common.back')}
         isLoading
-        message="Loading level map…"
+        loadingLabel={t('levelMap.loadingLabel')}
+        message={t('levelMap.loading')}
         onAction={screen.handleClose}
       />
     );
@@ -122,8 +124,8 @@ export function LevelMapContent({ screen }: LevelMapContentProps) {
     return (
       <LevelMapStatePanel
         actionDisabled={screen.isRetrying}
-        actionLabel="Retry"
-        message={screen.errorMessage ?? 'Unable to load this level map.'}
+        actionLabel={t('common.retry')}
+        message={screen.errorMessage ?? t('levelMap.errorFallback')}
         onAction={screen.handleRetry}
       />
     );
@@ -132,8 +134,8 @@ export function LevelMapContent({ screen }: LevelMapContentProps) {
   if (screen.status === 'empty') {
     return (
       <LevelMapStatePanel
-        actionLabel="Back to Home"
-        message="No levels are available yet."
+        actionLabel={t('common.backToHome')}
+        message={t('levelMap.empty')}
         onAction={screen.handleClose}
       />
     );

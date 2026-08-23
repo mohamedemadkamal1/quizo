@@ -12,6 +12,8 @@ import {
   NavigationTabItem,
 } from '@/components/common/NavigationTabItem';
 import { colors } from '@/constants/colors';
+import { useTranslation } from '@/hooks/useTranslation';
+import type { TranslationKey } from '@/i18n';
 
 const TAB_BAR_CONTENT_HEIGHT = 76;
 
@@ -19,33 +21,35 @@ function TabBarBackground() {
   return <View style={styles.tabBarBackground} />;
 }
 
+// Translation keys rather than labels, so the tab bar follows the language.
 const tabs = [
   {
     name: 'leaderboard',
-    label: 'Leaderboard',
+    labelKey: 'navigation.leaderboard',
     Icon: LeaderboardTabIcon,
     inactiveIconColor: undefined,
   },
   {
     name: 'home',
-    label: 'Home',
+    labelKey: 'navigation.home',
     Icon: HomeTabIcon,
     inactiveIconColor: colors.navigation.inactiveHomeIcon,
   },
   {
     name: 'profile',
-    label: 'Profile',
+    labelKey: 'navigation.profile',
     Icon: ProfileTabIcon,
     inactiveIconColor: undefined,
   },
 ] as const satisfies readonly {
   name: string;
-  label: string;
+  labelKey: TranslationKey;
   Icon: ComponentType<NavigationIconProps>;
   inactiveIconColor?: string;
 }[];
 
 export default function AppLayout() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   return (
@@ -67,13 +71,16 @@ export default function AppLayout() {
         ],
       }}
     >
-      {tabs.map(({ name, label, Icon, inactiveIconColor }) => (
+      {tabs.map(({ name, labelKey, Icon, inactiveIconColor }) => {
+        const label = t(labelKey);
+
+        return (
         <Tabs.Screen
           key={name}
           name={name}
           options={{
             title: label,
-            tabBarAccessibilityLabel: `${label} tab`,
+            tabBarAccessibilityLabel: t('navigation.tab', { label }),
             tabBarIcon: ({ focused, color }) => (
               <NavigationTabItem
                 label={label}
@@ -90,7 +97,8 @@ export default function AppLayout() {
             ),
           }}
         />
-      ))}
+        );
+      })}
       <Tabs.Screen
         name="level-map"
         options={{

@@ -1,5 +1,6 @@
 import type { ImageSourcePropType } from 'react-native';
 
+import type { TranslationKey } from '@/i18n';
 import type { ApiEnvelope } from '@/types/auth.types';
 import type {
   Difficulty,
@@ -90,7 +91,8 @@ export type LevelMapLevel = {
 
 export type LevelMapTheme = {
   difficulty: LevelMapDifficulty;
-  label: string;
+  /** Translation key, so the difficulty chip follows the active language. */
+  labelKey: TranslationKey;
   icon: string;
   stars: 1 | 2 | 3;
   backgroundColors: readonly [string, string, string];

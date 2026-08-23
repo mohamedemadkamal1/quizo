@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
 import Animated, {
   Easing,
   ReduceMotion,
@@ -9,6 +9,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { AppText } from '@/components/common/AppText';
 import { AnimatedCloudLayer } from '@/components/level-map/AnimatedCloudLayer';
 import { LEVEL_MAP_BOUNDARY_HEIGHT } from '@/constants/level-map';
 import type { LevelMapTheme } from '@/types/level-map.types';
@@ -70,7 +71,7 @@ export function LevelFogBoundary({
         pointerEvents="none"
         style={styles.softEdge}
       />
-      <Text style={styles.sparkle}>{'\u2726'}</Text>
+      <AppText style={styles.sparkle}>{'\u2726'}</AppText>
     </Animated.View>
   );
 }

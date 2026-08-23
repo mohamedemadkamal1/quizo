@@ -7,6 +7,7 @@ import {
   HOME_CATEGORY_COLOR_PALETTE,
   HOME_CATEGORY_ICONS,
 } from '@/constants/home';
+import { useTranslation } from '@/hooks/useTranslation';
 import { getHome, HOME_QUERY_KEY } from '@/services/home.service';
 import { useAuthStore } from '@/store/auth.store';
 import type { HomeItem } from '@/types/home.types';
@@ -16,6 +17,7 @@ import { getSafeNonNegativeValue } from '@/utils/profile';
 const EMPTY_HOME_ITEMS: HomeItem[] = [];
 
 export function useProfileProgressScreen() {
+  const { t } = useTranslation();
   const tabBarHeight = useBottomTabBarHeight();
   const userId = useAuthStore((state) => state.session?.user.id);
   const hasFocusedOnceRef = useRef(false);
@@ -94,7 +96,10 @@ export function useProfileProgressScreen() {
     isInitialError: homeQuery.isError && !hasData,
     isEmpty: hasData && items.length === 0,
     errorMessage: homeQuery.isError
-      ? getApiErrorMessage(homeQuery.error, 'Unable to load your progress.')
+      ? getApiErrorMessage(
+          homeQuery.error,
+          t('profile.progressScreen.errorFallback'),
+        )
       : null,
     isRetrying: homeQuery.isFetching,
     contentBottomPadding: tabBarHeight + 24,

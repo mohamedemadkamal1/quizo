@@ -7,6 +7,8 @@ import { useWindowDimensions } from 'react-native';
 
 import { getLeaderboardMetrics } from '@/constants/leaderboard';
 import { getProfileAvatar } from '@/constants/profile-avatars';
+import { useTranslation } from '@/hooks/useTranslation';
+import type { Translate } from '@/i18n';
 import {
   getLeaderboard,
   getLeaderboardQueryKey,
@@ -37,7 +39,11 @@ type SessionUser = {
  * their own row, and a neutral placeholder otherwise. The email the backend
  * returns is never part of this: it is dropped at the service boundary.
  */
-function resolveDisplayName(item: LeaderboardItemDto, session: SessionUser) {
+function resolveDisplayName(
+  item: LeaderboardItemDto,
+  session: SessionUser,
+  t: Translate,
+) {
   const username = item.username?.trim();
 
   if (username) {
@@ -52,15 +58,16 @@ function resolveDisplayName(item: LeaderboardItemDto, session: SessionUser) {
     }
   }
 
-  return `Player ${item.id}`;
+  return t('leaderboard.playerFallback', { id: item.id });
 }
 
 function toRankedEntry(
   item: LeaderboardItemDto,
   rank: number,
   session: SessionUser,
+  t: Translate,
 ): LeaderboardRankedEntry {
-  const displayName = resolveDisplayName(item, session);
+  const displayName = resolveDisplayName(item, session, t);
 
   return {
     id: item.id,
@@ -70,11 +77,16 @@ function toRankedEntry(
     avatar: item.avatar,
     initials: getProfileInitials(displayName),
     avatarSource: getProfileAvatar(item.avatar)?.source ?? null,
-    accessibilityLabel: `Rank ${rank}, ${displayName}, ${item.totalScore} points`,
+    accessibilityLabel: t('leaderboard.rowLabel', {
+      rank,
+      name: displayName,
+      points: t('leaderboard.points', { count: item.totalScore }),
+    }),
   };
 }
 
 export function useLeaderboardScreen() {
+  const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const tabBarHeight = useBottomTabBarHeight();
   const queryClient = useQueryClient();
@@ -132,12 +144,12 @@ export function useLeaderboardScreen() {
         }
 
         seenIds.add(item.id);
-        ranked.push(toRankedEntry(item, ranked.length + 1, session));
+        ranked.push(toRankedEntry(item, ranked.length + 1, session, t));
       }
     }
 
     return ranked;
-  }, [pages, sessionUserId, sessionUsername]);
+  }, [pages, sessionUserId, sessionUsername, t]);
 
   const podiumEntries = useMemo<LeaderboardPodiumEntry[]>(
     () =>
@@ -214,12 +226,12 @@ export function useLeaderboardScreen() {
       hasScrolledRef.current = false;
     } catch (error) {
       setRefreshErrorMessage(
-        getApiErrorMessage(error, 'Unable to refresh the leaderboard.'),
+        getApiErrorMessage(error, t('leaderboard.refreshErrorFallback')),
       );
     } finally {
       setIsPullRefreshing(false);
     }
-  }, [isPullRefreshing, queryClient, queryKey]);
+  }, [isPullRefreshing, queryClient, queryKey, t]);
 
   const retry = useCallback(() => {
     void refetch();
@@ -227,7 +239,10 @@ export function useLeaderboardScreen() {
 
   const hasData = leaderboardQuery.data !== undefined;
   const nextPageErrorMessage = leaderboardQuery.isFetchNextPageError
-    ? getApiErrorMessage(leaderboardQuery.error, 'Unable to load more players.')
+    ? getApiErrorMessage(
+        leaderboardQuery.error,
+        t('leaderboard.nextPageErrorFallback'),
+      )
     : null;
 
   return {
@@ -241,7 +256,7 @@ export function useLeaderboardScreen() {
     errorMessage: leaderboardQuery.isError
       ? getApiErrorMessage(
           leaderboardQuery.error,
-          'Unable to load the leaderboard.',
+          t('leaderboard.errorFallback'),
         )
       : null,
     isRefreshing: isPullRefreshing,
@@ -251,7 +266,9 @@ export function useLeaderboardScreen() {
     // One inline slot in the footer covers both non-destructive failures: a
     // page that could not be appended and a refresh that could not replace.
     footerErrorMessage: nextPageErrorMessage ?? refreshErrorMessage,
-    footerActionLabel: nextPageErrorMessage ? 'Load more' : 'Try again',
+    footerActionLabel: nextPageErrorMessage
+      ? t('leaderboard.loadMore')
+      : t('common.tryAgain'),
     retryFooterAction: nextPageErrorMessage
       ? retryNextPage
       : () => void refresh(),

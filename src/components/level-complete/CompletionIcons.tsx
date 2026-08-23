@@ -1,5 +1,8 @@
 import Svg, { Path } from 'react-native-svg';
 
+import { useLanguageDirection } from '@/hooks/useLanguageDirection';
+import { getDirectionalIconStyle } from '@/theme/direction-styles';
+
 export function CompletionStar({
   size,
   color,
@@ -24,6 +27,8 @@ export function CompletionStar({
 }
 
 export function CompletionChevron({ size }: { size: number }) {
+  const { isRTL } = useLanguageDirection();
+
   return (
     <Svg
       accessible={false}
@@ -31,6 +36,7 @@ export function CompletionChevron({ size }: { size: number }) {
       width={size}
       height={size}
       viewBox="0 0 24 24"
+      style={getDirectionalIconStyle(isRTL)}
     >
       <Path
         d="m9 5 7 7-7 7"

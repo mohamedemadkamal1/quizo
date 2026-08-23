@@ -2,7 +2,6 @@ import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -11,6 +10,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 
+import { AppText } from '@/components/common/AppText';
 import {
   AnswerOption,
   type AnswerVisualState,
@@ -25,6 +25,7 @@ import {
   QUESTION_REFERENCE_WIDTH,
 } from '@/constants/questions';
 import type { useQuestionsScreen } from '@/hooks/questions/useQuestionsScreen';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { QuestionAnswerResult } from '@/types/questions.types';
 
 type QuestionsContentProps = {
@@ -48,12 +49,12 @@ function QuestionsStatePanel({
         {loading ? (
           <ActivityIndicator size="large" color={gameplayColors.primaryText} />
         ) : null}
-        <Text
+        <AppText
           accessibilityRole={loading ? undefined : 'alert'}
           style={styles.stateMessage}
         >
           {message}
-        </Text>
+        </AppText>
         {actionLabel && onAction ? (
           <Pressable
             accessibilityRole="button"
@@ -61,7 +62,7 @@ function QuestionsStatePanel({
             onPress={onAction}
             style={styles.stateAction}
           >
-            <Text style={styles.stateActionLabel}>{actionLabel}</Text>
+            <AppText style={styles.stateActionLabel}>{actionLabel}</AppText>
           </Pressable>
         ) : null}
       </View>
@@ -97,18 +98,19 @@ function getAnswerVisualState(
 }
 
 export function QuestionsContent({ screen }: QuestionsContentProps) {
+  const { t } = useTranslation();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
   if (screen.state.status === 'loading') {
-    return <QuestionsStatePanel loading message="Loading questions…" />;
+    return <QuestionsStatePanel loading message={t('questions.loading')} />;
   }
 
   if (screen.state.status === 'invalid') {
     return (
       <QuestionsStatePanel
-        actionLabel="Return"
-        message="This question-session link is invalid."
+        actionLabel={t('common.return')}
+        message={t('questions.invalidLink')}
         onAction={screen.handleInvalidRoute}
       />
     );
@@ -117,7 +119,7 @@ export function QuestionsContent({ screen }: QuestionsContentProps) {
   if (screen.state.status === 'error') {
     return (
       <QuestionsStatePanel
-        actionLabel="Try again"
+        actionLabel={t('common.tryAgain')}
         message={screen.state.message}
         onAction={screen.handleRetry}
       />
@@ -127,7 +129,7 @@ export function QuestionsContent({ screen }: QuestionsContentProps) {
   if (screen.state.status === 'completed') {
     return (
       <QuestionsStatePanel
-        actionLabel="Back to Map"
+        actionLabel={t('questions.backToMap')}
         message={screen.state.message}
         onAction={screen.handleCompleted}
       />
@@ -138,8 +140,8 @@ export function QuestionsContent({ screen }: QuestionsContentProps) {
   if (!readyState || !currentQuestion) {
     return (
       <QuestionsStatePanel
-        actionLabel="Return"
-        message="No questions are available for this level."
+        actionLabel={t('common.return')}
+        message={t('questions.noQuestions')}
         onAction={screen.handleInvalidRoute}
       />
     );
@@ -239,22 +241,24 @@ export function QuestionsContent({ screen }: QuestionsContentProps) {
                 },
               ]}
             >
-              <Text style={styles.submissionErrorMessage} numberOfLines={2}>
+              <AppText style={styles.submissionErrorMessage} numberOfLines={2}>
                 {readyState.submissionError}
-              </Text>
+              </AppText>
               <Pressable
                 accessibilityRole="button"
                 onPress={screen.handleRetrySubmission}
                 style={styles.submissionRetry}
               >
-                <Text style={styles.submissionRetryLabel}>Retry</Text>
+                <AppText style={styles.submissionRetryLabel}>
+                  {t('common.retry')}
+                </AppText>
               </Pressable>
             </View>
           ) : null}
 
           {readyState.phase === 'completing' ? (
             <View
-              accessibilityLabel="Completing question session"
+              accessibilityLabel={t('questions.completingLabel')}
               accessibilityRole="progressbar"
               style={styles.completing}
             >

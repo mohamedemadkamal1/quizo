@@ -1,7 +1,9 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
+import { AppText } from "@/components/common/AppText";
 import { levelFailedColors } from "@/constants/level-failed";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type FailureProgressRingProps = {
   correctAnswers: number;
@@ -14,6 +16,7 @@ export function FailureProgressRing({
   totalQuestions,
   scale,
 }: FailureProgressRingProps) {
+  const { t, formatNumber } = useTranslation();
   const size = 136 * scale;
   const strokeWidth = 13 * scale;
   const radius = (size - strokeWidth) / 2;
@@ -25,7 +28,10 @@ export function FailureProgressRing({
 
   return (
     <View
-      accessibilityLabel={`${correctAnswers} out of ${totalQuestions} correct`}
+      accessibilityLabel={t("common.progressRingLabel", {
+        correct: correctAnswers,
+        total: totalQuestions,
+      })}
       accessibilityRole="progressbar"
       style={{ width: size, height: size }}
     >
@@ -53,22 +59,24 @@ export function FailureProgressRing({
       </Svg>
 
       <View pointerEvents="none" style={styles.copy}>
-        <Text
+        <AppText
           style={[
             styles.score,
             { fontSize: 36 * scale, lineHeight: 43 * scale },
           ]}
         >
-          {correctAnswers}
-        </Text>
-        <Text
+          {formatNumber(correctAnswers)}
+        </AppText>
+        <AppText
           style={[
             styles.total,
             { fontSize: 14 * scale, lineHeight: 18 * scale },
           ]}
         >
-          / {totalQuestions}
-        </Text>
+          {t("common.progressRingTotal", {
+            total: formatNumber(totalQuestions),
+          })}
+        </AppText>
       </View>
     </View>
   );

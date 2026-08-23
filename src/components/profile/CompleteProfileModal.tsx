@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
   ActivityIndicator,
@@ -9,18 +9,20 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   type TextInputProps,
   useWindowDimensions,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppText } from '@/components/common/AppText';
+import { AppTextInput } from '@/components/common/AppTextInput';
 import { ProfileIcon } from '@/components/profile/ProfileIcon';
 import { SocialIconPlaceholders } from '@/components/profile/SocialIconPlaceholders';
+import { useLanguageDirection } from '@/hooks/useLanguageDirection';
+import { useTranslation } from '@/hooks/useTranslation';
 import {
-  completeProfileSchema,
+  createCompleteProfileSchema,
   type CompleteProfileFormValues,
 } from '@/schemas/profile.schemas';
 
@@ -49,9 +51,11 @@ function CompleteProfileInput({
 }: CompleteProfileInputProps) {
   return (
     <View style={styles.fieldWrapper}>
-      <TextInput
+      {/* Email and password stay left-to-right in every language. */}
+      <AppTextInput
         {...inputProps}
         editable={editable}
+        ltrContent
         placeholderTextColor="#5D72D9"
         style={[
           styles.input,
@@ -61,9 +65,9 @@ function CompleteProfileInput({
       />
 
       {error ? (
-        <Text accessibilityRole="alert" style={styles.fieldError}>
+        <AppText accessibilityRole="alert" style={styles.fieldError}>
           {error}
-        </Text>
+        </AppText>
       ) : null}
     </View>
   );
@@ -76,14 +80,17 @@ export function CompleteProfileModal({
   onDismiss,
   onSubmit,
 }: CompleteProfileModalProps) {
+  const { t } = useTranslation();
+  const { directionStyle } = useLanguageDirection();
   const { width: windowWidth } = useWindowDimensions();
   const surfaceWidth = Math.min(315, windowWidth - 24);
   const scale = surfaceWidth / 315;
   const surfaceMinHeight = Math.round(399 * scale);
   const fieldWidth = Math.round(271 * scale);
   const submitWidth = Math.round(280 * scale);
+  const schema = useMemo(() => createCompleteProfileSchema(t), [t]);
   const { control, handleSubmit, reset } = useForm<CompleteProfileFormValues>({
-    resolver: zodResolver(completeProfileSchema),
+    resolver: zodResolver(schema),
     defaultValues,
   });
 
@@ -111,7 +118,7 @@ export function CompleteProfileModal({
       transparent
       visible={visible}
     >
-      <SafeAreaView style={styles.backdrop}>
+      <SafeAreaView style={[styles.backdrop, directionStyle]}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
@@ -129,14 +136,14 @@ export function CompleteProfileModal({
               ]}
             >
               <View
-                accessibilityLabel="Complete your profile"
+                accessibilityLabel={t('profile.completeModal.dialogLabel')}
                 accessibilityViewIsModal
                 style={[styles.surface, { minHeight: surfaceMinHeight }]}
               >
                 <View pointerEvents="none" style={styles.decorativeEllipse} />
 
                 <Pressable
-                  accessibilityLabel="Close"
+                  accessibilityLabel={t('common.close')}
                   accessibilityRole="button"
                   accessibilityState={{ disabled: isSubmitting }}
                   disabled={isSubmitting}
@@ -147,9 +154,9 @@ export function CompleteProfileModal({
                   <ProfileIcon color="#485BDD" name="close" size={29} />
                 </Pressable>
 
-                <Text accessibilityRole="header" style={styles.title}>
-                  Complete Your Profile
-                </Text>
+                <AppText accessibilityRole="header" style={styles.title}>
+                  {t('profile.completeModal.title')}
+                </AppText>
 
                 <View style={[styles.fields, { width: fieldWidth }]}>
                   <Controller
@@ -160,7 +167,7 @@ export function CompleteProfileModal({
                       fieldState,
                     }) => (
                       <CompleteProfileInput
-                        accessibilityLabel="Email"
+                        accessibilityLabel={t('auth.fields.email')}
                         autoCapitalize="none"
                         autoComplete="email"
                         editable={!isSubmitting}
@@ -169,7 +176,7 @@ export function CompleteProfileModal({
                         maxLength={120}
                         onBlur={onBlur}
                         onChangeText={onChange}
-                        placeholder="Email"
+                        placeholder={t('auth.fields.email')}
                         value={value}
                       />
                     )}
@@ -183,7 +190,7 @@ export function CompleteProfileModal({
                       fieldState,
                     }) => (
                       <CompleteProfileInput
-                        accessibilityLabel="Password"
+                        accessibilityLabel={t('auth.fields.password')}
                         autoCapitalize="none"
                         autoComplete="new-password"
                         editable={!isSubmitting}
@@ -191,7 +198,7 @@ export function CompleteProfileModal({
                         maxLength={128}
                         onBlur={onBlur}
                         onChangeText={onChange}
-                        placeholder="Password"
+                        placeholder={t('auth.fields.password')}
                         secureTextEntry
                         value={value}
                       />
@@ -206,7 +213,9 @@ export function CompleteProfileModal({
                       fieldState,
                     }) => (
                       <CompleteProfileInput
-                        accessibilityLabel="Confirm password"
+                        accessibilityLabel={t(
+                          'profile.completeModal.confirmPasswordLabel',
+                        )}
                         autoCapitalize="none"
                         autoComplete="new-password"
                         editable={!isSubmitting}
@@ -215,7 +224,7 @@ export function CompleteProfileModal({
                         onBlur={onBlur}
                         onChangeText={onChange}
                         onSubmitEditing={submit}
-                        placeholder="Confirm Password"
+                        placeholder={t('auth.fields.confirmPassword')}
                         returnKeyType="done"
                         secureTextEntry
                         value={value}
@@ -225,13 +234,13 @@ export function CompleteProfileModal({
                 </View>
 
                 {errorMessage ? (
-                  <Text
+                  <AppText
                     accessibilityLiveRegion="polite"
                     accessibilityRole="alert"
                     style={[styles.apiError, { width: fieldWidth }]}
                   >
                     {errorMessage}
-                  </Text>
+                  </AppText>
                 ) : null}
 
                 <Pressable
@@ -251,7 +260,9 @@ export function CompleteProfileModal({
                   {isSubmitting ? (
                     <ActivityIndicator color="#FFFFFF" size="small" />
                   ) : (
-                    <Text style={styles.submitLabel}>Submit</Text>
+                    <AppText numberOfLines={1} style={styles.submitLabel}>
+                      {t('profile.completeModal.submit')}
+                    </AppText>
                   )}
                 </Pressable>
 
@@ -301,7 +312,7 @@ const styles = StyleSheet.create({
   },
   decorativeEllipse: {
     position: 'absolute',
-    right: -34,
+    end: -34,
     bottom: 24,
     width: 176,
     height: 155,
@@ -313,7 +324,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     zIndex: 2,
     top: 8,
-    right: 8,
+    end: 8,
     width: 44,
     height: 44,
     alignItems: 'center',

@@ -1,8 +1,10 @@
 import * as SplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { useLanguageDirection } from '@/hooks/useLanguageDirection';
 import { setApiAccessToken } from '@/services/api/api-client';
 import { useAuthStore } from '@/store/auth.store';
+import { hydrateLanguage } from '@/store/language.store';
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   // It may already be prevented during Fast Refresh.
@@ -26,19 +28,23 @@ function restorePersistedAuth() {
 export function useAppInitialization() {
   const nativeSplashHidden = useRef(false);
   const session = useAuthStore((state) => state.session);
+  const { direction } = useLanguageDirection();
   const [splashAnimationFinished, setSplashAnimationFinished] = useState(false);
-  const [authHydrated, setAuthHydrated] = useState(false);
+  const [preferencesHydrated, setPreferencesHydrated] = useState(false);
 
   useEffect(() => {
-    async function hydrateAuth() {
+    async function hydratePreferences() {
       try {
-        await restorePersistedAuth();
+        // Authentication and language are restored together, and the language
+        // hydration also brings the native layout direction in line, so the
+        // navigation tree is only ever mounted once in its final direction.
+        await Promise.all([restorePersistedAuth(), hydrateLanguage()]);
       } finally {
-        setAuthHydrated(true);
+        setPreferencesHydrated(true);
       }
     }
 
-    void hydrateAuth();
+    void hydratePreferences();
   }, []);
 
   const onRootLayout = useCallback(() => {
@@ -55,10 +61,11 @@ export function useAppInitialization() {
   }, []);
 
   return {
-    authHydrated,
+    isHydrated: preferencesHydrated,
+    direction,
     hasSession: Boolean(session),
     hasCompletedProfile: session?.user.profileCompleted === true,
-    showAnimatedSplash: !splashAnimationFinished || !authHydrated,
+    showAnimatedSplash: !splashAnimationFinished || !preferencesHydrated,
     onRootLayout,
     onSplashAnimationFinish,
   };

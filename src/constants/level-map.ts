@@ -16,7 +16,7 @@ export const LEVEL_MAP_DIFFICULTIES = [
 export const levelMapThemes = {
   BEGINNER: {
     difficulty: 'BEGINNER',
-    label: 'Beginner',
+    labelKey: 'home.difficulty.beginnerTitle',
     icon: '\u{1F331}',
     stars: 1,
     backgroundColors: ['#18BBD0', '#53DBE6', '#B8F3F4'],
@@ -41,7 +41,7 @@ export const levelMapThemes = {
   },
   INTERMEDIATE: {
     difficulty: 'INTERMEDIATE',
-    label: 'Intermediate',
+    labelKey: 'home.difficulty.intermediateTitle',
     icon: '\u26A1',
     stars: 2,
     backgroundColors: ['#04C68E', '#35DBA7', '#A8F1D8'],
@@ -66,7 +66,7 @@ export const levelMapThemes = {
   },
   ADVANCED: {
     difficulty: 'ADVANCED',
-    label: 'Advanced',
+    labelKey: 'home.difficulty.advancedTitle',
     icon: '\u{1F525}',
     stars: 3,
     backgroundColors: ['#4B27A1', '#7456C8', '#C8B7F0'],

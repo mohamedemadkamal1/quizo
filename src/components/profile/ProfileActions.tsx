@@ -1,8 +1,11 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { AppText } from '@/components/common/AppText';
 import { ProfileIcon } from '@/components/profile/ProfileIcon';
 import { colors } from '@/constants/colors';
+import { useTranslation } from '@/hooks/useTranslation';
+import { getLanguageDescriptor, type TranslationKey } from '@/i18n';
 
 type GuestProfileActionsProps = {
   onCompleteProfile: () => void;
@@ -18,32 +21,35 @@ type ProgressActionProps = {
   onPress: () => void;
 };
 
-const benefits = [
-  ['⭐', 'Earn XP & level up'],
-  ['🏆', 'Compete on leaderboard'],
-  ['💾', 'Save your progress'],
-  ['🎖️', 'Unlock achievements'],
-] as const;
+type LanguageActionProps = {
+  onPress: () => void;
+};
+
+const benefitKeys = [
+  ['⭐', 'profile.benefitXp'],
+  ['🏆', 'profile.benefitLeaderboard'],
+  ['💾', 'profile.benefitProgress'],
+  ['🎖️', 'profile.benefitAchievements'],
+] as const satisfies readonly (readonly [string, TranslationKey])[];
 
 export function GuestProfileActions({
   onCompleteProfile,
 }: GuestProfileActionsProps) {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.guestGroup}>
       <View style={styles.unlockCard}>
-        <Text style={styles.decorativeStar}>☆</Text>
-        <Text accessibilityRole="header" style={styles.unlockTitle}>
-          🚀 Unlock Full Access!
-        </Text>
-        <Text style={styles.unlockBody}>
-          Create a free account and join thousands of kids learning Islam
-          through fun games and challenges!
-        </Text>
+        <AppText style={styles.decorativeStar}>☆</AppText>
+        <AppText accessibilityRole="header" style={styles.unlockTitle}>
+          {t('profile.unlockTitle')}
+        </AppText>
+        <AppText style={styles.unlockBody}>{t('profile.unlockBody')}</AppText>
         <View style={styles.benefitGrid}>
-          {benefits.map(([icon, label]) => (
-            <View key={label} style={styles.benefitItem}>
-              <Text style={styles.benefitIcon}>{icon}</Text>
-              <Text style={styles.benefitText}>{label}</Text>
+          {benefitKeys.map(([icon, labelKey]) => (
+            <View key={labelKey} style={styles.benefitItem}>
+              <AppText style={styles.benefitIcon}>{icon}</AppText>
+              <AppText style={styles.benefitText}>{t(labelKey)}</AppText>
             </View>
           ))}
         </View>
@@ -61,7 +67,14 @@ export function GuestProfileActions({
           end={{ x: 1, y: 0.5 }}
           style={styles.completeGradient}
         >
-          <Text style={styles.completeText}>Complete Profile →</Text>
+          <AppText
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+            numberOfLines={1}
+            style={styles.completeText}
+          >
+            {t('profile.completeProfile')}
+          </AppText>
         </LinearGradient>
       </Pressable>
     </View>
@@ -69,6 +82,8 @@ export function GuestProfileActions({
 }
 
 export function ProgressAction({ onPress }: ProgressActionProps) {
+  const { t } = useTranslation();
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -86,13 +101,51 @@ export function ProgressAction({ onPress }: ProgressActionProps) {
           <ProfileIcon name="progress" color="#FFFFFF" size={24} />
         </View>
         <View style={styles.progressCopy}>
-          <Text style={styles.progressTitle}>My Progress</Text>
-          <Text style={styles.progressSubtitle}>
-            View your progress in all categories
-          </Text>
+          <AppText style={styles.progressTitle}>
+            {t('profile.progressTitle')}
+          </AppText>
+          <AppText style={styles.progressSubtitle}>
+            {t('profile.progressSubtitle')}
+          </AppText>
         </View>
         <ProfileIcon name="chevron" color="#FFFFFF" size={18} />
       </LinearGradient>
+    </Pressable>
+  );
+}
+
+/**
+ * Available to guests and registered players alike, and placed between
+ * "My Progress" and the registered-only account actions.
+ *
+ * Pressing it hands off to the platform's own selection UI rather than opening
+ * a Quizo-styled dialog.
+ */
+export function LanguageAction({ onPress }: LanguageActionProps) {
+  const { t, language } = useTranslation();
+  const descriptor = getLanguageDescriptor(language);
+  const currentLanguageLabel = `${descriptor.flag} ${descriptor.endonym}`;
+
+  return (
+    <Pressable
+      accessibilityHint={t('language.selectorHint')}
+      accessibilityLabel={t('language.title')}
+      accessibilityRole="button"
+      accessibilityValue={{ text: currentLanguageLabel }}
+      android_ripple={{ color: 'rgba(124, 58, 237, 0.08)' }}
+      onPress={onPress}
+      style={styles.passwordRow}
+    >
+      <View style={styles.passwordIconTile}>
+        <ProfileIcon name="globe" color={colors.settings.violet} size={21} />
+      </View>
+      <View style={styles.passwordCopy}>
+        <AppText style={styles.passwordTitle}>{t('language.title')}</AppText>
+        <AppText numberOfLines={1} style={styles.passwordSubtitle}>
+          {currentLanguageLabel}
+        </AppText>
+      </View>
+      <ProfileIcon name="chevron" color={colors.settings.muted} size={18} />
     </Pressable>
   );
 }
@@ -102,6 +155,8 @@ export function RegisteredProfileActions({
   onDeleteProfile,
   onLogout,
 }: RegisteredProfileActionsProps) {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.registeredGroup}>
       <Pressable
@@ -114,10 +169,12 @@ export function RegisteredProfileActions({
           <ProfileIcon name="lock" color={colors.settings.violet} size={21} />
         </View>
         <View style={styles.passwordCopy}>
-          <Text style={styles.passwordTitle}>Change Password</Text>
-          <Text style={styles.passwordSubtitle}>
-            Change your account password
-          </Text>
+          <AppText style={styles.passwordTitle}>
+            {t('profile.changePasswordTitle')}
+          </AppText>
+          <AppText style={styles.passwordSubtitle}>
+            {t('profile.changePasswordSubtitle')}
+          </AppText>
         </View>
         <ProfileIcon name="chevron" color={colors.settings.muted} size={18} />
       </Pressable>
@@ -136,8 +193,12 @@ export function RegisteredProfileActions({
               size={22}
             />
           </View>
-          <Text style={[styles.actionTitle, styles.logoutTitle]}>Log Out</Text>
-          <Text style={styles.actionSubtitle}>Sign out of your account</Text>
+          <AppText style={[styles.actionTitle, styles.logoutTitle]}>
+            {t('profile.logoutTitle')}
+          </AppText>
+          <AppText style={styles.actionSubtitle}>
+            {t('profile.logoutSubtitle')}
+          </AppText>
         </Pressable>
 
         <Pressable
@@ -149,10 +210,12 @@ export function RegisteredProfileActions({
           <View style={[styles.actionIconTile, styles.deleteIconTile]}>
             <ProfileIcon name="trash" color="#FFFFFF" size={23} />
           </View>
-          <Text style={[styles.actionTitle, styles.deleteTitle]}>Delete</Text>
-          <Text style={[styles.actionSubtitle, styles.deleteSubtitle]}>
-            Delete your account
-          </Text>
+          <AppText style={[styles.actionTitle, styles.deleteTitle]}>
+            {t('profile.deleteTitle')}
+          </AppText>
+          <AppText style={[styles.actionSubtitle, styles.deleteSubtitle]}>
+            {t('profile.deleteSubtitle')}
+          </AppText>
         </Pressable>
       </View>
     </View>
@@ -173,7 +236,7 @@ const styles = StyleSheet.create({
   decorativeStar: {
     position: 'absolute',
     top: -12,
-    right: 12,
+    end: 12,
     color: 'rgba(255, 255, 255, 0.25)',
     fontSize: 96,
     lineHeight: 100,
@@ -205,7 +268,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingRight: 4,
+    paddingEnd: 4,
   },
   benefitIcon: {
     fontSize: 11,
@@ -233,12 +296,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 28,
+    paddingHorizontal: 16,
   },
   completeText: {
     color: '#FFFFFF',
     fontFamily: 'Fredoka',
     fontSize: 18,
     fontWeight: '600',
+    textAlign: 'center',
   },
   progressPressable: {
     borderRadius: 15,
@@ -260,6 +325,7 @@ const styles = StyleSheet.create({
   progressIconTile: {
     width: 44,
     height: 44,
+    flexShrink: 0,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 12,
@@ -306,6 +372,7 @@ const styles = StyleSheet.create({
   passwordIconTile: {
     width: 44,
     height: 44,
+    flexShrink: 0,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 12,
@@ -367,6 +434,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     lineHeight: 19,
+    textAlign: 'center',
   },
   logoutTitle: {
     color: colors.settings.coral,

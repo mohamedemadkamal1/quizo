@@ -1,13 +1,9 @@
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
+import { AppText } from '@/components/common/AppText';
 import { ProfileIcon } from '@/components/profile/ProfileIcon';
 import { ProfileModalFrame } from '@/components/profile/ProfileModalFrame';
+import { useTranslation } from '@/hooks/useTranslation';
 
 type LogoutConfirmationModalProps = {
   visible: boolean;
@@ -22,9 +18,11 @@ export function LogoutConfirmationModal({
   onCancel,
   onConfirm,
 }: LogoutConfirmationModalProps) {
+  const { t } = useTranslation();
+
   return (
     <ProfileModalFrame
-      accessibilityLabel="Log out confirmation"
+      accessibilityLabel={t('profile.logoutModal.dialogLabel')}
       isBusy={isLoggingOut}
       maxWidth={420}
       onClose={onCancel}
@@ -33,13 +31,10 @@ export function LogoutConfirmationModal({
       <View style={styles.iconCircle}>
         <ProfileIcon name="logout" color="#FF3944" size={32} />
       </View>
-      <Text accessibilityRole="header" style={styles.title}>
-        Are you sure you want to log out?
-      </Text>
-      <Text style={styles.body}>
-        You will need to enter your username and password to log back in next
-        time.
-      </Text>
+      <AppText accessibilityRole="header" style={styles.title}>
+        {t('profile.logoutModal.title')}
+      </AppText>
+      <AppText style={styles.body}>{t('profile.logoutModal.body')}</AppText>
       <View style={styles.actions}>
         <Pressable
           accessibilityRole="button"
@@ -55,7 +50,9 @@ export function LogoutConfirmationModal({
           {isLoggingOut ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
-            <Text style={styles.confirmText}>Yes, Log Out</Text>
+            <AppText numberOfLines={1} style={styles.confirmText}>
+              {t('profile.logoutModal.confirm')}
+            </AppText>
           )}
         </Pressable>
         <Pressable
@@ -68,7 +65,9 @@ export function LogoutConfirmationModal({
             isLoggingOut && styles.disabled,
           ]}
         >
-          <Text style={styles.cancelText}>No, Stay Signed In</Text>
+          <AppText numberOfLines={1} style={styles.cancelText}>
+            {t('profile.logoutModal.cancel')}
+          </AppText>
         </Pressable>
       </View>
     </ProfileModalFrame>
@@ -126,12 +125,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Nunito',
     fontSize: 18,
     fontWeight: '700',
+    textAlign: 'center',
   },
   cancelText: {
     color: '#111111',
     fontFamily: 'Nunito',
     fontSize: 18,
     fontWeight: '600',
+    textAlign: 'center',
   },
   disabled: {
     opacity: 0.55,

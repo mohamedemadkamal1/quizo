@@ -16,17 +16,24 @@ import {
 
 import { AuthHero, getAuthHeroHeight } from '@/components/auth/AuthHero';
 import { AuthHeading } from '@/components/auth/AuthHeading';
+import { AuthLanguageSelector } from '@/components/auth/AuthLanguageSelector';
 
 type AuthScreenLayoutProps = PropsWithChildren<{
   title: string;
   subtitle: string;
   footer?: ReactNode;
+  /**
+   * Opt-in, because this layout backs every auth screen and the language
+   * control belongs only on Welcome.
+   */
+  showLanguageSelector?: boolean;
 }>;
 
 export function AuthScreenLayout({
   title,
   subtitle,
   footer,
+  showLanguageSelector = false,
   children,
 }: AuthScreenLayoutProps) {
   const { height: screenHeight } = useWindowDimensions();
@@ -133,6 +140,20 @@ export function AuthScreenLayout({
           <Animated.View style={remainingSpaceAnimatedStyle} />
         </Animated.View>
       </KeyboardAwareScrollView>
+
+      {/*
+        Sits above the scroll view rather than inside the hero so it is never
+        clipped by the hero's rounded frame, never translated away with the
+        keyboard animation, and always clear of the status bar.
+      */}
+      {showLanguageSelector ? (
+        <View
+          pointerEvents="box-none"
+          style={[styles.languageSelector, { top: insets.top + 8 }]}
+        >
+          <AuthLanguageSelector />
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -170,5 +191,11 @@ const styles = StyleSheet.create({
 
   contentContainer: {
     flexGrow: 1,
+  },
+
+  languageSelector: {
+    position: 'absolute',
+    zIndex: 10,
+    end: 16,
   },
 });

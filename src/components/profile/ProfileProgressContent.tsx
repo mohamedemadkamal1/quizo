@@ -6,13 +6,14 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppText } from '@/components/common/AppText';
 import { colors } from '@/constants/colors';
 import type { useProfileProgressScreen } from '@/hooks/profile/useProfileProgressScreen';
+import { useTranslation } from '@/hooks/useTranslation';
 import { getSafeNonNegativeValue } from '@/utils/profile';
 
 const trophySource = require('../../assets/images/illustrations/profile/progress-trophy.png');
@@ -21,13 +22,11 @@ type ProfileProgressContentProps = {
   screen: ReturnType<typeof useProfileProgressScreen>;
 };
 
-function formatNumber(value: number) {
-  return Math.round(value).toLocaleString('en-US');
-}
-
 export function ProfileProgressContent({
   screen,
 }: ProfileProgressContentProps) {
+  const { t, formatNumber } = useTranslation();
+
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
       <StatusBar style="dark" />
@@ -42,24 +41,29 @@ export function ProfileProgressContent({
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Text accessibilityRole="header" style={styles.heading}>
-          My Progress
-        </Text>
-        <Text style={styles.subtitle}>
-          Track your journey and see how far you&apos;ve come!
-        </Text>
+        <AppText accessibilityRole="header" style={styles.heading}>
+          {t('profile.progressScreen.heading')}
+        </AppText>
+        <AppText style={styles.subtitle}>
+          {t('profile.progressScreen.subtitle')}
+        </AppText>
 
         {screen.isInitialLoading ? (
-          <View accessibilityLabel="Loading progress" style={styles.stateCard}>
+          <View
+            accessibilityLabel={t('profile.progressScreen.loadingLabel')}
+            style={styles.stateCard}
+          >
             <ActivityIndicator color={colors.settings.violet} size="large" />
-            <Text style={styles.stateText}>Loading your progress...</Text>
+            <AppText style={styles.stateText}>
+              {t('profile.progressScreen.loadingMessage')}
+            </AppText>
           </View>
         ) : screen.isInitialError ? (
           <View style={styles.stateCard}>
-            <Text accessibilityRole="alert" style={styles.stateTitle}>
-              Progress could not be loaded
-            </Text>
-            <Text style={styles.stateText}>{screen.errorMessage}</Text>
+            <AppText accessibilityRole="alert" style={styles.stateTitle}>
+              {t('profile.progressScreen.errorTitle')}
+            </AppText>
+            <AppText style={styles.stateText}>{screen.errorMessage}</AppText>
             <Pressable
               accessibilityRole="button"
               disabled={screen.isRetrying}
@@ -69,22 +73,24 @@ export function ProfileProgressContent({
               {screen.isRetrying ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={styles.retryText}>Try Again</Text>
+                <AppText numberOfLines={1} style={styles.retryText}>
+                  {t('common.tryAgain')}
+                </AppText>
               )}
             </Pressable>
           </View>
         ) : screen.isEmpty ? (
           <View style={styles.stateCard}>
-            <Text style={styles.emptyIcon}>{'\u{1F331}'}</Text>
-            <Text style={styles.emptyTotals}>
-              0 XP Earned · 0 Completed Levels
-            </Text>
-            <Text accessibilityRole="header" style={styles.stateTitle}>
-              Your journey starts here
-            </Text>
-            <Text style={styles.stateText}>
-              Complete a level to see your progress and achievements.
-            </Text>
+            <AppText style={styles.emptyIcon}>{'\u{1F331}'}</AppText>
+            <AppText style={styles.emptyTotals}>
+              {t('profile.progressScreen.emptyTotals')}
+            </AppText>
+            <AppText accessibilityRole="header" style={styles.stateTitle}>
+              {t('profile.progressScreen.emptyTitle')}
+            </AppText>
+            <AppText style={styles.stateText}>
+              {t('profile.progressScreen.emptyBody')}
+            </AppText>
           </View>
         ) : (
           <>
@@ -95,42 +101,48 @@ export function ProfileProgressContent({
               style={styles.summaryCard}
             >
               <Image
-                accessibilityLabel="Achievement trophy"
+                accessibilityLabel={t('profile.progressScreen.trophyLabel')}
                 contentFit="contain"
                 source={trophySource}
                 style={styles.trophy}
               />
               <View style={styles.metric}>
                 <View style={styles.metricIcon}>
-                  <Text style={styles.metricGlyph}>{'\u2B50'}</Text>
+                  <AppText style={styles.metricGlyph}>{'\u2B50'}</AppText>
                 </View>
-                <View>
-                  <Text style={styles.metricValue}>
+                <View style={styles.metricCopy}>
+                  <AppText numberOfLines={1} style={styles.metricValue}>
                     {formatNumber(screen.xpEarned)}
-                  </Text>
-                  <Text style={styles.metricLabel}>XP Earned</Text>
+                  </AppText>
+                  <AppText numberOfLines={2} style={styles.metricLabel}>
+                    {t('profile.progressScreen.xpEarned')}
+                  </AppText>
                 </View>
               </View>
               <View style={styles.metricDivider} />
               <View style={styles.metric}>
                 <View style={styles.metricIcon}>
-                  <Text style={styles.metricGlyph}>{'\u{1F3C5}'}</Text>
+                  <AppText style={styles.metricGlyph}>{'\u{1F3C5}'}</AppText>
                 </View>
-                <View>
-                  <Text style={styles.metricValue}>
+                <View style={styles.metricCopy}>
+                  <AppText numberOfLines={1} style={styles.metricValue}>
                     {formatNumber(screen.completedLevels)}
-                  </Text>
-                  <Text style={styles.metricLabel}>Completed Levels</Text>
+                  </AppText>
+                  <AppText numberOfLines={2} style={styles.metricLabel}>
+                    {t('profile.progressScreen.completedLevels')}
+                  </AppText>
                 </View>
               </View>
               <View style={styles.summaryRule} />
-              <Text style={styles.summaryNote}>
-                Every question you answer makes you stronger! {'\u{1F4AA}'}
-              </Text>
+              <AppText numberOfLines={1} style={styles.summaryNote}>
+                {t('profile.progressScreen.summaryNote')}
+              </AppText>
             </LinearGradient>
 
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Top Achievements</Text>
+              <AppText style={styles.sectionTitle}>
+                {t('profile.progressScreen.topAchievements')}
+              </AppText>
             </View>
             <View style={styles.achievementRow}>
               {screen.topAchievements.map(({ item, icon, gradient }) => (
@@ -142,47 +154,56 @@ export function ProfileProgressContent({
                   style={styles.achievementCard}
                 >
                   <View style={styles.achievementIconCircle}>
-                    <Text style={styles.achievementIcon}>{icon}</Text>
+                    <AppText style={styles.achievementIcon}>{icon}</AppText>
                   </View>
-                  <Text numberOfLines={1} style={styles.achievementName}>
+                  <AppText numberOfLines={1} style={styles.achievementName}>
                     {item.name}
-                  </Text>
-                  <Text style={styles.achievementXp}>
+                  </AppText>
+                  <AppText numberOfLines={1} style={styles.achievementXp}>
                     {formatNumber(getSafeNonNegativeValue(item.totalXp))}
-                  </Text>
+                  </AppText>
                 </LinearGradient>
               ))}
             </View>
 
-            <Text style={[styles.sectionTitle, styles.categoryHeading]}>
-              Progress by Category
-            </Text>
+            <AppText style={[styles.sectionTitle, styles.categoryHeading]}>
+              {t('profile.progressScreen.progressByCategory')}
+            </AppText>
             <View style={styles.categoryList}>
               {screen.categories.map(({ item, icon, gradient }) => (
                 <View key={item.id} style={styles.categoryRow}>
                   <LinearGradient colors={gradient} style={styles.categoryIcon}>
-                    <Text style={styles.categoryGlyph}>{icon}</Text>
+                    <AppText style={styles.categoryGlyph}>{icon}</AppText>
                   </LinearGradient>
                   <View style={styles.categoryCopy}>
-                    <Text numberOfLines={1} style={styles.categoryName}>
+                    <AppText numberOfLines={1} style={styles.categoryName}>
                       {item.name}
-                    </Text>
-                    <Text style={styles.categoryScore}>
-                      Score{' '}
-                      {formatNumber(getSafeNonNegativeValue(item.totalXp))}
-                    </Text>
+                    </AppText>
+                    <AppText numberOfLines={1} style={styles.categoryScore}>
+                      {t('profile.progressScreen.categoryScore', {
+                        score: formatNumber(
+                          getSafeNonNegativeValue(item.totalXp),
+                        ),
+                      })}
+                    </AppText>
                   </View>
                   <View style={styles.categoryCount}>
-                    <Text style={styles.categoryCountValue}>
-                      {formatNumber(
-                        getSafeNonNegativeValue(item.completedLevels),
-                      )}{' '}
-                      /{' '}
-                      {formatNumber(getSafeNonNegativeValue(item.totalLevels))}
-                    </Text>
-                    <Text style={styles.categoryCountLabel}>
-                      Completed Levels
-                    </Text>
+                    <AppText
+                      numberOfLines={1}
+                      style={styles.categoryCountValue}
+                    >
+                      {t('profile.progressScreen.categoryCount', {
+                        completed: formatNumber(
+                          getSafeNonNegativeValue(item.completedLevels),
+                        ),
+                        total: formatNumber(
+                          getSafeNonNegativeValue(item.totalLevels),
+                        ),
+                      })}
+                    </AppText>
+                    <AppText numberOfLines={2} style={styles.categoryCountLabel}>
+                      {t('profile.progressScreen.completedLevels')}
+                    </AppText>
                   </View>
                 </View>
               ))}
@@ -265,7 +286,7 @@ const styles = StyleSheet.create({
   trophy: {
     width: 75,
     height: 77,
-    marginRight: 3,
+    marginEnd: 3,
   },
   metric: {
     minWidth: 0,
@@ -274,9 +295,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 7,
   },
+  metricCopy: {
+    minWidth: 0,
+    flex: 1,
+  },
   metricIcon: {
     width: 27,
     height: 27,
+    flexShrink: 0,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 7,
@@ -306,17 +332,17 @@ const styles = StyleSheet.create({
   },
   summaryRule: {
     position: 'absolute',
-    right: 16,
+    end: 16,
     bottom: 25,
-    left: 16,
+    start: 16,
     height: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   summaryNote: {
     position: 'absolute',
-    right: 12,
+    end: 12,
     bottom: 9,
-    left: 12,
+    start: 12,
     color: 'rgba(255, 255, 255, 0.78)',
     fontFamily: 'Nunito',
     fontSize: 8,
@@ -418,6 +444,8 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
   categoryCount: {
+    maxWidth: 96,
+    flexShrink: 0,
     alignItems: 'flex-end',
   },
   categoryCountValue: {

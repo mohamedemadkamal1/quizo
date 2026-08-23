@@ -4,7 +4,6 @@ import {
   Pressable,
   RefreshControl,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -14,18 +13,21 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppText } from '@/components/common/AppText';
 import { CategoriesSection } from '@/components/home/CategoriesSection';
 import { CategoryLevelModal } from '@/components/home/CategoryLevelModal';
 import { HomeWelcomeSection } from '@/components/home/HomeWelcomeSection';
 import { RecentActivitySection } from '@/components/home/RecentActivitySection';
 import { colors, gradients } from '@/constants/colors';
 import type { useHomeScreen } from '@/hooks/home/useHomeScreen';
+import { useTranslation } from '@/hooks/useTranslation';
 
 type HomeContentProps = {
   screen: ReturnType<typeof useHomeScreen>;
 };
 
 export function HomeContent({ screen }: HomeContentProps) {
+  const { t } = useTranslation();
   const { width: viewportWidth } = useWindowDimensions();
   const scrollY = useSharedValue(0);
   const previousScrollY = useSharedValue(0);
@@ -77,13 +79,18 @@ export function HomeContent({ screen }: HomeContentProps) {
           <HomeWelcomeSection displayName={screen.displayName} />
 
           {screen.isInitialLoading ? (
-            <View accessibilityLabel="Loading Home" style={styles.statePanel}>
+            <View
+              accessibilityLabel={t('home.loadingLabel')}
+              style={styles.statePanel}
+            >
               <ActivityIndicator color={colors.home.heading} size="large" />
-              <Text style={styles.stateText}>Loading your categories...</Text>
+              <AppText style={styles.stateText}>
+                {t('home.loadingMessage')}
+              </AppText>
             </View>
           ) : screen.isInitialError ? (
             <View style={styles.statePanel}>
-              <Text style={styles.stateText}>{screen.errorMessage}</Text>
+              <AppText style={styles.stateText}>{screen.errorMessage}</AppText>
               <Pressable
                 accessibilityRole="button"
                 onPress={screen.retry}
@@ -92,12 +99,12 @@ export function HomeContent({ screen }: HomeContentProps) {
                   pressed && styles.retryButtonPressed,
                 ]}
               >
-                <Text style={styles.retryText}>Retry</Text>
+                <AppText style={styles.retryText}>{t('common.retry')}</AppText>
               </Pressable>
             </View>
           ) : screen.isEmpty ? (
             <View style={styles.statePanel}>
-              <Text style={styles.stateText}>No categories available yet.</Text>
+              <AppText style={styles.stateText}>{t('home.empty')}</AppText>
             </View>
           ) : (
             <>

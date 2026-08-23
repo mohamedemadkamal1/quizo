@@ -1,10 +1,12 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { AppText } from '@/components/common/AppText';
 import {
   CloseGlyph,
   GoldPauseGlyph,
 } from '@/components/questions/QuestionIcons';
 import { gameplayColors } from '@/constants/questions';
+import { useTranslation } from '@/hooks/useTranslation';
 
 type PauseOverlayContentProps = {
   scale: number;
@@ -54,7 +56,10 @@ function PauseActionButton({
       ]}
     >
       <View style={[styles.actionContent, { gap: 8 * scale }]}>
-        <Text
+        <AppText
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          numberOfLines={1}
           style={[
             styles.actionLabel,
             {
@@ -67,14 +72,14 @@ function PauseActionButton({
           ]}
         >
           {label}
-        </Text>
+        </AppText>
         {house ? (
-          <Text
+          <AppText
             accessible={false}
             style={{ fontSize: 29 * scale, lineHeight: 36 * scale }}
           >
             🏠
-          </Text>
+          </AppText>
         ) : null}
       </View>
     </Pressable>
@@ -87,13 +92,14 @@ export function PauseOverlayContent({
   onBackToMap,
   onHome,
 }: PauseOverlayContentProps) {
+  const { t } = useTranslation();
   const closeIconSize = 48 * scale;
   const closeOffset = (44 - closeIconSize) / 2;
 
   return (
     <View accessibilityViewIsModal style={styles.panel}>
       <Pressable
-        accessibilityLabel="Close pause and resume questions"
+        accessibilityLabel={t('questions.pauseOverlay.closeLabel')}
         accessibilityRole="button"
         android_ripple={{ color: 'rgba(255, 255, 255, 0.12)' }}
         onPress={onResume}
@@ -101,7 +107,7 @@ export function PauseOverlayContent({
           styles.close,
           {
             top: 28 * scale - closeOffset,
-            right: 29 * scale - closeOffset,
+            end: 29 * scale - closeOffset,
           },
         ]}
       >
@@ -127,8 +133,11 @@ export function PauseOverlayContent({
         />
       </View>
 
-      <Text
+      <AppText
         accessibilityRole="header"
+        adjustsFontSizeToFit
+        minimumFontScale={0.6}
+        numberOfLines={1}
         style={[
           styles.heading,
           {
@@ -138,28 +147,28 @@ export function PauseOverlayContent({
           },
         ]}
       >
-        Pause
-      </Text>
+        {t('questions.pauseOverlay.title')}
+      </AppText>
 
       <PauseActionButton
-        accessibilityLabel="Resume questions"
-        label="Resume"
+        accessibilityLabel={t('questions.pauseOverlay.resumeLabel')}
+        label={t('questions.pauseOverlay.resume')}
         onPress={onResume}
         primary
         scale={scale}
         top={281}
       />
       <PauseActionButton
-        accessibilityLabel="Back to level map"
-        label="Back to Map"
+        accessibilityLabel={t('questions.pauseOverlay.backToMapLabel')}
+        label={t('questions.pauseOverlay.backToMap')}
         onPress={onBackToMap}
         scale={scale}
         top={422}
       />
       <PauseActionButton
-        accessibilityLabel="Go to Home"
+        accessibilityLabel={t('questions.pauseOverlay.homeLabel')}
         house
-        label="Home"
+        label={t('questions.pauseOverlay.home')}
         onPress={onHome}
         scale={scale}
         top={562}
@@ -209,8 +218,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 16,
   },
   actionLabel: {
+    minWidth: 0,
+    flexShrink: 1,
     fontFamily: 'Fredoka',
     fontWeight: '600',
     includeFontPadding: false,

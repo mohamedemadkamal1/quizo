@@ -1,11 +1,13 @@
 import { Controller } from 'react-hook-form';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import { AppButton } from '@/components/common/AppButton';
+import { AppText } from '@/components/common/AppText';
 import { AuthFormError } from '@/components/auth/AuthFormError';
 import { AuthInput } from '@/components/auth/AuthInput';
 import { AuthLink, AuthPromptLink } from '@/components/auth/AuthLink';
 import { AuthScreenLayout } from '@/components/auth/AuthScreenLayout';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { useSignInScreen } from '@/hooks/auth/useSignInScreen';
 
 type SignInFormProps = {
@@ -13,14 +15,16 @@ type SignInFormProps = {
 };
 
 export function SignInForm({ screen }: SignInFormProps) {
+  const { t } = useTranslation();
+
   return (
     <AuthScreenLayout
-      title="Welcome Back!"
-      subtitle="Sign in to continue your learning journey."
+      title={t('auth.signIn.title')}
+      subtitle={t('auth.signIn.subtitle')}
       footer={
         <AuthPromptLink
-          prefix="Don’t have an account?"
-          action="Sign Up"
+          prefix={t('auth.signIn.promptPrefix')}
+          action={t('auth.signIn.promptAction')}
           disabled={screen.isSubmitting}
           onPress={screen.onSignUp}
         />
@@ -36,13 +40,14 @@ export function SignInForm({ screen }: SignInFormProps) {
               onChangeText={field.onChange}
               onBlur={field.onBlur}
               error={screen.errors.email?.message}
-              placeholder="Email"
+              placeholder={t('auth.fields.email')}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
               autoComplete="email"
               textContentType="emailAddress"
               returnKeyType="next"
+              ltrContent
               editable={!screen.isSubmitting}
             />
           )}
@@ -57,7 +62,7 @@ export function SignInForm({ screen }: SignInFormProps) {
               onChangeText={field.onChange}
               onBlur={field.onBlur}
               error={screen.errors.password?.message}
-              placeholder="Password"
+              placeholder={t('auth.fields.password')}
               secureTextEntry
               autoCapitalize="none"
               autoCorrect={false}
@@ -72,22 +77,22 @@ export function SignInForm({ screen }: SignInFormProps) {
 
         <View className="items-end">
           <AuthLink
-            label="Forgot Password?"
+            label={t('auth.signIn.forgotPassword')}
             onPress={screen.onForgotPassword}
           />
         </View>
 
         {screen.resetSucceeded ? (
-          <Text className="text-center font-nunito text-xs font-medium leading-4 text-green-600">
-            Your password was reset successfully.
-          </Text>
+          <AppText className="text-center font-nunito text-xs font-medium leading-4 text-green-600">
+            {t('auth.signIn.resetSuccess')}
+          </AppText>
         ) : null}
 
         <AuthFormError message={screen.errors.root?.message} />
       </View>
 
       <AppButton
-        label="Sign In"
+        label={t('auth.signIn.submit')}
         isLoading={screen.isSubmitting}
         onPress={screen.onSubmit}
       />

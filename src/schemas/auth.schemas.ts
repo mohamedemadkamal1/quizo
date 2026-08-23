@@ -1,89 +1,109 @@
 import { z } from 'zod';
 
-export const signInSchema = z.object({
-  email: z
+import type { Translate } from '@/i18n';
+
+/**
+ * Schema factories rather than module-level schemas: a validation message has
+ * to be produced in the language that is active when the form renders, which a
+ * schema built once at import time could never do.
+ */
+
+function createEmailSchema(t: Translate) {
+  return z
     .string()
     .trim()
-    .min(1, 'Email is required.')
-    .email('Enter a valid email address.'),
+    .min(1, t('validation.emailRequired'))
+    .email(t('validation.emailInvalid'));
+}
 
-  password: z.string().min(1, 'Password is required.'),
-});
-
-export type SignInFormValues = z.infer<typeof signInSchema>;
-
-export const forgotPasswordSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .min(1, 'Email is required.')
-    .email('Enter a valid email address.'),
-});
-
-export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
-
-export const newPasswordSchema = z
-  .object({
-    password: z.string().min(8, 'Password must contain at least 8 characters.'),
-
-    confirmPassword: z.string().min(1, 'Please confirm your password.'),
-  })
-  .refine(({ password, confirmPassword }) => password === confirmPassword, {
-    path: ['confirmPassword'],
-    message: 'Passwords do not match.',
+export function createSignInSchema(t: Translate) {
+  return z.object({
+    email: createEmailSchema(t),
+    password: z.string().min(1, t('validation.passwordRequired')),
   });
+}
 
-export type NewPasswordFormValues = z.infer<typeof newPasswordSchema>;
+export type SignInFormValues = z.infer<ReturnType<typeof createSignInSchema>>;
 
-export const signUpSchema = z
-  .object({
-    email: z
-      .string()
-      .trim()
-      .min(1, 'Email is required.')
-      .email('Enter a valid email address.'),
-
-    password: z.string().min(8, 'Password must contain at least 8 characters.'),
-
-    confirmPassword: z.string().min(1, 'Please confirm your password.'),
-  })
-  .refine(({ password, confirmPassword }) => password === confirmPassword, {
-    path: ['confirmPassword'],
-    message: 'Passwords do not match.',
+export function createForgotPasswordSchema(t: Translate) {
+  return z.object({
+    email: createEmailSchema(t),
   });
+}
 
-export type SignUpFormValues = z.infer<typeof signUpSchema>;
+export type ForgotPasswordFormValues = z.infer<
+  ReturnType<typeof createForgotPasswordSchema>
+>;
 
-export const guestProfileSchema = z
-  .object({
-    nickname: z
-      .string()
-      .trim()
-      .min(1, 'Nickname is required.')
-      .max(24, 'Nickname cannot exceed 24 characters.'),
+export function createNewPasswordSchema(t: Translate) {
+  return z
+    .object({
+      password: z.string().min(8, t('validation.passwordMin')),
+      confirmPassword: z
+        .string()
+        .min(1, t('validation.confirmPasswordRequired')),
+    })
+    .refine(({ password, confirmPassword }) => password === confirmPassword, {
+      path: ['confirmPassword'],
+      message: t('validation.passwordsMismatch'),
+    });
+}
 
-    age: z.string().trim().min(1, 'Age is required.'),
-  })
-  .superRefine(({ age }, context) => {
-    if (!/^\d+$/.test(age)) {
-      context.addIssue({
-        code: 'custom',
-        path: ['age'],
-        message: 'Age must be a whole number.',
-      });
+export type NewPasswordFormValues = z.infer<
+  ReturnType<typeof createNewPasswordSchema>
+>;
 
-      return;
-    }
+export function createSignUpSchema(t: Translate) {
+  return z
+    .object({
+      email: createEmailSchema(t),
+      password: z.string().min(8, t('validation.passwordMin')),
+      confirmPassword: z
+        .string()
+        .min(1, t('validation.confirmPasswordRequired')),
+    })
+    .refine(({ password, confirmPassword }) => password === confirmPassword, {
+      path: ['confirmPassword'],
+      message: t('validation.passwordsMismatch'),
+    });
+}
 
-    const numericAge = Number(age);
+export type SignUpFormValues = z.infer<ReturnType<typeof createSignUpSchema>>;
 
-    if (numericAge < 1 || numericAge > 120) {
-      context.addIssue({
-        code: 'custom',
-        path: ['age'],
-        message: 'Enter an age between 1 and 120.',
-      });
-    }
-  });
+export function createGuestProfileSchema(t: Translate) {
+  return z
+    .object({
+      nickname: z
+        .string()
+        .trim()
+        .min(1, t('validation.nicknameRequired'))
+        .max(24, t('validation.nicknameMax')),
 
-export type GuestProfileFormValues = z.infer<typeof guestProfileSchema>;
+      age: z.string().trim().min(1, t('validation.ageRequired')),
+    })
+    .superRefine(({ age }, context) => {
+      if (!/^\d+$/.test(age)) {
+        context.addIssue({
+          code: 'custom',
+          path: ['age'],
+          message: t('validation.ageWholeNumber'),
+        });
+
+        return;
+      }
+
+      const numericAge = Number(age);
+
+      if (numericAge < 1 || numericAge > 120) {
+        context.addIssue({
+          code: 'custom',
+          path: ['age'],
+          message: t('validation.ageRange'),
+        });
+      }
+    });
+}
+
+export type GuestProfileFormValues = z.infer<
+  ReturnType<typeof createGuestProfileSchema>
+>;

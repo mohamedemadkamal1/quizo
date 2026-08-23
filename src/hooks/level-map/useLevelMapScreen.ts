@@ -4,6 +4,7 @@ import { useBottomTabBarHeight } from 'expo-router/js-tabs';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { isLevelMapDifficulty, levelMapThemes } from '@/constants/level-map';
+import { useTranslation } from '@/hooks/useTranslation';
 import {
   getLevelMap,
   getLevelMapQueryKey,
@@ -36,6 +37,7 @@ function getPositiveIntegerParam(value: string | string[] | undefined) {
 
 export function useLevelMapScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const tabBarHeight = useBottomTabBarHeight();
   const params = useLocalSearchParams<RouteParams>();
   const subCategoryId = getPositiveIntegerParam(params.categoryId);
@@ -210,7 +212,7 @@ export function useLevelMapScreen() {
         sessionId === null ||
         sessionId <= 0
       ) {
-        throw new Error('A valid gameplay session was not returned.');
+        throw new Error(t('levelMap.startModal.invalidSession'));
       }
 
       setIsLevelStartModalVisible(false);
@@ -243,6 +245,7 @@ export function useLevelMapScreen() {
     stage,
     startLevelMutation,
     subCategoryId,
+    t,
   ]);
 
   const status = !hasValidRoute
@@ -258,10 +261,7 @@ export function useLevelMapScreen() {
   return {
     status,
     errorMessage: levelMapQuery.isError
-      ? getApiErrorMessage(
-          levelMapQuery.error,
-          'Unable to load this level map.',
-        )
+      ? getApiErrorMessage(levelMapQuery.error, t('levelMap.errorFallback'))
       : null,
     isRetrying: levelMapQuery.isFetching,
     category,
@@ -280,7 +280,7 @@ export function useLevelMapScreen() {
     startLevelErrorMessage: startLevelMutation.isError
       ? getApiErrorMessage(
           startLevelMutation.error,
-          'Unable to start this level. Please try again.',
+          t('levelMap.startModal.errorFallback'),
         )
       : null,
     handleClose,

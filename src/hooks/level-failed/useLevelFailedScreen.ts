@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BackHandler } from "react-native";
 
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   getLevelMapQueryKey,
   LEVEL_MAP_LIMIT,
@@ -23,6 +24,7 @@ import {
 
 export function useLevelFailedScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const userId = useAuthStore((state) => state.session?.user.id);
   const params = useLocalSearchParams<LevelResultRouteParams>();
@@ -138,7 +140,7 @@ export function useLevelFailedScreen() {
         newSession.id <= 0 ||
         newSession.id === summary.sessionId
       ) {
-        throw new Error("A valid new gameplay session was not returned.");
+        throw new Error(t("levelFailed.invalidSession"));
       }
 
       navigationLockedRef.current = true;
@@ -163,10 +165,7 @@ export function useLevelFailedScreen() {
       if (mountedRef.current) {
         retryInFlightRef.current = false;
         setRetryErrorMessage(
-          getApiErrorMessage(
-            error,
-            "Unable to restart this level. Please try again.",
-          ),
+          getApiErrorMessage(error, t("levelFailed.retryErrorFallback")),
         );
       }
     }
@@ -176,6 +175,7 @@ export function useLevelFailedScreen() {
     router,
     startLevelMutation,
     summary,
+    t,
   ]);
 
   const handleBackToMap = useCallback(() => {

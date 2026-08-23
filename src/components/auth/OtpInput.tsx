@@ -1,5 +1,9 @@
 import { useRef, useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
+
+import { AppText } from '@/components/common/AppText';
+import { AppTextInput } from '@/components/common/AppTextInput';
+import { useTranslation } from '@/hooks/useTranslation';
 
 type OtpInputProps = {
   value: string;
@@ -16,6 +20,7 @@ export function OtpInput({
   autoFocus = false,
   editable = true,
 }: OtpInputProps) {
+  const { t } = useTranslation();
   const inputRef = useRef<TextInput>(null);
   const [focused, setFocused] = useState(false);
 
@@ -28,8 +33,13 @@ export function OtpInput({
   }
 
   return (
-    <View className="relative h-[45px] w-[280px] max-w-full">
-      <TextInput
+    // The boxes are a fixed left-to-right sequence in both languages: an OTP
+    // is a technical code, so its digit order never mirrors.
+    <View
+      style={styles.container}
+      className="relative h-[45px] w-[280px] max-w-full"
+    >
+      <AppTextInput
         ref={inputRef}
         value={value}
         onChangeText={handleChange}
@@ -41,7 +51,8 @@ export function OtpInput({
         maxLength={OTP_LENGTH}
         textContentType="oneTimeCode"
         caretHidden
-        accessibilityLabel="Six-digit verification code"
+        ltrContent
+        accessibilityLabel={t('auth.verifyEmail.codeLabel')}
         className="absolute inset-0 z-10 opacity-0"
       />
 
@@ -56,9 +67,13 @@ export function OtpInput({
               style={[styles.box, isActive && styles.activeBox]}
               className="items-center justify-center"
             >
-              <Text className="font-fredoka text-[18px] font-semibold leading-[22px] text-muv-blue-300">
+              <AppText
+                ltrContent
+                className="font-fredoka text-[18px] font-semibold leading-[22px] text-muv-blue-300"
+                style={styles.digit}
+              >
                 {value[index] ?? ''}
-              </Text>
+              </AppText>
             </View>
           );
         })}
@@ -68,6 +83,10 @@ export function OtpInput({
 }
 
 const styles = StyleSheet.create({
+  container: {
+    direction: 'ltr',
+  },
+
   box: {
     width: 40,
     height: 45,
@@ -79,5 +98,9 @@ const styles = StyleSheet.create({
 
   activeBox: {
     borderWidth: 1.5,
+  },
+
+  digit: {
+    textAlign: 'center',
   },
 });

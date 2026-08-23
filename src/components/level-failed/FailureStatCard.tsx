@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
+import { AppText } from "@/components/common/AppText";
 import { levelFailedColors } from "@/constants/level-failed";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type FailureStatCardProps = {
   icon: ReactNode;
@@ -18,9 +20,15 @@ export function FailureStatCard({
   scale,
   verticalScale,
 }: FailureStatCardProps) {
+  const { t, formatNumber } = useTranslation();
+  const formattedValue = formatNumber(value);
+
   return (
     <View
-      accessibilityLabel={`${value} ${label}`}
+      accessibilityLabel={t("levelFailed.statLabel", {
+        value: formattedValue,
+        label,
+      })}
       style={[
         styles.card,
         {
@@ -31,16 +39,22 @@ export function FailureStatCard({
       ]}
     >
       {icon}
-      <Text
+      <AppText
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
+        numberOfLines={1}
         style={[styles.value, { fontSize: 21 * scale, lineHeight: 27 * scale }]}
       >
-        {value}
-      </Text>
-      <Text
+        {formattedValue}
+      </AppText>
+      <AppText
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
+        numberOfLines={1}
         style={[styles.label, { fontSize: 12 * scale, lineHeight: 16 * scale }]}
       >
         {label}
-      </Text>
+      </AppText>
     </View>
   );
 }
@@ -49,9 +63,11 @@ const styles = StyleSheet.create({
   card: {
     alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal: 6,
     backgroundColor: levelFailedColors.surface,
   },
   value: {
+    maxWidth: "100%",
     marginTop: 3,
     color: levelFailedColors.heading,
     fontFamily: "Fredoka",
@@ -60,6 +76,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   label: {
+    maxWidth: "100%",
     marginTop: 1,
     color: levelFailedColors.muted,
     fontFamily: "Fredoka",

@@ -1,10 +1,10 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { AppText } from '@/components/common/AppText';
 import { LEVEL_MAP_NODE_SIZE } from '@/constants/level-map';
-import type {
-  LevelMapLevel,
-  LevelMapTheme,
-} from '@/types/level-map.types';
+import { useTranslation } from '@/hooks/useTranslation';
+import type { Translate, TranslationKey } from '@/i18n';
+import type { LevelMapLevel, LevelMapTheme } from '@/types/level-map.types';
 
 type LevelNodeProps = {
   level: LevelMapLevel;
@@ -12,31 +12,36 @@ type LevelNodeProps = {
   onPress: (level: LevelMapLevel) => void;
 };
 
-function getAccessibilityLabel(level: LevelMapLevel) {
+function getAccessibilityLabelKey(level: LevelMapLevel): TranslationKey {
   if (!level.published || !level.hasRecognizedStatus) {
-    return `Level ${level.number}, unavailable.`;
+    return 'levelMap.node.unavailable';
   }
 
   if (level.viewState === 'locked') {
-    return `Level ${level.number}, locked.`;
+    return 'levelMap.node.locked';
   }
 
   if (level.viewState === 'completed') {
     return level.isPlayable
-      ? `Level ${level.number}, completed. Play again.`
-      : `Level ${level.number}, completed.`;
+      ? 'levelMap.node.completedReplayable'
+      : 'levelMap.node.completed';
   }
 
   if (level.viewState === 'in-progress') {
     return level.isPlayable
-      ? `Level ${level.number}, in progress. Resume.`
-      : `Level ${level.number}, in progress but unavailable.`;
+      ? 'levelMap.node.inProgressResumable'
+      : 'levelMap.node.inProgressUnavailable';
   }
 
-  return `Level ${level.number}, available. Play.`;
+  return 'levelMap.node.available';
+}
+
+function getAccessibilityLabel(level: LevelMapLevel, t: Translate) {
+  return t(getAccessibilityLabelKey(level), { number: level.number });
 }
 
 export function LevelNode({ level, theme, onPress }: LevelNodeProps) {
+  const { t } = useTranslation();
   const isPlayableState =
     level.viewState === 'in-progress' || level.viewState === 'available';
   const isCompleted = level.viewState === 'completed';
@@ -45,7 +50,7 @@ export function LevelNode({ level, theme, onPress }: LevelNodeProps) {
 
   return (
     <Pressable
-      accessibilityLabel={getAccessibilityLabel(level)}
+      accessibilityLabel={getAccessibilityLabel(level, t)}
       accessibilityRole="button"
       accessibilityState={{ disabled: isDisabled }}
       disabled={isDisabled}
@@ -69,23 +74,21 @@ export function LevelNode({ level, theme, onPress }: LevelNodeProps) {
           },
         ]}
       >
-        <Text
-          style={[
-            styles.nodeText,
-            isLocked && styles.lockedText,
-          ]}
-        >
-          {isCompleted
-            ? '\u2713'
-            : isLocked
-              ? '\u{1F512}'
-              : level.number}
-        </Text>
+        <AppText style={[styles.nodeText, isLocked && styles.lockedText]}>
+          {isCompleted ? '✓' : isLocked ? '\u{1F512}' : level.number}
+        </AppText>
       </View>
 
       {level.isPlayable ? (
         <View style={[styles.playPill, { backgroundColor: theme.playColor }]}>
-          <Text style={styles.playText}>{'\u25B6'} Play</Text>
+          {/*
+            The play triangle is a media control rather than a directional
+            affordance, so it keeps pointing the same way in both languages;
+            only the label beside it is translated.
+          */}
+          <AppText numberOfLines={1} style={styles.playText}>
+            {'▶'} {t('levelMap.play')}
+          </AppText>
         </View>
       ) : null}
     </Pressable>
@@ -118,6 +121,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     lineHeight: 34,
     color: '#FFFFFF',
+    textAlign: 'center',
     includeFontPadding: false,
   },
   lockedText: {
@@ -126,6 +130,7 @@ const styles = StyleSheet.create({
   },
   playPill: {
     minWidth: 60,
+    maxWidth: 92,
     height: 22,
     marginTop: -3,
     alignItems: 'center',
@@ -139,6 +144,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 14,
     color: '#FFFFFF',
+    textAlign: 'center',
     includeFontPadding: false,
   },
 });

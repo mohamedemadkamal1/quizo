@@ -1,16 +1,12 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import type { PropsWithChildren } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
+import { AppText } from '@/components/common/AppText';
 import { ProfileIcon } from '@/components/profile/ProfileIcon';
 import { colors } from '@/constants/colors';
+import { useTranslation } from '@/hooks/useTranslation';
 
 type ModalHeaderProps = {
   title: string;
@@ -29,13 +25,15 @@ export function ProfileModalHeader({
   isBusy,
   onClose,
 }: ModalHeaderProps) {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.header}>
-      <Text accessibilityRole="header" style={styles.title}>
+      <AppText accessibilityRole="header" style={styles.title}>
         {title}
-      </Text>
+      </AppText>
       <Pressable
-        accessibilityLabel="Close"
+        accessibilityLabel={t('common.close')}
         accessibilityRole="button"
         disabled={isBusy}
         hitSlop={10}
@@ -73,7 +71,14 @@ export function ProfileModalSubmitButton({
         {isBusy ? (
           <ActivityIndicator color="#FFFFFF" />
         ) : (
-          <Text style={styles.submitText}>{children}</Text>
+          <AppText
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+            numberOfLines={1}
+            style={styles.submitText}
+          >
+            {children}
+          </AppText>
         )}
       </LinearGradient>
     </Pressable>
@@ -86,30 +91,32 @@ export function ProfileModalError({ message }: { message: string | null }) {
   }
 
   return (
-    <Text
+    <AppText
       accessibilityLiveRegion="polite"
       accessibilityRole="alert"
       style={styles.error}
     >
       {message}
-    </Text>
+    </AppText>
   );
 }
 
 export function DisabledSocialButtons() {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.socialRow}>
       <Pressable
-        accessibilityLabel="Google sign-in is unavailable"
+        accessibilityLabel={t('auth.social.googleUnavailable')}
         accessibilityRole="button"
         accessibilityState={{ disabled: true }}
         disabled
         style={styles.socialButton}
       >
-        <Text style={styles.googleText}>G</Text>
+        <AppText style={styles.googleText}>G</AppText>
       </Pressable>
       <Pressable
-        accessibilityLabel="Apple sign-in is unavailable"
+        accessibilityLabel={t('auth.social.appleUnavailable')}
         accessibilityRole="button"
         accessibilityState={{ disabled: true }}
         disabled
@@ -156,7 +163,7 @@ const styles = StyleSheet.create({
   closeButton: {
     position: 'absolute',
     top: 0,
-    right: 0,
+    end: 0,
     width: 42,
     height: 42,
     alignItems: 'center',

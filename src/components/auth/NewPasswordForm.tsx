@@ -5,6 +5,7 @@ import { AppButton } from '@/components/common/AppButton';
 import { AuthFormError } from '@/components/auth/AuthFormError';
 import { AuthInput } from '@/components/auth/AuthInput';
 import { AuthScreenLayout } from '@/components/auth/AuthScreenLayout';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { useNewPasswordScreen } from '@/hooks/auth/useNewPasswordScreen';
 
 type NewPasswordFormProps = {
@@ -12,14 +13,16 @@ type NewPasswordFormProps = {
 };
 
 export function NewPasswordForm({ screen }: NewPasswordFormProps) {
+  const { t } = useTranslation();
+
   if (!screen.canRender) {
     return null;
   }
 
   return (
     <AuthScreenLayout
-      title="Create New Password"
-      subtitle="Create a new password to secure your account."
+      title={t('auth.newPassword.title')}
+      subtitle={t('auth.newPassword.subtitle')}
     >
       <View className="w-[280px] max-w-full gap-4">
         <Controller
@@ -31,7 +34,7 @@ export function NewPasswordForm({ screen }: NewPasswordFormProps) {
               onChangeText={field.onChange}
               onBlur={field.onBlur}
               error={screen.errors.password?.message}
-              placeholder="New Password"
+              placeholder={t('auth.fields.newPassword')}
               secureTextEntry
               autoCapitalize="none"
               autoCorrect={false}
@@ -52,7 +55,7 @@ export function NewPasswordForm({ screen }: NewPasswordFormProps) {
               onChangeText={field.onChange}
               onBlur={field.onBlur}
               error={screen.errors.confirmPassword?.message}
-              placeholder="Confirm Password"
+              placeholder={t('auth.fields.confirmPassword')}
               secureTextEntry
               autoCapitalize="none"
               autoCorrect={false}
@@ -69,7 +72,7 @@ export function NewPasswordForm({ screen }: NewPasswordFormProps) {
       </View>
 
       <AppButton
-        label="Reset Password"
+        label={t('auth.newPassword.submit')}
         isLoading={screen.isSubmitting}
         onPress={screen.onSubmit}
       />

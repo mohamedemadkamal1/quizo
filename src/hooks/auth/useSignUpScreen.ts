@@ -1,25 +1,29 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isAxiosError } from 'axios';
 import { useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { useTranslation } from '@/hooks/useTranslation';
 import {
+  createSignUpSchema,
   type SignUpFormValues,
-  signUpSchema,
 } from '@/schemas/auth.schemas';
 import { useAuthStore } from '@/store/auth.store';
 import { getApiErrorMessage } from '@/utils/get-api-error-message';
 
 export function useSignUpScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const signUp = useAuthStore((state) => state.signUp);
+  const schema = useMemo(() => createSignUpSchema(t), [t]);
   const {
     control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
   } = useForm<SignUpFormValues>({
-    resolver: zodResolver(signUpSchema),
+    resolver: zodResolver(schema),
     defaultValues: { email: '', password: '', confirmPassword: '' },
   });
 
@@ -40,8 +44,7 @@ export function useSignUpScreen() {
           {
             type: 'server',
             message:
-              error.response.data?.message ??
-              'This email is already registered.',
+              error.response.data?.message ?? t('auth.errors.emailTaken'),
           },
           { shouldFocus: true },
         );
@@ -49,10 +52,7 @@ export function useSignUpScreen() {
       }
 
       setError('root', {
-        message: getApiErrorMessage(
-          error,
-          'Unable to create your account. Please try again.',
-        ),
+        message: getApiErrorMessage(error, t('auth.errors.signUpFailed')),
       });
     }
   }

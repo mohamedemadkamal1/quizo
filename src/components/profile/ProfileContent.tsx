@@ -1,7 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppText } from '@/components/common/AppText';
 import { ChangePasswordModal } from '@/components/profile/ChangePasswordModal';
 import { CompleteProfileModal } from '@/components/profile/CompleteProfileModal';
 import { DeleteProfileModal } from '@/components/profile/DeleteProfileModal';
@@ -9,6 +10,7 @@ import { EditProfileModal } from '@/components/profile/EditProfileModal';
 import { LogoutConfirmationModal } from '@/components/profile/LogoutConfirmationModal';
 import {
   GuestProfileActions,
+  LanguageAction,
   ProgressAction,
   RegisteredProfileActions,
 } from '@/components/profile/ProfileActions';
@@ -56,6 +58,7 @@ export function ProfileContent({ screen }: ProfileContentProps) {
                 value={screen.soundVolume}
               />
               <ProgressAction onPress={screen.onNavigateToProgress} />
+              <LanguageAction onPress={screen.onChangeLanguage} />
             </>
           ) : (
             <>
@@ -64,6 +67,7 @@ export function ProfileContent({ screen }: ProfileContentProps) {
                 value={screen.soundVolume}
               />
               <ProgressAction onPress={screen.onNavigateToProgress} />
+              <LanguageAction onPress={screen.onChangeLanguage} />
               <RegisteredProfileActions
                 onChangePassword={screen.onChangePassword}
                 onDeleteProfile={screen.onRequestDeleteProfile}
@@ -73,13 +77,13 @@ export function ProfileContent({ screen }: ProfileContentProps) {
           )}
 
           {screen.successFeedbackMessage ? (
-            <Text
+            <AppText
               accessibilityLiveRegion="polite"
               accessibilityRole="alert"
               style={styles.successFeedback}
             >
               {screen.successFeedbackMessage}
-            </Text>
+            </AppText>
           ) : null}
         </View>
       </ScrollView>

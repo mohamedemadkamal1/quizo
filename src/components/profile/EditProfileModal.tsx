@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import {
   ActivityIndicator,
@@ -11,19 +11,21 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { AppText } from "@/components/common/AppText";
+import { AppTextInput } from "@/components/common/AppTextInput";
 import {
   PROFILE_AVATAR_ARTWORK_ASPECT_RATIO,
   PROFILE_AVATARS,
 } from "@/constants/profile-avatars";
+import { useLanguageDirection } from "@/hooks/useLanguageDirection";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
-  editProfileSchema,
+  createEditProfileSchema,
   type EditProfileFormValues,
 } from "@/schemas/profile.schemas";
 import { isAvatarId, type AvatarId } from "@/types/avatar.types";
@@ -47,6 +49,8 @@ export function EditProfileModal({
   onDismiss,
   onSubmit,
 }: EditProfileModalProps) {
+  const { t } = useTranslation();
+  const { directionStyle } = useLanguageDirection();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const modalWidth = Math.min(360, windowWidth - 48);
   const horizontalScale = modalWidth / 360;
@@ -67,13 +71,14 @@ export function EditProfileModal({
     Math.round(312 * horizontalScale),
   );
 
+  const schema = useMemo(() => createEditProfileSchema(t), [t]);
   const {
     control,
     handleSubmit,
     reset,
     formState: { errors },
   } = useForm<EditProfileFormValues>({
-    resolver: zodResolver(editProfileSchema),
+    resolver: zodResolver(schema),
     mode: "onChange",
     defaultValues: {
       username: currentUsername,
@@ -93,7 +98,7 @@ export function EditProfileModal({
   const username = useWatch({ control, name: "username" });
   const selectedAvatar = useWatch({ control, name: "avatar" });
   const normalizedUsername = username.trim();
-  const isValid = editProfileSchema.safeParse({
+  const isValid = schema.safeParse({
     username,
     avatar: selectedAvatar,
   }).success;
@@ -132,7 +137,7 @@ export function EditProfileModal({
       transparent
       visible={visible}
     >
-      <SafeAreaView style={styles.backdrop}>
+      <SafeAreaView style={[styles.backdrop, directionStyle]}>
         <Pressable
           accessible={false}
           disabled={isSubmitting}
@@ -164,7 +169,7 @@ export function EditProfileModal({
                 ]}
               >
                 <LinearGradient
-                  accessibilityLabel="Choose your avatar and nickname"
+                  accessibilityLabel={t('profile.editModal.dialogLabel')}
                   accessibilityViewIsModal
                   colors={["#FFFFFF", "#FAF9FF", "#F1EDFF"]}
                   end={{ x: 0.5, y: 1 }}
@@ -191,10 +196,10 @@ export function EditProfileModal({
                     ]}
                   />
 
-                  <Text
+                  <AppText
                     accessibilityRole="header"
                     adjustsFontSizeToFit
-                    minimumFontScale={0.9}
+                    minimumFontScale={0.8}
                     numberOfLines={1}
                     style={[
                       styles.heading,
@@ -205,12 +210,12 @@ export function EditProfileModal({
                       },
                     ]}
                   >
-                    Choose Your Avatar
-                  </Text>
+                    {t('profile.editModal.heading')}
+                  </AppText>
 
-                  <Text
+                  <AppText
                     adjustsFontSizeToFit
-                    minimumFontScale={0.85}
+                    minimumFontScale={0.75}
                     numberOfLines={1}
                     style={[
                       styles.subtitle,
@@ -222,8 +227,8 @@ export function EditProfileModal({
                       },
                     ]}
                   >
-                    Pick a friendly companion for your profile!
-                  </Text>
+                    {t('profile.editModal.subtitle')}
+                  </AppText>
 
                   <Controller
                     control={control}
@@ -247,7 +252,9 @@ export function EditProfileModal({
                           return (
                             <Pressable
                               key={option.id}
-                              accessibilityLabel={option.accessibilityLabel}
+                              accessibilityLabel={t(
+                                option.accessibilityLabelKey,
+                              )}
                               accessibilityRole="radio"
                               accessibilityState={{
                                 checked: isSelected,
@@ -288,7 +295,9 @@ export function EditProfileModal({
 
                               {isSelected ? (
                                 <View style={styles.selectedBadge}>
-                                  <Text style={styles.selectedCheck}>✓</Text>
+                                  <AppText style={styles.selectedCheck}>
+                                    ✓
+                                  </AppText>
                                 </View>
                               ) : null}
                             </Pressable>
@@ -298,7 +307,8 @@ export function EditProfileModal({
                     )}
                   />
 
-                  <Text
+                  <AppText
+                    numberOfLines={1}
                     style={[
                       styles.nicknameLabel,
                       {
@@ -308,22 +318,24 @@ export function EditProfileModal({
                       },
                     ]}
                   >
-                    Your Nickname
-                  </Text>
+                    {t('profile.editModal.nicknameLabel')}
+                  </AppText>
 
                   <Controller
                     control={control}
                     name="username"
                     render={({ field: { onBlur, onChange, value } }) => (
-                      <TextInput
-                        accessibilityLabel="Your nickname"
+                      <AppTextInput
+                        accessibilityLabel={t(
+                          'profile.editModal.nicknameFieldLabel',
+                        )}
                         autoCapitalize="words"
                         autoCorrect={false}
                         editable={!isSubmitting}
                         maxLength={200}
                         onBlur={onBlur}
                         onChangeText={onChange}
-                        placeholder="Nickname"
+                        placeholder={t('auth.fields.nickname')}
                         placeholderTextColor="#94A3B8"
                         returnKeyType="done"
                         style={[
@@ -343,13 +355,13 @@ export function EditProfileModal({
                   />
 
                   {displayedError ? (
-                    <Text
+                    <AppText
                       accessibilityLiveRegion="polite"
                       accessibilityRole="alert"
                       style={[styles.errorMessage, { width: inputWidth }]}
                     >
                       {displayedError}
-                    </Text>
+                    </AppText>
                   ) : null}
 
                   <View
@@ -365,7 +377,7 @@ export function EditProfileModal({
                   />
 
                   <Pressable
-                    accessibilityLabel="Confirm avatar and nickname selection"
+                    accessibilityLabel={t('profile.editModal.confirmLabel')}
                     accessibilityRole="button"
                     accessibilityState={{
                       busy: isSubmitting,
@@ -398,7 +410,10 @@ export function EditProfileModal({
                     {isSubmitting ? (
                       <ActivityIndicator color="#FFFFFF" size="small" />
                     ) : (
-                      <Text
+                      <AppText
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.75}
+                        numberOfLines={1}
                         style={[
                           styles.confirmLabel,
                           {
@@ -407,8 +422,8 @@ export function EditProfileModal({
                           },
                         ]}
                       >
-                        Confirm Selection
-                      </Text>
+                        {t('profile.editModal.confirm')}
+                      </AppText>
                     )}
                   </Pressable>
                 </LinearGradient>
@@ -492,7 +507,7 @@ const styles = StyleSheet.create({
   selectedBadge: {
     position: "absolute",
     zIndex: 5,
-    right: -4,
+    end: -4,
     bottom: -4,
     width: 25,
     height: 25,
@@ -525,6 +540,7 @@ const styles = StyleSheet.create({
     fontFamily: "Nunito",
     fontSize: 16,
     fontWeight: "500",
+    textAlign: "center",
     textAlignVertical: "center",
   },
   nicknameInputError: {

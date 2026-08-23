@@ -6,6 +6,7 @@ import { AuthFormError } from '@/components/auth/AuthFormError';
 import { AuthInput } from '@/components/auth/AuthInput';
 import { AuthPromptLink } from '@/components/auth/AuthLink';
 import { AuthScreenLayout } from '@/components/auth/AuthScreenLayout';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { useSignUpScreen } from '@/hooks/auth/useSignUpScreen';
 
 type SignUpFormProps = {
@@ -13,14 +14,16 @@ type SignUpFormProps = {
 };
 
 export function SignUpForm({ screen }: SignUpFormProps) {
+  const { t } = useTranslation();
+
   return (
     <AuthScreenLayout
-      title="Create Your Account"
-      subtitle="Start your journey to learn, play, and grow with Quizo"
+      title={t('auth.signUp.title')}
+      subtitle={t('auth.signUp.subtitle')}
       footer={
         <AuthPromptLink
-          prefix="Already have an account?"
-          action="Sign In"
+          prefix={t('auth.signUp.promptPrefix')}
+          action={t('auth.signUp.promptAction')}
           disabled={screen.isSubmitting}
           onPress={screen.onSignIn}
         />
@@ -36,13 +39,14 @@ export function SignUpForm({ screen }: SignUpFormProps) {
               onChangeText={field.onChange}
               onBlur={field.onBlur}
               error={screen.errors.email?.message}
-              placeholder="Email"
+              placeholder={t('auth.fields.email')}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
               autoComplete="email"
               textContentType="emailAddress"
               returnKeyType="next"
+              ltrContent
               editable={!screen.isSubmitting}
             />
           )}
@@ -57,7 +61,7 @@ export function SignUpForm({ screen }: SignUpFormProps) {
               onChangeText={field.onChange}
               onBlur={field.onBlur}
               error={screen.errors.password?.message}
-              placeholder="Password"
+              placeholder={t('auth.fields.password')}
               secureTextEntry
               autoCapitalize="none"
               autoCorrect={false}
@@ -78,7 +82,7 @@ export function SignUpForm({ screen }: SignUpFormProps) {
               onChangeText={field.onChange}
               onBlur={field.onBlur}
               error={screen.errors.confirmPassword?.message}
-              placeholder="Confirm Password"
+              placeholder={t('auth.fields.confirmPassword')}
               secureTextEntry
               autoCapitalize="none"
               autoCorrect={false}
@@ -95,7 +99,7 @@ export function SignUpForm({ screen }: SignUpFormProps) {
       </View>
 
       <AppButton
-        label="Sign Up"
+        label={t('auth.signUp.submit')}
         isLoading={screen.isSubmitting}
         onPress={screen.onSubmit}
       />

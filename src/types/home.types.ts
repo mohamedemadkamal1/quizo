@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import type { TranslationKey } from '@/i18n';
 import type { ApiEnvelope } from '@/types/auth.types';
 
 export type GradientColors = readonly [string, string];
@@ -64,9 +65,10 @@ export type CategoryLevelStarCount = 1 | 2 | 3;
 
 export type CategoryLevelConfig = {
   difficulty: Difficulty;
-  title: string;
+  /** Translation keys, so the labels follow the active language. */
+  titleKey: TranslationKey;
+  descriptionKey: TranslationKey;
   icon: string;
-  description: string;
   stars: CategoryLevelStarCount;
   gradient: GradientColors;
 };

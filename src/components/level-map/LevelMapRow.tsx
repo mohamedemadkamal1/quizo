@@ -1,5 +1,6 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 
+import { AppText } from '@/components/common/AppText';
 import { LevelMapDecoration } from '@/components/level-map/LevelMapDecoration';
 import { LevelNode } from '@/components/level-map/LevelNode';
 import { LevelPath } from '@/components/level-map/LevelPath';
@@ -103,7 +104,7 @@ export function LevelMapRow({
       ) : null}
 
       {showSparkle ? (
-        <Text
+        <AppText
           pointerEvents="none"
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
@@ -115,7 +116,7 @@ export function LevelMapRow({
           ]}
         >
           {'\u2726'}
-        </Text>
+        </AppText>
       ) : null}
 
       {showMascot ? (

@@ -6,6 +6,7 @@ import { AuthFormError } from '@/components/auth/AuthFormError';
 import { AuthInput } from '@/components/auth/AuthInput';
 import { AuthPromptLink } from '@/components/auth/AuthLink';
 import { AuthScreenLayout } from '@/components/auth/AuthScreenLayout';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { useForgotPasswordScreen } from '@/hooks/auth/useForgotPasswordScreen';
 
 type ForgotPasswordFormProps = {
@@ -13,14 +14,16 @@ type ForgotPasswordFormProps = {
 };
 
 export function ForgotPasswordForm({ screen }: ForgotPasswordFormProps) {
+  const { t } = useTranslation();
+
   return (
     <AuthScreenLayout
-      title="Forgot Password?"
-      subtitle="Enter your email to reset your password."
+      title={t('auth.forgotPassword.title')}
+      subtitle={t('auth.forgotPassword.subtitle')}
       footer={
         <AuthPromptLink
-          prefix="Back to"
-          action="Sign In"
+          prefix={t('auth.forgotPassword.promptPrefix')}
+          action={t('auth.forgotPassword.promptAction')}
           disabled={screen.isSubmitting}
           onPress={screen.onSignIn}
         />
@@ -36,13 +39,14 @@ export function ForgotPasswordForm({ screen }: ForgotPasswordFormProps) {
               onChangeText={field.onChange}
               onBlur={field.onBlur}
               error={screen.errors.email?.message}
-              placeholder="Email"
+              placeholder={t('auth.fields.email')}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
               autoComplete="email"
               textContentType="emailAddress"
               returnKeyType="send"
+              ltrContent
               editable={!screen.isSubmitting}
               onSubmitEditing={screen.onSubmit}
             />
@@ -53,7 +57,7 @@ export function ForgotPasswordForm({ screen }: ForgotPasswordFormProps) {
       </View>
 
       <AppButton
-        label="Send"
+        label={t('auth.forgotPassword.submit')}
         isLoading={screen.isSubmitting}
         onPress={screen.onSubmit}
       />

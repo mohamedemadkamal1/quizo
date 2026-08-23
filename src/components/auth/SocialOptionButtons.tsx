@@ -2,16 +2,17 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from "react-native";
 
+import { AppText } from "@/components/common/AppText";
 import {
   handleSocialPlaceholderPress,
   SocialProviderLogo,
   type SocialProvider,
 } from "@/components/common/SocialProviderLogo";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const MAX_ROW_WIDTH = 280;
 const COMPACT_SCREEN_WIDTH = 350;
@@ -20,8 +21,12 @@ const socialProviders: readonly SocialProvider[] =
   Platform.OS === "android" ? ["google"] : ["apple", "google"];
 
 function ProviderOptionButton({ provider }: { provider: SocialProvider }) {
+  const { t } = useTranslation();
   const isApple = provider === "apple";
-  const label = `Continue with ${isApple ? "Apple" : "Google"}`;
+  // The provider names themselves are brand names and stay in Latin script.
+  const label = t("auth.social.continueWith", {
+    provider: isApple ? t("auth.social.apple") : t("auth.social.google"),
+  });
 
   return (
     <Pressable
@@ -31,14 +36,14 @@ function ProviderOptionButton({ provider }: { provider: SocialProvider }) {
       style={styles.button}
     >
       <SocialProviderLogo provider={provider} size={isApple ? 24 : 21} />
-      <Text
+      <AppText
         adjustsFontSizeToFit
         minimumFontScale={0.7}
         numberOfLines={1}
         style={styles.label}
       >
         {label}
-      </Text>
+      </AppText>
     </Pressable>
   );
 }
@@ -102,5 +107,6 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: "500",
     lineHeight: 12,
+    textAlign: "center",
   },
 });

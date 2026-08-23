@@ -1,13 +1,9 @@
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
+import { AppText } from '@/components/common/AppText';
 import { ProfileModalError } from '@/components/profile/ProfileModalElements';
 import { ProfileModalFrame } from '@/components/profile/ProfileModalFrame';
+import { useTranslation } from '@/hooks/useTranslation';
 
 type DeleteProfileModalProps = {
   visible: boolean;
@@ -24,21 +20,20 @@ export function DeleteProfileModal({
   onCancel,
   onConfirm,
 }: DeleteProfileModalProps) {
+  const { t } = useTranslation();
+
   return (
     <ProfileModalFrame
-      accessibilityLabel="Delete account confirmation"
+      accessibilityLabel={t('profile.deleteModal.dialogLabel')}
       isBusy={isDeleting}
       maxWidth={430}
       onClose={onCancel}
       visible={visible}
     >
-      <Text accessibilityRole="header" style={styles.title}>
-        Delete User
-      </Text>
-      <Text style={styles.body}>
-        Are you sure you want to delete your account? This action cannot be
-        undone and all data will be permanently removed.
-      </Text>
+      <AppText accessibilityRole="header" style={styles.title}>
+        {t('profile.deleteModal.title')}
+      </AppText>
+      <AppText style={styles.body}>{t('profile.deleteModal.body')}</AppText>
       <ProfileModalError message={errorMessage} />
       <View style={styles.actions}>
         <Pressable
@@ -55,7 +50,9 @@ export function DeleteProfileModal({
           {isDeleting ? (
             <ActivityIndicator color="#C90D3D" />
           ) : (
-            <Text style={styles.deleteText}>Delete Account</Text>
+            <AppText numberOfLines={1} style={styles.deleteText}>
+              {t('profile.deleteModal.confirm')}
+            </AppText>
           )}
         </Pressable>
         <Pressable
@@ -68,7 +65,9 @@ export function DeleteProfileModal({
             isDeleting && styles.disabled,
           ]}
         >
-          <Text style={styles.cancelText}>Cancel</Text>
+          <AppText numberOfLines={1} style={styles.cancelText}>
+            {t('profile.deleteModal.cancel')}
+          </AppText>
         </Pressable>
       </View>
     </ProfileModalFrame>
@@ -99,6 +98,7 @@ const styles = StyleSheet.create({
   },
   button: {
     minWidth: 180,
+    maxWidth: '100%',
     minHeight: 52,
     alignItems: 'center',
     justifyContent: 'center',
@@ -118,12 +118,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Nunito',
     fontSize: 17,
     fontWeight: '600',
+    textAlign: 'center',
   },
   cancelText: {
     color: '#FFFFFF',
     fontFamily: 'Nunito',
     fontSize: 17,
     fontWeight: '600',
+    textAlign: 'center',
   },
   disabled: {
     opacity: 0.55,

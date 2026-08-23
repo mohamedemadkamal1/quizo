@@ -1,7 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { AppText } from '@/components/common/AppText';
 import { colors } from '@/constants/colors';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { CategoryLevel } from '@/types/home.types';
 
 type CategoryLevelOptionProps = {
@@ -13,16 +15,23 @@ export function CategoryLevelOption({
   level,
   onPress,
 }: CategoryLevelOptionProps) {
+  const { t } = useTranslation();
   const isDisabled = level.levelCount === 0;
-  const levelLabel = level.levelCount === 1 ? 'Level' : 'Levels';
+  const title = t(level.titleKey);
+  const description = t(level.descriptionKey);
+  const levelsLabel = t('home.levelCount', { count: level.levelCount });
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={
         isDisabled
-          ? `${level.title}, no levels available`
-          : `Choose ${level.title}, ${level.levelCount} ${levelLabel}. ${level.description}`
+          ? t('home.levelModal.optionUnavailableLabel', { title })
+          : t('home.levelModal.optionLabel', {
+              title,
+              levels: levelsLabel,
+              description,
+            })
       }
       accessibilityState={{ disabled: isDisabled }}
       disabled={isDisabled}
@@ -39,25 +48,28 @@ export function CategoryLevelOption({
         end={{ x: 0.92, y: 1 }}
         style={styles.option}
       >
-        <Text style={styles.icon}>{level.icon}</Text>
+        <AppText style={styles.icon}>{level.icon}</AppText>
 
         <View style={styles.copy}>
-          <Text numberOfLines={1} style={styles.title}>
-            {level.title}
-          </Text>
-          <Text
+          <AppText numberOfLines={1} style={styles.title}>
+            {title}
+          </AppText>
+          <AppText
             adjustsFontSizeToFit
             minimumFontScale={0.8}
             numberOfLines={1}
             style={styles.description}
           >
-            {level.levelCount} {levelLabel} · {level.description}
-          </Text>
+            {t('home.levelModal.optionSummary', {
+              levels: levelsLabel,
+              description,
+            })}
+          </AppText>
         </View>
 
-        <Text accessibilityElementsHidden style={styles.stars}>
+        <AppText accessibilityElementsHidden style={styles.stars}>
           {'⭐'.repeat(level.stars)}
-        </Text>
+        </AppText>
       </LinearGradient>
     </Pressable>
   );
@@ -101,6 +113,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     fontSize: 36,
     lineHeight: 40,
+    textAlign: 'center',
     includeFontPadding: false,
   },
   copy: {

@@ -1,12 +1,14 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 
+import { useTranslation } from '@/hooks/useTranslation';
 import { verifyPasswordResetCode } from '@/services/auth.service';
 import { usePasswordResetStore } from '@/store/password-reset.store';
 import { getApiErrorMessage } from '@/utils/get-api-error-message';
 
 export function useVerifyEmailScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const email = usePasswordResetStore((state) => state.email);
   const markVerified = usePasswordResetStore((state) => state.markVerified);
   const [code, setCode] = useState('');
@@ -21,7 +23,7 @@ export function useVerifyEmailScreen() {
 
   async function verify() {
     if (!email || code.length !== 6) {
-      setError('Enter the complete 6-digit code.');
+      setError(t('auth.verifyEmail.incompleteCode'));
       return;
     }
 
@@ -33,7 +35,9 @@ export function useVerifyEmailScreen() {
       markVerified(resetToken);
       router.push('/new-password');
     } catch (requestError) {
-      setError(getApiErrorMessage(requestError, 'Unable to verify the code.'));
+      setError(
+        getApiErrorMessage(requestError, t('auth.errors.verifyCodeFailed')),
+      );
     } finally {
       setIsVerifying(false);
     }

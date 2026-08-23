@@ -1,6 +1,8 @@
 import Svg, { Path, Rect } from "react-native-svg";
 
 import { levelFailedColors } from "@/constants/level-failed";
+import { useLanguageDirection } from "@/hooks/useLanguageDirection";
+import { getDirectionalIconStyle } from "@/theme/direction-styles";
 
 type IconProps = { size: number };
 
@@ -79,8 +81,15 @@ export function FailureRankingIcon({ size }: IconProps) {
 }
 
 export function FailureChevronIcon({ size }: IconProps) {
+  const { isRTL } = useLanguageDirection();
+
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24">
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      style={getDirectionalIconStyle(isRTL)}
+    >
       <Path
         d="m9 5 7 7-7 7"
         fill="none"

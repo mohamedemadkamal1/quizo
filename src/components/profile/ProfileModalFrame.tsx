@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/colors';
+import { useLanguageDirection } from '@/hooks/useLanguageDirection';
 
 type ProfileModalFrameProps = PropsWithChildren<{
   visible: boolean;
@@ -27,6 +28,8 @@ export function ProfileModalFrame({
   maxWidth = 390,
   children,
 }: ProfileModalFrameProps) {
+  const { directionStyle } = useLanguageDirection();
+
   return (
     <Modal
       animationType="fade"
@@ -35,7 +38,7 @@ export function ProfileModalFrame({
       transparent
       visible={visible}
     >
-      <SafeAreaView style={styles.backdrop}>
+      <SafeAreaView style={[styles.backdrop, directionStyle]}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}

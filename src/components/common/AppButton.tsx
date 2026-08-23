@@ -3,11 +3,11 @@ import {
   Pressable,
   PressableProps,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
+import { AppText } from '@/components/common/AppText';
 import { colors } from '@/constants/colors';
 
 export type AppButtonVariant = 'primary' | 'secondary';
@@ -105,12 +105,14 @@ export function AppButton({
           {isLoading ? (
             <ActivityIndicator size="small" color={colors.muvBlue300} />
           ) : (
-            <Text
+            <AppText
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
               numberOfLines={1}
-              className="font-fredoka text-[18px] font-semibold leading-[22px] text-muv-blue-300"
+              className="text-center font-fredoka text-[18px] font-semibold leading-[22px] text-muv-blue-300"
             >
               {label}
-            </Text>
+            </AppText>
           )}
         </View>
       </View>

@@ -24,7 +24,28 @@ export const HOME_CATEGORY_COLOR_PALETTE: readonly GradientColors[] = [
 ];
 
 export const CATEGORY_LEVELS: CategoryLevelConfig[] = [
-  { difficulty: 'BEGINNER', title: 'Beginner', icon: '\u{1F331}', description: 'Start your journey!', stars: 1, gradient: gradients.categoryModal.beginner },
-  { difficulty: 'INTERMEDIATE', title: 'Intermediate', icon: '\u26A1', description: 'Rise to the challenge!', stars: 2, gradient: gradients.categoryModal.intermediate },
-  { difficulty: 'ADVANCED', title: 'Advanced', icon: '\u{1F525}', description: 'For true champions!', stars: 3, gradient: gradients.categoryModal.advanced },
+  {
+    difficulty: 'BEGINNER',
+    titleKey: 'home.difficulty.beginnerTitle',
+    descriptionKey: 'home.difficulty.beginnerDescription',
+    icon: '\u{1F331}',
+    stars: 1,
+    gradient: gradients.categoryModal.beginner,
+  },
+  {
+    difficulty: 'INTERMEDIATE',
+    titleKey: 'home.difficulty.intermediateTitle',
+    descriptionKey: 'home.difficulty.intermediateDescription',
+    icon: '\u26A1',
+    stars: 2,
+    gradient: gradients.categoryModal.intermediate,
+  },
+  {
+    difficulty: 'ADVANCED',
+    titleKey: 'home.difficulty.advancedTitle',
+    descriptionKey: 'home.difficulty.advancedDescription',
+    icon: '\u{1F525}',
+    stars: 3,
+    gradient: gradients.categoryModal.advanced,
+  },
 ];

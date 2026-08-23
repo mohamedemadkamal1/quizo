@@ -1,6 +1,8 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { AppText } from '@/components/common/AppText';
 import { levelCompleteColors } from '@/constants/level-complete';
+import { useTranslation } from '@/hooks/useTranslation';
 
 type CompletionStatCardProps = {
   icon: string;
@@ -19,9 +21,15 @@ export function CompletionStatCard({
   scale,
   verticalScale,
 }: CompletionStatCardProps) {
+  const { t, formatNumber } = useTranslation();
+  const formattedValue = formatNumber(value);
+
   return (
     <View
-      accessibilityLabel={`${value} ${label}`}
+      accessibilityLabel={t('levelComplete.statLabel', {
+        value: formattedValue,
+        label,
+      })}
       style={[
         styles.card,
         {
@@ -31,13 +39,16 @@ export function CompletionStatCard({
         },
       ]}
     >
-      <Text
+      <AppText
         accessible={false}
         style={[styles.icon, { fontSize: 27 * scale, lineHeight: 34 * scale }]}
       >
         {icon}
-      </Text>
-      <Text
+      </AppText>
+      <AppText
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
+        numberOfLines={1}
         style={[
           styles.value,
           {
@@ -47,13 +58,16 @@ export function CompletionStatCard({
           },
         ]}
       >
-        {value}
-      </Text>
-      <Text
+        {formattedValue}
+      </AppText>
+      <AppText
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
+        numberOfLines={1}
         style={[styles.label, { fontSize: 12 * scale, lineHeight: 16 * scale }]}
       >
         {label}
-      </Text>
+      </AppText>
     </View>
   );
 }
@@ -62,6 +76,7 @@ const styles = StyleSheet.create({
   card: {
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 6,
     backgroundColor: levelCompleteColors.surface,
   },
   icon: {
@@ -69,6 +84,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   value: {
+    maxWidth: '100%',
     marginTop: 3,
     fontFamily: 'Fredoka',
     fontWeight: '600',
@@ -76,6 +92,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   label: {
+    maxWidth: '100%',
     marginTop: 1,
     color: levelCompleteColors.muted,
     fontFamily: 'Fredoka',

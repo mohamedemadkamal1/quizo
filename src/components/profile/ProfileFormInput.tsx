@@ -1,21 +1,28 @@
 import { useState } from 'react';
 import type { TextInputProps } from 'react-native';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { AppText } from '@/components/common/AppText';
+import { AppTextInput } from '@/components/common/AppTextInput';
 import { ProfileIcon } from '@/components/profile/ProfileIcon';
 import { colors } from '@/constants/colors';
+import { useTranslation } from '@/hooks/useTranslation';
 
 type ProfileFormInputProps = Omit<TextInputProps, 'style'> & {
   error?: string;
   isPassword?: boolean;
+  /** Keeps the field left-to-right in Arabic (emails, identifiers). */
+  ltrContent?: boolean;
 };
 
 export function ProfileFormInput({
   error,
   isPassword = false,
   editable = true,
+  ltrContent = false,
   ...inputProps
 }: ProfileFormInputProps) {
+  const { t } = useTranslation();
   const [isVisible, setVisible] = useState(false);
 
   return (
@@ -27,9 +34,10 @@ export function ProfileFormInput({
           !editable ? styles.inputShellDisabled : undefined,
         ]}
       >
-        <TextInput
+        <AppTextInput
           {...inputProps}
           editable={editable}
+          ltrContent={ltrContent || isPassword}
           placeholderTextColor="#5D72D9"
           secureTextEntry={isPassword && !isVisible}
           style={styles.input}
@@ -37,7 +45,9 @@ export function ProfileFormInput({
 
         {isPassword ? (
           <Pressable
-            accessibilityLabel={isVisible ? 'Hide password' : 'Show password'}
+            accessibilityLabel={
+              isVisible ? t('common.hidePassword') : t('common.showPassword')
+            }
             accessibilityRole="button"
             disabled={!editable}
             hitSlop={10}
@@ -50,9 +60,9 @@ export function ProfileFormInput({
       </View>
 
       {error ? (
-        <Text accessibilityRole="alert" style={styles.error}>
+        <AppText accessibilityRole="alert" style={styles.error}>
           {error}
-        </Text>
+        </AppText>
       ) : null}
     </View>
   );

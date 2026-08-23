@@ -1,20 +1,24 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { useTranslation } from '@/hooks/useTranslation';
 import {
+  createGuestProfileSchema,
   type GuestProfileFormValues,
-  guestProfileSchema,
 } from '@/schemas/auth.schemas';
 import { useAuthStore } from '@/store/auth.store';
 import { getApiErrorMessage } from '@/utils/get-api-error-message';
 
 export function useGuestProfileScreen() {
+  const { t } = useTranslation();
   const session = useAuthStore((state) => state.session);
   const completeAccountProfile = useAuthStore(
     (state) => state.completeAccountProfile,
   );
   const continueAsGuest = useAuthStore((state) => state.continueAsGuest);
   const isAccountFlow = Boolean(session);
+  const schema = useMemo(() => createGuestProfileSchema(t), [t]);
   const {
     control,
     handleSubmit,
@@ -22,7 +26,7 @@ export function useGuestProfileScreen() {
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<GuestProfileFormValues>({
-    resolver: zodResolver(guestProfileSchema),
+    resolver: zodResolver(schema),
     defaultValues: { nickname: '', age: '' },
   });
 
@@ -43,8 +47,8 @@ export function useGuestProfileScreen() {
         message: getApiErrorMessage(
           error,
           isAccountFlow
-            ? 'Unable to complete your profile.'
-            : 'Unable to start the guest session.',
+            ? t('profile.errors.completeProfile')
+            : t('auth.errors.guestSessionFailed'),
         ),
       });
     }

@@ -89,6 +89,17 @@ export const colors = {
     modalBackdrop: 'rgba(30, 26, 77, 0.55)',
   },
 
+  languageSelector: {
+    surface: '#EDE9FE',
+    border: 'rgba(139, 92, 246, 0.38)',
+    icon: '#7C3AED',
+    menuSurface: '#FFFFFF',
+    menuBorder: 'rgba(139, 92, 246, 0.24)',
+    optionSelected: '#EDE9FE',
+    optionText: '#4C1D95',
+    optionSelectedText: '#6D28D9',
+  },
+
   button: {
     primaryBorder: '#A3B3FF',
     secondaryBackground: '#F0F2F5',

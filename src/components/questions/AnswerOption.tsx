@@ -1,7 +1,9 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { AppText } from '@/components/common/AppText';
 import { CheckGlyph, WrongGlyph } from '@/components/questions/QuestionIcons';
 import { gameplayColors } from '@/constants/questions';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { QuestionOption, QuestionType } from '@/types/questions.types';
 
 export type AnswerVisualState = 'idle' | 'correct' | 'wrong';
@@ -25,7 +27,10 @@ export function AnswerOption({
   scale,
   onPress,
 }: AnswerOptionProps) {
+  const { t } = useTranslation();
   const isFeedback = visualState !== 'idle';
+  // `True` is a backend enum value, so the comparison stays untranslated even
+  // though the option text the player reads is localized by the API.
   const isTrueOption = option.label === 'True';
   const iconColor = isFeedback
     ? gameplayColors.white
@@ -38,17 +43,17 @@ export function AnswerOption({
   const feedbackLabel =
     questionType === 'multiple-choice' && isChosenFeedback
       ? visualState === 'correct'
-        ? 'Right'
-        : 'Wrong'
+        ? t('questions.answer.right')
+        : t('questions.answer.wrong')
       : option.label;
   const stateDescription = !isFeedback
     ? ''
     : isChosenFeedback
       ? visualState === 'correct'
-        ? ', Right'
-        : ', Wrong'
+        ? t('questions.answer.stateRight')
+        : t('questions.answer.stateWrong')
       : visualState === 'correct'
-        ? ', correct answer'
+        ? t('questions.answer.stateCorrectAnswer')
         : '';
   const showCheck = isFeedback
     ? visualState === 'correct'
@@ -59,7 +64,10 @@ export function AnswerOption({
 
   return (
     <Pressable
-      accessibilityLabel={`${option.label} answer${stateDescription}`}
+      accessibilityLabel={t('questions.answer.label', {
+        label: option.label,
+        state: stateDescription,
+      })}
       accessibilityRole="button"
       accessibilityState={{ disabled, selected }}
       android_ripple={{ color: 'rgba(72, 91, 221, 0.08)' }}
@@ -103,7 +111,10 @@ export function AnswerOption({
           <WrongGlyph color={iconColor} size={25 * scale} />
         ) : null}
 
-        <Text
+        <AppText
+          adjustsFontSizeToFit
+          minimumFontScale={0.75}
+          numberOfLines={2}
           style={[
             styles.label,
             {
@@ -116,7 +127,7 @@ export function AnswerOption({
           ]}
         >
           {feedbackLabel}
-        </Text>
+        </AppText>
 
         {questionType === 'multiple-choice' && showCheck ? (
           <CheckGlyph color={iconColor} size={25 * scale} />
@@ -147,6 +158,10 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   label: {
+    // Longer Arabic labels shrink and wrap inside the pill instead of being
+    // clipped by its fixed width.
+    minWidth: 0,
+    flexShrink: 1,
     fontFamily: 'Fredoka',
     fontWeight: '600',
     includeFontPadding: false,

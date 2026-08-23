@@ -2,21 +2,36 @@ import { forwardRef, useState } from 'react';
 import {
   Pressable,
   StyleSheet,
-  Text,
   TextInput,
   TextInputProps,
   View,
 } from 'react-native';
 
+import { AppText } from '@/components/common/AppText';
+import { AppTextInput } from '@/components/common/AppTextInput';
+import { useTranslation } from '@/hooks/useTranslation';
+
 type AuthInputProps = Omit<TextInputProps, 'style'> & {
   error?: string;
+  /**
+   * Keeps the field left-to-right in Arabic. Password fields set it
+   * automatically; email and code fields opt in explicitly.
+   */
+  ltrContent?: boolean;
 };
 
 export const AuthInput = forwardRef<TextInput, AuthInputProps>(
   function AuthInput(
-    { error, secureTextEntry = false, editable = true, ...inputProps },
+    {
+      error,
+      secureTextEntry = false,
+      editable = true,
+      ltrContent = false,
+      ...inputProps
+    },
     ref,
   ) {
+    const { t } = useTranslation();
     const [passwordVisible, setPasswordVisible] = useState(false);
     const isPasswordInput = secureTextEntry;
 
@@ -30,12 +45,13 @@ export const AuthInput = forwardRef<TextInput, AuthInputProps>(
           ].join(' ')}
           style={styles.shadow}
         >
-          <TextInput
+          <AppTextInput
             ref={ref}
             {...inputProps}
             editable={editable}
             secureTextEntry={isPasswordInput && !passwordVisible}
             placeholderTextColor="#8490C8"
+            ltrContent={ltrContent || isPasswordInput}
             className="flex-1 font-nunito text-[14px] font-medium leading-5 text-muv-blue-300"
           />
 
@@ -43,24 +59,26 @@ export const AuthInput = forwardRef<TextInput, AuthInputProps>(
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={
-                passwordVisible ? 'Hide password' : 'Show password'
+                passwordVisible
+                  ? t('common.hidePassword')
+                  : t('common.showPassword')
               }
               hitSlop={10}
               onPress={() => {
                 setPasswordVisible((current) => !current);
               }}
             >
-              <Text className="font-nunito text-xs font-medium leading-4 text-muv-blue-300">
-                {passwordVisible ? 'Hide' : 'Show'}
-              </Text>
+              <AppText className="font-nunito text-xs font-medium leading-4 text-muv-blue-300">
+                {passwordVisible ? t('common.hide') : t('common.show')}
+              </AppText>
             </Pressable>
           ) : null}
         </View>
 
         {error ? (
-          <Text className="mt-1 px-3 font-nunito text-xs font-medium leading-4 text-red-500">
+          <AppText className="mt-1 px-3 font-nunito text-xs font-medium leading-4 text-red-500">
             {error}
-          </Text>
+          </AppText>
         ) : null}
       </View>
     );

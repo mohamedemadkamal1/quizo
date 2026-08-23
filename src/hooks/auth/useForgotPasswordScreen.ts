@@ -1,10 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { useTranslation } from '@/hooks/useTranslation';
 import {
+  createForgotPasswordSchema,
   type ForgotPasswordFormValues,
-  forgotPasswordSchema,
 } from '@/schemas/auth.schemas';
 import { requestPasswordReset } from '@/services/auth.service';
 import { usePasswordResetStore } from '@/store/password-reset.store';
@@ -12,14 +14,16 @@ import { getApiErrorMessage } from '@/utils/get-api-error-message';
 
 export function useForgotPasswordScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const beginReset = usePasswordResetStore((state) => state.begin);
+  const schema = useMemo(() => createForgotPasswordSchema(t), [t]);
   const {
     control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
   } = useForm<ForgotPasswordFormValues>({
-    resolver: zodResolver(forgotPasswordSchema),
+    resolver: zodResolver(schema),
     defaultValues: { email: '' },
   });
 
@@ -30,7 +34,10 @@ export function useForgotPasswordScreen() {
       router.push('/verify-email');
     } catch (error) {
       setError('root', {
-        message: getApiErrorMessage(error, 'Unable to send the reset code.'),
+        message: getApiErrorMessage(
+          error,
+          t('auth.errors.sendResetCodeFailed'),
+        ),
       });
     }
   }

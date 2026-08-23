@@ -5,6 +5,7 @@ import {
   SocialProviderLogo,
   type SocialProvider,
 } from "@/components/common/SocialProviderLogo";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type SocialIconPlaceholdersProps = {
   disabled: boolean;
@@ -20,11 +21,14 @@ function SocialIconButton({
   disabled: boolean;
   provider: SocialProvider;
 }) {
+  const { t } = useTranslation();
   const isGoogle = provider === "google";
 
   return (
     <Pressable
-      accessibilityLabel={`Continue with ${isGoogle ? "Google" : "Apple"}`}
+      accessibilityLabel={t("auth.social.continueWith", {
+        provider: isGoogle ? t("auth.social.google") : t("auth.social.apple"),
+      })}
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       disabled={disabled}

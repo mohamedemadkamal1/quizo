@@ -1,9 +1,11 @@
 import type { LayoutChangeEvent } from 'react-native';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSharedValue, type SharedValue } from 'react-native-reanimated';
 
+import { AppText } from '@/components/common/AppText';
 import { AnimatedCategoryCard } from '@/components/home/AnimatedCategoryCard';
 import { colors } from '@/constants/colors';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { HomeCategory } from '@/types/home.types';
 
 type CategoriesSectionProps = {
@@ -23,6 +25,7 @@ export function CategoriesSection({
   viewportWidth,
   onPressCategory,
 }: CategoriesSectionProps) {
+  const { t } = useTranslation();
   const sectionY = useSharedValue(0);
 
   const handleLayout = (event: LayoutChangeEvent) => {
@@ -31,7 +34,7 @@ export function CategoriesSection({
 
   return (
     <View onLayout={handleLayout} style={styles.section}>
-      <Text style={styles.heading}>Categories</Text>
+      <AppText style={styles.heading}>{t('home.categoriesHeading')}</AppText>
 
       <View style={styles.cards}>
         {categories.map((category, index) => (
@@ -58,7 +61,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   heading: {
-    marginLeft: 4,
+    marginStart: 4,
     fontFamily: 'Fredoka',
     fontWeight: '500',
     fontSize: 18,

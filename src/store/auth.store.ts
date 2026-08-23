@@ -2,6 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 import { create } from 'zustand';
 import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
 
+import { translate } from '@/i18n';
 import {
   AuthUser,
   AuthSession,
@@ -75,7 +76,7 @@ export const useAuthStore = create<AuthStore>()(
 
         if (!currentSession) {
           throw new Error(
-            'An account session is required to complete a profile.',
+            translate('profile.errors.accountSessionRequired'),
           );
         }
 
@@ -100,7 +101,7 @@ export const useAuthStore = create<AuthStore>()(
         const currentSession = get().session;
 
         if (!currentSession) {
-          throw new Error('An authenticated session is required.');
+          throw new Error(translate('profile.errors.sessionRequired'));
         }
 
         const session = {

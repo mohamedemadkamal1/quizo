@@ -3,7 +3,6 @@ import {
   Image,
   Pressable,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -13,6 +12,7 @@ import {
 } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
+import { AppText } from '@/components/common/AppText';
 import {
   CompletionChevron,
   CompletionStar,
@@ -27,6 +27,7 @@ import {
   levelCompleteGradients,
 } from '@/constants/level-complete';
 import type { useLevelCompleteScreen } from '@/hooks/level-complete/useLevelCompleteScreen';
+import { useTranslation } from '@/hooks/useTranslation';
 import { getEarnedStars } from '@/utils/get-earned-stars';
 
 type LevelCompleteContentProps = {
@@ -146,14 +147,17 @@ function CompletionActionButton({
                 },
               ]}
             >
-              <Text
+              <AppText
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+                numberOfLines={1}
                 style={[
                   styles.primaryActionLabel,
                   { fontSize: 17 * scale, lineHeight: 23 * scale },
                 ]}
               >
                 {label}
-              </Text>
+              </AppText>
             </LinearGradient>
           ) : (
             <View
@@ -167,20 +171,23 @@ function CompletionActionButton({
                 },
               ]}
             >
-              <Text
+              <AppText
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+                numberOfLines={1}
                 style={[
                   styles.secondaryActionLabel,
                   { fontSize: 16 * scale, lineHeight: 22 * scale },
                 ]}
               >
                 {label}
-              </Text>
-              <Text
+              </AppText>
+              <AppText
                 accessible={false}
                 style={{ fontSize: 18 * scale, lineHeight: 23 * scale }}
               >
                 🏠
-              </Text>
+              </AppText>
             </View>
           )}
         </View>
@@ -190,6 +197,7 @@ function CompletionActionButton({
 }
 
 export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
+  const { t, formatNumber } = useTranslation();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { summary, isPerfect } = screen;
@@ -198,15 +206,17 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
     return (
       <SafeAreaView style={styles.invalidSafeArea}>
         <View style={styles.invalidPanel}>
-          <Text accessibilityRole="alert" style={styles.invalidMessage}>
-            This level result is invalid.
-          </Text>
+          <AppText accessibilityRole="alert" style={styles.invalidMessage}>
+            {t('levelComplete.invalid')}
+          </AppText>
           <Pressable
             accessibilityRole="button"
             onPress={screen.handleBackToMap}
             style={styles.invalidAction}
           >
-            <Text style={styles.invalidActionLabel}>Return</Text>
+            <AppText style={styles.invalidActionLabel}>
+              {t('common.return')}
+            </AppText>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -227,8 +237,8 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
   const formattedDuration = formatDuration(summary.durationSeconds);
   const xpLabel =
     summary.isReplay && summary.xpEarned === 0
-      ? 'Replay — no XP awarded'
-      : `${summary.xpEarned} XP earned`;
+      ? t('levelComplete.replayNoXp')
+      : t('levelComplete.xpEarned', { xp: formatNumber(summary.xpEarned) });
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -242,8 +252,11 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
       >
         <CompletionDecorations scale={scale} verticalScale={verticalScale} />
 
-        <Text
+        <AppText
           accessibilityRole="header"
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          numberOfLines={1}
           style={[
             styles.title,
             {
@@ -253,9 +266,12 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
             },
           ]}
         >
-          Level Complete!
-        </Text>
-        <Text
+          {t('levelComplete.title')}
+        </AppText>
+        <AppText
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          numberOfLines={1}
           style={[
             styles.milestone,
             {
@@ -266,8 +282,8 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
             },
           ]}
         >
-          MILESTONE UNLOCKED
-        </Text>
+          {t('levelComplete.milestone')}
+        </AppText>
 
         <View
           style={[
@@ -337,7 +353,10 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
           </View>
         ) : null}
 
-        <Text
+        <AppText
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          numberOfLines={1}
           style={[
             styles.praise,
             {
@@ -347,9 +366,14 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
             },
           ]}
         >
-          {isPerfect ? 'Well Done! 🚀' : 'Nice Work 🌟'}
-        </Text>
-        <Text
+          {isPerfect
+            ? t('levelComplete.praisePerfect')
+            : t('levelComplete.praiseGood')}
+        </AppText>
+        <AppText
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          numberOfLines={1}
           style={[
             styles.supporting,
             {
@@ -359,8 +383,10 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
             },
           ]}
         >
-          {isPerfect ? 'Awesome work!' : "You're doing great, keep it up!"}
-        </Text>
+          {isPerfect
+            ? t('levelComplete.supportingPerfect')
+            : t('levelComplete.supportingGood')}
+        </AppText>
 
         <View
           style={[
@@ -374,7 +400,7 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
         >
           <CompletionStatCard
             icon="✅"
-            label="Correct"
+            label={t('levelComplete.statCorrect')}
             scale={scale}
             value={summary.correctAnswers}
             valueColor={
@@ -386,14 +412,14 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
           />
           <CompletionStatCard
             icon="❌"
-            label="Wrong"
+            label={t('levelComplete.statWrong')}
             scale={scale}
             value={summary.wrongAnswers}
             verticalScale={verticalScale}
           />
           <CompletionStatCard
             icon="⚡"
-            label="Score"
+            label={t('levelComplete.statScore')}
             scale={scale}
             value={summary.score}
             verticalScale={verticalScale}
@@ -401,8 +427,11 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
         </View>
 
         <Pressable
-          accessibilityLabel={`${xpLabel}. Completed in ${formattedDuration}`}
-          accessibilityHint="Opens the Leaderboard tab"
+          accessibilityLabel={t('levelComplete.rankingLabel', {
+            xp: xpLabel,
+            duration: formattedDuration,
+          })}
+          accessibilityHint={t('levelComplete.rankingHint')}
           accessibilityRole="button"
           android_ripple={{ color: 'rgba(72, 91, 221, 0.08)' }}
           onPress={screen.handleLeaderboard}
@@ -419,14 +448,14 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
             },
           ]}
         >
-          <Text
+          <AppText
             accessible={false}
             style={{ fontSize: 25 * scale, lineHeight: 31 * scale }}
           >
             🥇
-          </Text>
+          </AppText>
           <View style={styles.rankingCopy}>
-            <Text
+            <AppText
               numberOfLines={1}
               style={[
                 styles.rankingTitle,
@@ -434,23 +463,23 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
               ]}
             >
               {xpLabel}
-            </Text>
-            <Text
+            </AppText>
+            <AppText
               numberOfLines={1}
               style={[
                 styles.rankingSupporting,
                 { fontSize: 12 * scale, lineHeight: 16 * scale },
               ]}
             >
-              Completed in {formattedDuration}
-            </Text>
+              {t('levelComplete.completedIn', { duration: formattedDuration })}
+            </AppText>
           </View>
           <CompletionChevron size={24 * scale} />
         </Pressable>
 
         <CompletionActionButton
-          accessibilityLabel="Back to level map"
-          label="Back To Map →"
+          accessibilityLabel={t('levelComplete.backToMapLabel')}
+          label={t('levelComplete.backToMap')}
           onPress={screen.handleBackToMap}
           primary
           scale={scale}
@@ -458,8 +487,8 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
           verticalScale={verticalScale}
         />
         <CompletionActionButton
-          accessibilityLabel="Go to Home"
-          label="Go to Home"
+          accessibilityLabel={t('levelComplete.goHomeLabel')}
+          label={t('levelComplete.goHome')}
           onPress={screen.handleHome}
           scale={scale}
           top={670}
@@ -602,6 +631,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
+    paddingHorizontal: 16,
   },
   secondarySurface: {
     borderWidth: 1,
@@ -609,6 +639,8 @@ const styles = StyleSheet.create({
     backgroundColor: levelCompleteColors.track,
   },
   primaryActionLabel: {
+    minWidth: 0,
+    flexShrink: 1,
     color: levelCompleteColors.surface,
     fontFamily: 'Fredoka',
     fontWeight: '600',
@@ -616,6 +648,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   secondaryActionLabel: {
+    minWidth: 0,
+    flexShrink: 1,
     color: levelCompleteColors.primaryText,
     fontFamily: 'Fredoka',
     fontWeight: '600',

@@ -1,11 +1,13 @@
 import type { ImageSourcePropType } from "react-native";
 
+import type { TranslationKey } from "@/i18n";
 import type { AvatarId } from "@/types/avatar.types";
 
 export type ProfileAvatarOption = {
   id: AvatarId;
   source: ImageSourcePropType;
-  accessibilityLabel: string;
+  /** Translation key for the artwork's accessibility description. */
+  accessibilityLabelKey: TranslationKey;
 };
 
 // The replacement artwork is exported at 70 x 80: a 70 px circular backdrop
@@ -16,42 +18,42 @@ export const PROFILE_AVATARS: readonly ProfileAvatarOption[] = [
   {
     id: "avatar-1",
     source: require("../assets/images/avatars/avatar-1.png"),
-    accessibilityLabel: "Red hoodie avatar",
+    accessibilityLabelKey: "avatars.avatar-1",
   },
   {
     id: "avatar-2",
     source: require("../assets/images/avatars/avatar-2.png"),
-    accessibilityLabel: "Blue-haired black hoodie avatar",
+    accessibilityLabelKey: "avatars.avatar-2",
   },
   {
     id: "avatar-3",
     source: require("../assets/images/avatars/avatar-3.png"),
-    accessibilityLabel: "Cream hoodie peace sign avatar",
+    accessibilityLabelKey: "avatars.avatar-3",
   },
   {
     id: "avatar-4",
     source: require("../assets/images/avatars/avatar-4.png"),
-    accessibilityLabel: "Blonde pink hoodie avatar",
+    accessibilityLabelKey: "avatars.avatar-4",
   },
   {
     id: "avatar-5",
     source: require("../assets/images/avatars/avatar-5.png"),
-    accessibilityLabel: "Backward cap and headphones avatar",
+    accessibilityLabelKey: "avatars.avatar-5",
   },
   {
     id: "avatar-6",
     source: require("../assets/images/avatars/avatar-6.png"),
-    accessibilityLabel: "Curly-haired green hoodie avatar",
+    accessibilityLabelKey: "avatars.avatar-6",
   },
   {
     id: "avatar-7",
     source: require("../assets/images/avatars/avatar-7.png"),
-    accessibilityLabel: "Brunette black hoodie avatar",
+    accessibilityLabelKey: "avatars.avatar-7",
   },
   {
     id: "avatar-8",
     source: require("../assets/images/avatars/avatar-8.png"),
-    accessibilityLabel: "Navy hoodie crossed-arms avatar",
+    accessibilityLabelKey: "avatars.avatar-8",
   },
 ];
 

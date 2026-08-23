@@ -4,7 +4,6 @@ import {
   Image,
   Pressable,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -14,6 +13,7 @@ import {
 } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 
+import { AppText } from "@/components/common/AppText";
 import { CompletionStar } from "@/components/level-complete/CompletionIcons";
 import {
   FailureBoltIcon,
@@ -32,6 +32,7 @@ import {
   levelFailedGradients,
 } from "@/constants/level-failed";
 import type { useLevelFailedScreen } from "@/hooks/level-failed/useLevelFailedScreen";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type LevelFailedContentProps = {
   screen: ReturnType<typeof useLevelFailedScreen>;
@@ -151,14 +152,17 @@ function FailureActionButton({
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
-                <Text
+                <AppText
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.7}
+                  numberOfLines={1}
                   style={[
                     styles.primaryActionLabel,
                     { fontSize: 17 * scale, lineHeight: 23 * scale },
                   ]}
                 >
                   {label}
-                </Text>
+                </AppText>
               )}
             </LinearGradient>
           ) : (
@@ -173,14 +177,17 @@ function FailureActionButton({
                 },
               ]}
             >
-              <Text
+              <AppText
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+                numberOfLines={1}
                 style={[
                   styles.secondaryActionLabel,
                   { fontSize: 16 * scale, lineHeight: 22 * scale },
                 ]}
               >
                 {label}
-              </Text>
+              </AppText>
             </View>
           )}
         </View>
@@ -190,6 +197,7 @@ function FailureActionButton({
 }
 
 export function LevelFailedContent({ screen }: LevelFailedContentProps) {
+  const { t } = useTranslation();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { summary } = screen;
@@ -198,15 +206,17 @@ export function LevelFailedContent({ screen }: LevelFailedContentProps) {
     return (
       <SafeAreaView style={styles.invalidSafeArea}>
         <View style={styles.invalidPanel}>
-          <Text accessibilityRole="alert" style={styles.invalidMessage}>
-            This failed-level result is invalid.
-          </Text>
+          <AppText accessibilityRole="alert" style={styles.invalidMessage}>
+            {t('levelFailed.invalid')}
+          </AppText>
           <Pressable
             accessibilityRole="button"
             onPress={screen.handleBackToMap}
             style={styles.invalidAction}
           >
-            <Text style={styles.invalidActionLabel}>Return</Text>
+            <AppText style={styles.invalidActionLabel}>
+              {t('common.return')}
+            </AppText>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -226,8 +236,11 @@ export function LevelFailedContent({ screen }: LevelFailedContentProps) {
       <View style={[styles.surface, { width: contentWidth }]}>
         <FailureDecorations scale={scale} verticalScale={verticalScale} />
 
-        <Text
+        <AppText
           accessibilityRole="header"
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          numberOfLines={1}
           style={[
             styles.title,
             {
@@ -237,9 +250,12 @@ export function LevelFailedContent({ screen }: LevelFailedContentProps) {
             },
           ]}
         >
-          Level Failed!
-        </Text>
-        <Text
+          {t('levelFailed.title')}
+        </AppText>
+        <AppText
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          numberOfLines={1}
           style={[
             styles.subtitle,
             {
@@ -250,8 +266,8 @@ export function LevelFailedContent({ screen }: LevelFailedContentProps) {
             },
           ]}
         >
-          BETTER LUCK NEXT TIME
-        </Text>
+          {t('levelFailed.subtitle')}
+        </AppText>
 
         <View
           style={[
@@ -267,7 +283,9 @@ export function LevelFailedContent({ screen }: LevelFailedContentProps) {
         </View>
 
         <View
-          accessibilityLabel={`${screen.earnedStars} out of three stars`}
+          accessibilityLabel={t('levelFailed.starsLabel', {
+            earned: screen.earnedStars,
+          })}
           style={[
             styles.stars,
             {
@@ -296,27 +314,33 @@ export function LevelFailedContent({ screen }: LevelFailedContentProps) {
             styles.encouragement,
             {
               top: 306 * verticalScale,
-              left: 28 * scale,
+              start: 28 * scale,
               width: 255 * scale,
             },
           ]}
         >
-          <Text
+          <AppText
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+            numberOfLines={1}
             style={[
               styles.encouragementTitle,
               { fontSize: 25 * scale, lineHeight: 33 * scale },
             ]}
           >
-            Don&apos;t Give Up! 💪
-          </Text>
-          <Text
+            {t('levelFailed.encouragementTitle')}
+          </AppText>
+          <AppText
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+            numberOfLines={1}
             style={[
               styles.encouragementSubtitle,
               { fontSize: 15 * scale, lineHeight: 21 * scale },
             ]}
           >
-            Try again!
-          </Text>
+            {t('levelFailed.encouragementSubtitle')}
+          </AppText>
         </View>
 
         <View
@@ -328,7 +352,9 @@ export function LevelFailedContent({ screen }: LevelFailedContentProps) {
             styles.mascotSlot,
             {
               top: 257 * verticalScale,
-              left: 267 * scale,
+              // Logical edge so the mascot always sits opposite the
+              // encouragement copy; the artwork itself is never flipped.
+              end: 24 * scale,
               width: 99 * scale,
               height: 137 * verticalScale,
             },
@@ -350,21 +376,21 @@ export function LevelFailedContent({ screen }: LevelFailedContentProps) {
         >
           <FailureStatCard
             icon={<FailureCheckIcon size={29 * scale} />}
-            label="Correct"
+            label={t('levelFailed.statCorrect')}
             scale={scale}
             value={summary.correctAnswers}
             verticalScale={verticalScale}
           />
           <FailureStatCard
             icon={<FailureWrongIcon size={29 * scale} />}
-            label="Wrong"
+            label={t('levelFailed.statWrong')}
             scale={scale}
             value={summary.wrongAnswers}
             verticalScale={verticalScale}
           />
           <FailureStatCard
             icon={<FailureBoltIcon size={29 * scale} />}
-            label="Points"
+            label={t('levelFailed.statPoints')}
             scale={scale}
             value={summary.xpEarned}
             verticalScale={verticalScale}
@@ -372,8 +398,8 @@ export function LevelFailedContent({ screen }: LevelFailedContentProps) {
         </View>
 
         <Pressable
-          accessibilityHint="Opens the Leaderboard tab"
-          accessibilityLabel="Keep climbing the ranks. Win to climb the ranks"
+          accessibilityHint={t('levelFailed.rankingHint')}
+          accessibilityLabel={t('levelFailed.rankingLabel')}
           accessibilityRole="button"
           disabled={screen.isRetrying}
           onPress={screen.handleLeaderboard}
@@ -392,32 +418,32 @@ export function LevelFailedContent({ screen }: LevelFailedContentProps) {
         >
           <FailureRankingIcon size={30 * scale} />
           <View style={styles.rankingCopy}>
-            <Text
+            <AppText
               numberOfLines={1}
               style={[
                 styles.rankingTitle,
                 { fontSize: 14 * scale, lineHeight: 19 * scale },
               ]}
             >
-              Keep climbing the ranks!
-            </Text>
-            <Text
+              {t('levelFailed.rankingTitle')}
+            </AppText>
+            <AppText
               numberOfLines={1}
               style={[
                 styles.rankingSupporting,
                 { fontSize: 12 * scale, lineHeight: 16 * scale },
               ]}
             >
-              Win to climb the ranks
-            </Text>
+              {t('levelFailed.rankingSubtitle')}
+            </AppText>
           </View>
           <FailureChevronIcon size={22 * scale} />
         </Pressable>
 
         {screen.retryErrorMessage ? (
-          <Text
+          <AppText
             accessibilityRole="alert"
-            numberOfLines={1}
+            numberOfLines={2}
             style={[
               styles.retryError,
               {
@@ -430,13 +456,13 @@ export function LevelFailedContent({ screen }: LevelFailedContentProps) {
             ]}
           >
             {screen.retryErrorMessage}
-          </Text>
+          </AppText>
         ) : null}
 
         <FailureActionButton
-          accessibilityLabel="Try this level again"
+          accessibilityLabel={t('levelFailed.tryAgainLabel')}
           disabled={screen.isRetrying}
-          label="Try Again →"
+          label={t('levelFailed.tryAgain')}
           loading={screen.isRetrying}
           onPress={screen.handleTryAgain}
           primary
@@ -445,18 +471,18 @@ export function LevelFailedContent({ screen }: LevelFailedContentProps) {
           verticalScale={verticalScale}
         />
         <FailureActionButton
-          accessibilityLabel="Back to level map"
+          accessibilityLabel={t('levelFailed.backToMapLabel')}
           disabled={screen.isRetrying}
-          label="Back To Map →"
+          label={t('levelFailed.backToMap')}
           onPress={screen.handleBackToMap}
           scale={scale}
           top={666}
           verticalScale={verticalScale}
         />
         <FailureActionButton
-          accessibilityLabel="Go to Home"
+          accessibilityLabel={t('levelFailed.goHomeLabel')}
           disabled={screen.isRetrying}
-          label="Go to Home 🏠"
+          label={t('levelFailed.goHome')}
           onPress={screen.handleHome}
           scale={scale}
           top={728}
@@ -595,6 +621,7 @@ const styles = StyleSheet.create({
     left: 0,
     alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal: 16,
   },
   secondarySurface: {
     borderWidth: 1,

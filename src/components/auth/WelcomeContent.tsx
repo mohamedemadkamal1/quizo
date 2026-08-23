@@ -1,18 +1,27 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AppButton } from '@/components/common/AppButton';
+import { AppText } from '@/components/common/AppText';
 import { AuthScreenLayout } from '@/components/auth/AuthScreenLayout';
 import { SocialOptionButtons } from '@/components/auth/SocialOptionButtons';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { useWelcomeScreen } from '@/hooks/auth/useWelcomeScreen';
 
 function LegalNotice() {
+  const { t } = useTranslation();
+
   return (
-    <Text className="text-center font-nunito text-xs font-medium leading-4 text-slate-500">
-      By continuing, you agree to our{' '}
-      <Text className="text-muv-blue-300 underline">Terms</Text>
-      {' & '}
-      <Text className="text-muv-blue-300 underline">Privacy Policy</Text>.
-    </Text>
+    <AppText className="text-center font-nunito text-xs font-medium leading-4 text-slate-500">
+      {t('auth.welcome.legalPrefix')}
+      <AppText className="text-muv-blue-300 underline">
+        {t('auth.welcome.legalTerms')}
+      </AppText>
+      {t('auth.welcome.legalSeparator')}
+      <AppText className="text-muv-blue-300 underline">
+        {t('auth.welcome.legalPrivacy')}
+      </AppText>
+      {t('auth.welcome.legalSuffix')}
+    </AppText>
   );
 }
 
@@ -21,19 +30,22 @@ type WelcomeContentProps = {
 };
 
 export function WelcomeContent({ screen }: WelcomeContentProps) {
+  const { t } = useTranslation();
+
   return (
     <AuthScreenLayout
-      title="Welcome to Quizo !"
-      subtitle="Your fun journey to learn, play, and grow starts here."
+      title={t('auth.welcome.title')}
+      subtitle={t('auth.welcome.subtitle')}
       footer={<LegalNotice />}
+      showLanguageSelector
     >
       <AppButton
-        label="Continue with Email"
+        label={t('auth.welcome.continueWithEmail')}
         onPress={screen.onContinueWithEmail}
       />
 
       <AppButton
-        label="Continue as a Guest"
+        label={t('auth.welcome.continueAsGuest')}
         variant="secondary"
         onPress={screen.onContinueAsGuest}
       />

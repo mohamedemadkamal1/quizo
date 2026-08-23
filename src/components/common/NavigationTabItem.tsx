@@ -1,7 +1,8 @@
 import type { BottomTabBarButtonProps } from 'expo-router/js-tabs';
 import type { ComponentType, ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { AppText } from '@/components/common/AppText';
 import { colors } from '@/constants/colors';
 
 type NavigationTabItemProps = {
@@ -46,9 +47,14 @@ export function NavigationTabItem({
     >
       <View style={styles.icon}>{icon}</View>
 
-      <Text numberOfLines={1} style={[styles.label, { color }]}>
+      <AppText
+        adjustsFontSizeToFit
+        minimumFontScale={0.8}
+        numberOfLines={1}
+        style={[styles.label, { color }]}
+      >
         {label}
-      </Text>
+      </AppText>
     </View>
   );
 }

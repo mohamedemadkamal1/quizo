@@ -8,6 +8,7 @@ import {
   GAMEPLAY_MODAL_REFERENCE_HEIGHT,
   GAMEPLAY_MODAL_REFERENCE_WIDTH,
 } from '@/constants/questions';
+import { useLanguageDirection } from '@/hooks/useLanguageDirection';
 import type { GameplayOverlay, QuitDestination } from '@/types/questions.types';
 
 type GameplayOverlayHostProps = {
@@ -27,6 +28,7 @@ export function GameplayOverlayHost({
   onConfirmQuit,
   onRequestClose,
 }: GameplayOverlayHostProps) {
+  const { directionStyle } = useLanguageDirection();
   const insets = useSafeAreaInsets();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const margin = 8;
@@ -55,6 +57,7 @@ export function GameplayOverlayHost({
       <View
         style={[
           styles.backdrop,
+          directionStyle,
           {
             paddingTop: insets.top + margin,
             paddingBottom: insets.bottom + margin,

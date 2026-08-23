@@ -4,11 +4,11 @@ import {
   Pressable,
   RefreshControl,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppText } from '@/components/common/AppText';
 import { LeaderboardPodium } from '@/components/leaderboard/LeaderboardPodium';
 import { LeaderboardRow } from '@/components/leaderboard/LeaderboardRow';
 import { colors } from '@/constants/colors';
@@ -23,6 +23,7 @@ import {
   LEADERBOARD_TITLE_TOP,
 } from '@/constants/leaderboard';
 import type { useLeaderboardScreen } from '@/hooks/leaderboard/useLeaderboardScreen';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { LeaderboardRankedEntry } from '@/types/leaderboard.types';
 
 type LeaderboardContentProps = {
@@ -36,6 +37,7 @@ function keyExtractor(entry: LeaderboardRankedEntry) {
 }
 
 export function LeaderboardContent({ screen }: LeaderboardContentProps) {
+  const { t } = useTranslation();
   const { metrics } = screen;
   const hasEntries = screen.entries.length > 0;
 
@@ -75,16 +77,16 @@ export function LeaderboardContent({ screen }: LeaderboardContentProps) {
               <View
                 accessible
                 accessibilityRole="header"
-                accessibilityLabel="Leaderboard"
+                accessibilityLabel={t('leaderboard.title')}
                 style={styles.titleRow}
               >
-                <Text style={styles.title}>Leaderboard</Text>
-                <Text style={styles.trophy}>{TROPHY}</Text>
+                <AppText style={styles.title}>{t('leaderboard.title')}</AppText>
+                <AppText style={styles.trophy}>{TROPHY}</AppText>
               </View>
 
-              <Text style={styles.subtitle}>
-                See where you stand among the top players!
-              </Text>
+              <AppText style={styles.subtitle}>
+                {t('leaderboard.subtitle')}
+              </AppText>
 
               {screen.podiumEntries.length > 0 ? (
                 <View style={styles.podium}>
@@ -112,7 +114,10 @@ export function LeaderboardContent({ screen }: LeaderboardContentProps) {
           ListEmptyComponent={
             <View style={styles.statePanel}>
               {screen.isInitialLoading ? (
-                <View accessible accessibilityLabel="Loading the leaderboard">
+                <View
+                  accessible
+                  accessibilityLabel={t('leaderboard.loadingLabel')}
+                >
                   <ActivityIndicator
                     color={colors.leaderboard.title}
                     size="large"
@@ -120,12 +125,14 @@ export function LeaderboardContent({ screen }: LeaderboardContentProps) {
                 </View>
               ) : screen.isInitialError ? (
                 <>
-                  <Text accessibilityRole="alert" style={styles.stateTitle}>
-                    The leaderboard could not be loaded
-                  </Text>
-                  <Text style={styles.stateText}>{screen.errorMessage}</Text>
+                  <AppText accessibilityRole="alert" style={styles.stateTitle}>
+                    {t('leaderboard.errorTitle')}
+                  </AppText>
+                  <AppText style={styles.stateText}>
+                    {screen.errorMessage}
+                  </AppText>
                   <Pressable
-                    accessibilityLabel="Retry loading the leaderboard"
+                    accessibilityLabel={t('leaderboard.retryLabel')}
                     accessibilityRole="button"
                     disabled={screen.isRetrying}
                     hitSlop={8}
@@ -136,20 +143,22 @@ export function LeaderboardContent({ screen }: LeaderboardContentProps) {
                       {screen.isRetrying ? (
                         <ActivityIndicator color="#FFFFFF" size="small" />
                       ) : (
-                        <Text style={styles.retryText}>Retry</Text>
+                        <AppText style={styles.retryText}>
+                          {t('common.retry')}
+                        </AppText>
                       )}
                     </View>
                   </Pressable>
                 </>
               ) : screen.isEmpty ? (
                 <>
-                  <Text style={styles.stateEmoji}>{'\u{1F31F}'}</Text>
-                  <Text style={styles.stateTitle}>
-                    No leaderboard results yet
-                  </Text>
-                  <Text style={styles.stateText}>
-                    Play a few levels and you will be the first one here.
-                  </Text>
+                  <AppText style={styles.stateEmoji}>{'\u{1F31F}'}</AppText>
+                  <AppText style={styles.stateTitle}>
+                    {t('leaderboard.emptyTitle')}
+                  </AppText>
+                  <AppText style={styles.stateText}>
+                    {t('leaderboard.emptyBody')}
+                  </AppText>
                 </>
               ) : null}
             </View>
@@ -162,7 +171,10 @@ export function LeaderboardContent({ screen }: LeaderboardContentProps) {
               ]}
             >
               {screen.isLoadingNextPage ? (
-                <View accessible accessibilityLabel="Loading more players">
+                <View
+                  accessible
+                  accessibilityLabel={t('leaderboard.loadingMoreLabel')}
+                >
                   <ActivityIndicator
                     color={colors.leaderboard.title}
                     size="small"
@@ -172,20 +184,22 @@ export function LeaderboardContent({ screen }: LeaderboardContentProps) {
 
               {screen.footerErrorMessage ? (
                 <>
-                  <Text accessibilityRole="alert" style={styles.footerText}>
+                  <AppText accessibilityRole="alert" style={styles.footerText}>
                     {screen.footerErrorMessage}
-                  </Text>
+                  </AppText>
                   <Pressable
-                    accessibilityLabel={`${screen.footerActionLabel}, retry loading the leaderboard`}
+                    accessibilityLabel={t('leaderboard.footerActionLabel', {
+                      action: screen.footerActionLabel,
+                    })}
                     accessibilityRole="button"
                     hitSlop={8}
                     onPress={screen.retryFooterAction}
                     style={({ pressed }) => pressed && styles.buttonPressed}
                   >
                     <View style={styles.footerButton}>
-                      <Text style={styles.footerButtonText}>
+                      <AppText style={styles.footerButtonText}>
                         {screen.footerActionLabel}
-                      </Text>
+                      </AppText>
                     </View>
                   </Pressable>
                 </>

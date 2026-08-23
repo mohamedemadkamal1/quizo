@@ -3,9 +3,11 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useBottomTabBarHeight } from 'expo-router/js-tabs';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { useLanguageSelection } from '@/hooks/useLanguageSelection';
+import { useTranslation } from '@/hooks/useTranslation';
 import {
-  profileEmailSchema,
-  profileUsernameSchema,
+  createProfileEmailSchema,
+  createProfileUsernameSchema,
 } from '@/schemas/profile.schemas';
 import {
   changePassword,
@@ -29,6 +31,8 @@ type ProfileModal =
 
 export function useProfileScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
+  const { presentLanguagePicker } = useLanguageSelection();
   const queryClient = useQueryClient();
   const tabBarHeight = useBottomTabBarHeight();
   const session = useAuthStore((state) => state.session);
@@ -89,7 +93,8 @@ export function useProfileScreen() {
       return null;
     }
 
-    const displayName = session.user.displayName?.trim() || 'Quizo Player';
+    const displayName =
+      session.user.displayName?.trim() || t('profile.defaultName');
 
     return {
       displayName,
@@ -101,7 +106,7 @@ export function useProfileScreen() {
           : ('registered' as const),
       avatar: session.user.avatar,
     };
-  }, [session]);
+  }, [session, t]);
 
   const openModal = useCallback(
     (modal: ProfileModal) => {
@@ -156,14 +161,16 @@ export function useProfileScreen() {
           avatar,
         });
 
-        const validUsername = profileUsernameSchema.safeParse(data.username);
+        const validUsername = createProfileUsernameSchema(t).safeParse(
+          data.username,
+        );
 
         if (!validUsername.success) {
-          throw new Error('The updated profile did not return a username.');
+          throw new Error(t('profile.errors.missingUsername'));
         }
 
         if (!isAvatarId(data.avatar)) {
-          throw new Error('The updated profile did not return a valid avatar.');
+          throw new Error(t('profile.errors.missingAvatar'));
         }
 
         if (!mountedRef.current) {
@@ -181,7 +188,7 @@ export function useProfileScreen() {
       } catch (error) {
         if (mountedRef.current) {
           setModalErrorMessage(
-            getApiErrorMessage(error, 'Unable to update your profile.'),
+            getApiErrorMessage(error, t('profile.errors.updateProfile')),
           );
         }
         return false;
@@ -189,7 +196,7 @@ export function useProfileScreen() {
         updateLockedRef.current = false;
       }
     },
-    [replaceSessionUser, session, updateProfileMutation],
+    [replaceSessionUser, session, t, updateProfileMutation],
   );
 
   const submitGuestConversion = useCallback(
@@ -210,12 +217,10 @@ export function useProfileScreen() {
           email: email.trim().toLowerCase(),
           password,
         });
-        const validEmail = profileEmailSchema.safeParse(data.email);
+        const validEmail = createProfileEmailSchema(t).safeParse(data.email);
 
         if (!data.profileCompleted || !validEmail.success) {
-          throw new Error(
-            'The completed profile response did not include a valid email.',
-          );
+          throw new Error(t('profile.errors.missingEmail'));
         }
 
         if (!mountedRef.current) {
@@ -228,7 +233,7 @@ export function useProfileScreen() {
       } catch (error) {
         if (mountedRef.current) {
           setModalErrorMessage(
-            getApiErrorMessage(error, 'Unable to complete your profile.'),
+            getApiErrorMessage(error, t('profile.errors.completeProfile')),
           );
         }
         return false;
@@ -236,7 +241,7 @@ export function useProfileScreen() {
         updateLockedRef.current = false;
       }
     },
-    [replaceSessionUser, session, updateProfileMutation],
+    [replaceSessionUser, session, t, updateProfileMutation],
   );
 
   const submitPasswordChange = useCallback(
@@ -260,17 +265,12 @@ export function useProfileScreen() {
 
         setModalErrorMessage(null);
         setActiveModal(null);
-        setSuccessFeedbackMessage(
-          'Your password has been changed successfully.',
-        );
+        setSuccessFeedbackMessage(t('profile.passwordChanged'));
         return true;
       } catch (error) {
         if (mountedRef.current) {
           setModalErrorMessage(
-            getApiErrorMessage(
-              error,
-              'Unable to change your password. Please try again.',
-            ),
+            getApiErrorMessage(error, t('profile.errors.changePassword')),
           );
         }
         return false;
@@ -278,7 +278,7 @@ export function useProfileScreen() {
         passwordLockedRef.current = false;
       }
     },
-    [changePasswordMutation],
+    [changePasswordMutation, t],
   );
 
   const confirmDeleteProfile = useCallback(async () => {
@@ -297,13 +297,13 @@ export function useProfileScreen() {
     } catch (error) {
       if (mountedRef.current) {
         setModalErrorMessage(
-          getApiErrorMessage(error, 'Unable to delete your account.'),
+          getApiErrorMessage(error, t('profile.errors.deleteAccount')),
         );
       }
     } finally {
       deleteLockedRef.current = false;
     }
-  }, [deleteProfileMutation, queryClient, session, signOut]);
+  }, [deleteProfileMutation, queryClient, session, signOut, t]);
 
   const confirmLogout = useCallback(async () => {
     if (logoutLockedRef.current) {
@@ -361,5 +361,6 @@ export function useProfileScreen() {
     onConfirmLogout: confirmLogout,
     onNavigateToProgress: navigateToProgress,
     onChangeSoundVolume: changeSoundVolume,
+    onChangeLanguage: presentLanguagePicker,
   };
 }

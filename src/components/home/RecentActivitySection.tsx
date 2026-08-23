@@ -1,8 +1,10 @@
 import type { ImageSourcePropType } from "react-native";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 
+import { AppText } from '@/components/common/AppText';
 import { ActivityCard } from '@/components/home/ActivityCard';
 import { colors } from '@/constants/colors';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { RecentActivity } from '@/types/home.types';
 
 type RecentActivitySectionProps = {
@@ -14,13 +16,17 @@ export function RecentActivitySection({
   activities,
   illustrationSource,
 }: RecentActivitySectionProps) {
+  const { t } = useTranslation();
+
   if (activities.length === 0) {
     return null;
   }
 
   return (
     <View style={styles.section}>
-      <Text style={styles.heading}>Recent Activity</Text>
+      <AppText style={styles.heading}>
+        {t('home.recentActivityHeading')}
+      </AppText>
 
       <View style={styles.content}>
         <Image
@@ -53,7 +59,7 @@ const styles = StyleSheet.create({
   },
 
   heading: {
-    marginLeft: 4,
+    marginStart: 4,
     fontFamily: "Fredoka",
     fontWeight: "500",
     fontSize: 18,

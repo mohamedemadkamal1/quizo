@@ -1,9 +1,11 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
+import { AppText } from '@/components/common/AppText';
 import { GoldPauseGlyph } from '@/components/questions/QuestionIcons';
 import { SegmentedQuestionProgress } from '@/components/questions/SegmentedQuestionProgress';
 import { gameplayColors } from '@/constants/questions';
+import { useTranslation } from '@/hooks/useTranslation';
 
 type QuestionHeaderProps = {
   currentIndex: number;
@@ -57,6 +59,7 @@ export function QuestionHeader({
   verticalScale,
   onPause,
 }: QuestionHeaderProps) {
+  const { t } = useTranslation();
   const pauseVisualSize = 44 * scale;
   const pauseTouchOffset = (44 - pauseVisualSize) / 2;
 
@@ -69,7 +72,7 @@ export function QuestionHeader({
           styles.progress,
           {
             top: 16 * verticalScale,
-            left: 89 * scale,
+            start: 89 * scale,
             width: 218 * scale,
           },
         ]}
@@ -82,7 +85,7 @@ export function QuestionHeader({
       </View>
 
       <Pressable
-        accessibilityLabel="Pause questions"
+        accessibilityLabel={t('questions.pauseLabel')}
         accessibilityRole="button"
         android_ripple={{ color: 'rgba(255, 159, 10, 0.12)' }}
         onPress={onPause}
@@ -90,7 +93,7 @@ export function QuestionHeader({
           styles.pauseButton,
           {
             top: 40 * verticalScale - pauseTouchOffset,
-            left: 20 * scale - pauseTouchOffset,
+            start: 20 * scale - pauseTouchOffset,
           },
         ]}
       >
@@ -111,8 +114,9 @@ export function QuestionHeader({
         </View>
       </Pressable>
 
-      <Text
+      <AppText
         accessibilityRole="header"
+        numberOfLines={1}
         style={[
           styles.heading,
           {
@@ -122,9 +126,11 @@ export function QuestionHeader({
           },
         ]}
       >
-        Question {currentIndex + 1}
-        <Text style={styles.headingAccent}>/{totalQuestions}</Text>
-      </Text>
+        {t('questions.header', { current: currentIndex + 1 })}
+        <AppText style={styles.headingAccent}>
+          {t('questions.headerTotal', { total: totalQuestions })}
+        </AppText>
+      </AppText>
     </View>
   );
 }

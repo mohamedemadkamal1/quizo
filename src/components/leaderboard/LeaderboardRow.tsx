@@ -1,5 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { AppText } from '@/components/common/AppText';
 import { LeaderboardAvatar } from '@/components/leaderboard/LeaderboardAvatar';
 import { colors } from '@/constants/colors';
 import {
@@ -9,6 +10,7 @@ import {
   LEADERBOARD_ROW_HEIGHT,
   LEADERBOARD_ROW_RADIUS,
 } from '@/constants/leaderboard';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { LeaderboardRankedEntry } from '@/types/leaderboard.types';
 
 type LeaderboardRowProps = {
@@ -19,6 +21,8 @@ const AVATAR_BOTTOM_OFFSET =
   (LEADERBOARD_ROW_HEIGHT - LEADERBOARD_ROW_AVATAR_SIZE) / 2;
 
 export function LeaderboardRow({ entry }: LeaderboardRowProps) {
+  const { t, formatNumber } = useTranslation();
+
   return (
     <View
       accessible
@@ -34,18 +38,21 @@ export function LeaderboardRow({ entry }: LeaderboardRowProps) {
       </View>
 
       <View style={styles.identity}>
-        <Text numberOfLines={1} style={styles.name}>
+        {/* A player's own name is content, never translated. */}
+        <AppText numberOfLines={1} style={styles.name}>
           {entry.displayName}
-        </Text>
-        <Text numberOfLines={1} style={styles.score}>
-          {`Score ${entry.totalScore}`}
-        </Text>
+        </AppText>
+        <AppText numberOfLines={1} style={styles.score}>
+          {t('leaderboard.rowScore', {
+            score: formatNumber(entry.totalScore),
+          })}
+        </AppText>
       </View>
 
       <View style={styles.rankPill}>
-        <Text numberOfLines={1} style={styles.rankText}>
-          {`#${entry.rank}`}
-        </Text>
+        <AppText numberOfLines={1} style={styles.rankText}>
+          {t('leaderboard.rank', { rank: entry.rank })}
+        </AppText>
       </View>
     </View>
   );
@@ -60,8 +67,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.leaderboard.rowBorder,
     backgroundColor: colors.leaderboard.rowBackground,
-    paddingLeft: 8,
-    paddingRight: 10,
+    paddingStart: 8,
+    paddingEnd: 10,
     shadowColor: colors.leaderboard.rowShadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
@@ -81,8 +88,8 @@ const styles = StyleSheet.create({
     minWidth: 0,
     flex: 1,
     justifyContent: 'center',
-    paddingLeft: 12,
-    paddingRight: 10,
+    paddingStart: 12,
+    paddingEnd: 10,
   },
 
   name: {
@@ -121,6 +128,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     lineHeight: 20,
+    textAlign: 'center',
     includeFontPadding: false,
   },
 });

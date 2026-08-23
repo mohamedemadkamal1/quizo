@@ -1,6 +1,7 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import type { ImageSourcePropType } from 'react-native';
 
+import { AppText } from '@/components/common/AppText';
 import { colors } from '@/constants/colors';
 import { getAvatarBoxHeight } from '@/constants/leaderboard';
 
@@ -34,9 +35,11 @@ export function LeaderboardAvatar({
           { width: size, height: size, borderRadius: size / 2 },
         ]}
       >
-        <Text style={[styles.initials, { fontSize: Math.round(size * 0.36) }]}>
+        <AppText
+          style={[styles.initials, { fontSize: Math.round(size * 0.36) }]}
+        >
           {initials}
-        </Text>
+        </AppText>
       </View>
     );
   }

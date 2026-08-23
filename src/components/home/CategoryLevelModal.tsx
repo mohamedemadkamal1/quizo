@@ -6,7 +6,6 @@ import {
   Modal,
   Pressable,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -20,8 +19,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppText } from '@/components/common/AppText';
 import { CategoryLevelOption } from '@/components/home/CategoryLevelOption';
 import { colors, gradients } from '@/constants/colors';
+import { useLanguageDirection } from '@/hooks/useLanguageDirection';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { CategoryLevel, HomeCategory } from '@/types/home.types';
 
 const SHEET_DURATION = 350;
@@ -54,6 +56,8 @@ export function CategoryLevelModal({
   onRetry,
   onSelectLevel,
 }: CategoryLevelModalProps) {
+  const { t } = useTranslation();
+  const { directionStyle } = useLanguageDirection();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   const sheetTranslateY = useSharedValue(windowHeight);
@@ -178,11 +182,11 @@ export function CategoryLevelModal({
       transparent
       visible={visible && category !== null}
     >
-      <View style={styles.overlay}>
+      <View style={[styles.overlay, directionStyle]}>
         <Animated.View style={[StyleSheet.absoluteFill, backdropStyle]}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Close level chooser"
+            accessibilityLabel={t('home.levelModal.closeLabel')}
             onPress={dismissWithoutSelection}
             style={styles.backdrop}
           />
@@ -213,30 +217,32 @@ export function CategoryLevelModal({
                 end={{ x: 0.9, y: 1 }}
                 style={styles.chip}
               >
-                <Text style={styles.chipIcon}>{category.icon}</Text>
-                <Text numberOfLines={1} style={styles.chipText}>
+                <AppText style={styles.chipIcon}>{category.icon}</AppText>
+                <AppText numberOfLines={1} style={styles.chipText}>
                   {category.name}
-                </Text>
+                </AppText>
               </LinearGradient>
             </View>
 
             <View style={styles.headingRow}>
-              <Text style={styles.heading}>Choose Your Level!</Text>
+              <AppText style={styles.heading}>
+                {t('home.levelModal.heading')}
+              </AppText>
             </View>
 
             <View style={styles.levels}>
               {status === 'loading' ? (
                 <View
-                  accessibilityLabel="Loading difficulty levels"
+                  accessibilityLabel={t('home.levelModal.loadingLabel')}
                   style={styles.statePanel}
                 >
                   <ActivityIndicator color={colors.home.heading} size="large" />
                 </View>
               ) : status === 'error' ? (
                 <View style={styles.statePanel}>
-                  <Text accessibilityRole="alert" style={styles.stateText}>
-                    {errorMessage ?? 'Unable to load difficulty levels.'}
-                  </Text>
+                  <AppText accessibilityRole="alert" style={styles.stateText}>
+                    {errorMessage ?? t('home.levelModal.errorFallback')}
+                  </AppText>
                   <Pressable
                     accessibilityRole="button"
                     disabled={retryDisabled}
@@ -247,14 +253,16 @@ export function CategoryLevelModal({
                       retryDisabled && styles.stateButtonDisabled,
                     ]}
                   >
-                    <Text style={styles.stateButtonText}>Retry</Text>
+                    <AppText style={styles.stateButtonText}>
+                      {t('common.retry')}
+                    </AppText>
                   </Pressable>
                 </View>
               ) : status === 'invalid' ? (
                 <View style={styles.statePanel}>
-                  <Text accessibilityRole="alert" style={styles.stateText}>
-                    This category link is invalid.
-                  </Text>
+                  <AppText accessibilityRole="alert" style={styles.stateText}>
+                    {t('home.levelModal.invalidCategory')}
+                  </AppText>
                   <Pressable
                     accessibilityRole="button"
                     onPress={dismissWithoutSelection}
@@ -263,7 +271,9 @@ export function CategoryLevelModal({
                       pressed && styles.stateButtonPressed,
                     ]}
                   >
-                    <Text style={styles.stateButtonText}>Return to Home</Text>
+                    <AppText style={styles.stateButtonText}>
+                      {t('common.returnToHome')}
+                    </AppText>
                   </Pressable>
                 </View>
               ) : (

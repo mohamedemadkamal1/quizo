@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { AppText } from '@/components/common/AppText';
 import { colors } from '@/constants/colors';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export type ActivityCardProps = {
   icon: ReactNode;
@@ -18,33 +20,40 @@ export function ActivityCard({
   xp,
   day,
 }: ActivityCardProps) {
+  const { t } = useTranslation();
+
   return (
     <View
       accessible
-      accessibilityLabel={`${statusLabel}. ${activityName}. Plus ${xp} XP. ${day}`}
+      accessibilityLabel={t('home.activityLabel', {
+        status: statusLabel,
+        name: activityName,
+        xp,
+        day,
+      })}
       style={styles.card}
     >
       <View style={styles.iconContainer}>{icon}</View>
 
       <View style={styles.content}>
         <View style={styles.row}>
-          <Text numberOfLines={1} style={styles.status}>
+          <AppText numberOfLines={1} style={styles.status}>
             {statusLabel}
-          </Text>
+          </AppText>
 
-          <Text numberOfLines={1} style={styles.xp}>
-            +{xp} XP
-          </Text>
+          <AppText numberOfLines={1} style={styles.xp}>
+            {t('home.activityXp', { xp })}
+          </AppText>
         </View>
 
         <View style={styles.row}>
-          <Text numberOfLines={1} style={styles.activityName}>
+          <AppText numberOfLines={1} style={styles.activityName}>
             {activityName}
-          </Text>
+          </AppText>
 
-          <Text numberOfLines={1} style={styles.day}>
+          <AppText numberOfLines={1} style={styles.day}>
             {day}
-          </Text>
+          </AppText>
         </View>
       </View>
     </View>
@@ -133,7 +142,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 12,
     letterSpacing: 0,
-    textAlign: 'right',
     color: colors.activity.xp,
     includeFontPadding: false,
   },
@@ -145,7 +153,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 12,
     letterSpacing: 0,
-    textAlign: 'right',
     color: colors.activity.day,
     includeFontPadding: false,
   },

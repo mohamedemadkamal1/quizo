@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Svg, {
   Defs,
   LinearGradient as SvgLinearGradient,
@@ -8,6 +8,7 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 
+import { AppText } from '@/components/common/AppText';
 import { LeaderboardAvatar } from '@/components/leaderboard/LeaderboardAvatar';
 import { colors } from '@/constants/colors';
 import {
@@ -32,6 +33,7 @@ import {
   PODIUM_SIDE_TOP_THICKNESS,
 } from '@/constants/leaderboard';
 import type { LeaderboardMetrics } from '@/constants/leaderboard';
+import { useTranslation } from '@/hooks/useTranslation';
 import type {
   LeaderboardPodiumEntry,
   LeaderboardPodiumPlace,
@@ -136,7 +138,9 @@ function PodiumNumber({
   const lineHeight = metrics.numberFontSize * 1.16;
 
   return (
-    <Text
+    // Physical `left` on purpose: the number has to stay centred over the
+    // podium block drawn by the SVG below, whose coordinates never mirror.
+    <AppText
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
       pointerEvents="none"
@@ -155,7 +159,7 @@ function PodiumNumber({
       ]}
     >
       {value}
-    </Text>
+    </AppText>
   );
 }
 
@@ -168,6 +172,7 @@ function PodiumIdentity({
   metrics: LeaderboardMetrics;
   blockX: number;
 }) {
+  const { t } = useTranslation();
   const isFirst = entry.place === 1;
 
   return (
@@ -203,7 +208,7 @@ function PodiumIdentity({
         source={entry.avatarSource}
       />
 
-      <Text
+      <AppText
         numberOfLines={1}
         style={[
           styles.name,
@@ -215,7 +220,7 @@ function PodiumIdentity({
         ]}
       >
         {entry.displayName}
-      </Text>
+      </AppText>
 
       <View
         style={[
@@ -227,12 +232,14 @@ function PodiumIdentity({
           },
         ]}
       >
-        <Text
+        <AppText
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}
           numberOfLines={1}
           style={[styles.score, { fontSize: metrics.scoreFontSize }]}
         >
-          {`${entry.totalScore} points`}
-        </Text>
+          {t('leaderboard.points', { count: entry.totalScore })}
+        </AppText>
       </View>
     </View>
   );

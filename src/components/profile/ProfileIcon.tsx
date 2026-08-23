@@ -1,10 +1,14 @@
 import Svg, { Circle, Line, Path, Polyline, Rect } from 'react-native-svg';
 
+import { useLanguageDirection } from '@/hooks/useLanguageDirection';
+import { getDirectionalIconStyle } from '@/theme/direction-styles';
+
 export type ProfileIconName =
   | 'chevron'
   | 'close'
   | 'edit'
   | 'eye'
+  | 'globe'
   | 'lock'
   | 'logout'
   | 'progress'
@@ -17,6 +21,7 @@ type ProfileIconProps = {
 };
 
 export function ProfileIcon({ name, color, size = 22 }: ProfileIconProps) {
+  const { isRTL } = useLanguageDirection();
   const commonProps = {
     width: size,
     height: size,
@@ -79,8 +84,10 @@ export function ProfileIcon({ name, color, size = 22 }: ProfileIconProps) {
   }
 
   if (name === 'logout') {
+    // The door-and-arrow glyph points the way out, so it follows the reading
+    // direction like the chevron below.
     return (
-      <Svg {...commonProps}>
+      <Svg {...commonProps} style={getDirectionalIconStyle(isRTL)}>
         <Path
           d="M10 5H6.8A1.8 1.8 0 0 0 5 6.8v10.4A1.8 1.8 0 0 0 6.8 19H10M14 8l4 4-4 4M18 12H9"
           stroke={color}
@@ -140,6 +147,20 @@ export function ProfileIcon({ name, color, size = 22 }: ProfileIconProps) {
     );
   }
 
+  if (name === 'globe') {
+    return (
+      <Svg {...commonProps}>
+        <Circle cx="12" cy="12" r="8.4" stroke={color} strokeWidth={1.8} />
+        <Path
+          d="M3.6 12h16.8M12 3.6c2.2 2.3 3.4 5.3 3.4 8.4S14.2 18.1 12 20.4C9.8 18.1 8.6 15.1 8.6 12S9.8 5.9 12 3.6Z"
+          stroke={color}
+          strokeLinecap="round"
+          strokeWidth={1.8}
+        />
+      </Svg>
+    );
+  }
+
   if (name === 'eye') {
     return (
       <Svg {...commonProps}>
@@ -154,7 +175,7 @@ export function ProfileIcon({ name, color, size = 22 }: ProfileIconProps) {
   }
 
   return (
-    <Svg {...commonProps}>
+    <Svg {...commonProps} style={getDirectionalIconStyle(isRTL)}>
       <Polyline
         points="9 5 16 12 9 19"
         stroke={color}

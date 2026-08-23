@@ -1,6 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+
+import { AppText } from '@/components/common/AppText';
 
 import {
   QuestionCharacter,
@@ -65,12 +67,17 @@ export function QuestionCard({
     >
       <CardDecorations />
 
-      <Text
+      {/*
+        The prompt, clock and timer use logical offsets so the card reads from
+        the correct side in Arabic, while the illustration itself is only
+        repositioned — never flipped.
+      */}
+      <AppText
         style={[
           styles.prompt,
           {
             top: 46 * scale,
-            left: 25 * scale,
+            start: 25 * scale,
             width: 205 * scale,
             fontSize: 21 * scale,
             lineHeight: 30 * scale,
@@ -78,11 +85,11 @@ export function QuestionCard({
         ]}
       >
         {question.prompt}
-      </Text>
+      </AppText>
 
       <QuestionCharacter reaction={reaction} scale={scale} />
 
-      <View style={[styles.clock, { left: 30 * scale, bottom: 14 * scale }]}>
+      <View style={[styles.clock, { start: 30 * scale, bottom: 14 * scale }]}>
         <ClockGlyph size={37 * scale} />
       </View>
 
@@ -90,7 +97,7 @@ export function QuestionCard({
         style={[
           styles.timerTrack,
           {
-            left: 74 * scale,
+            start: 74 * scale,
             bottom: 27 * scale,
             width: trackWidth,
             height: 12 * scale,
@@ -109,11 +116,14 @@ export function QuestionCard({
         />
       </View>
 
-      <Text
+      {/* The countdown is a technical readout, so it stays `00:07` in both
+          languages rather than being rendered in Arabic-Indic digits. */}
+      <AppText
+        ltrContent
         style={[
           styles.time,
           {
-            right: 29 * scale,
+            end: 29 * scale,
             bottom: 25 * scale,
             fontSize: 12 * scale,
             lineHeight: 16 * scale,
@@ -122,7 +132,7 @@ export function QuestionCard({
         ]}
       >
         {formattedTime}
-      </Text>
+      </AppText>
     </LinearGradient>
   );
 }

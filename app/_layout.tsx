@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
@@ -8,8 +8,7 @@ import '../global.css';
 
 import { AnimatedSplash } from '@/components/common/AnimatedSplash';
 import { useAppInitialization } from '@/hooks/useAppInitialization';
-
-const queryClient = new QueryClient();
+import { queryClient } from '@/services/api/query-client';
 
 export default function RootLayout() {
   const app = useAppInitialization();
@@ -17,10 +16,19 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <KeyboardProvider>
-        <View style={styles.container} onLayout={app.onRootLayout}>
+        {/*
+          Declaring the direction once at the root of the React tree is what
+          makes every `row`, `start` and `end` below follow the language, and
+          it keeps working in development clients that cannot restart to pick
+          up the native RTL flags.
+        */}
+        <View
+          style={[styles.container, { direction: app.direction }]}
+          onLayout={app.onRootLayout}
+        >
           <StatusBar style="dark" />
 
-          {app.authHydrated ? (
+          {app.isHydrated ? (
             <Stack
               screenOptions={{
                 headerShown: false,
@@ -59,7 +67,7 @@ export default function RootLayout() {
 
           {app.showAnimatedSplash ? (
             <AnimatedSplash
-              readyToFinish={app.authHydrated}
+              readyToFinish={app.isHydrated}
               onFinish={app.onSplashAnimationFinish}
             />
           ) : null}

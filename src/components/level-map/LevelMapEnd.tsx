@@ -1,8 +1,12 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { AppText } from '@/components/common/AppText';
 import { LEVEL_MAP_BOUNDARY_HEIGHT } from '@/constants/level-map';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export function LevelMapEnd() {
+  const { t } = useTranslation();
+
   return (
     <View
       pointerEvents="none"
@@ -11,8 +15,8 @@ export function LevelMapEnd() {
       style={styles.container}
     >
       <View style={styles.glow} />
-      <Text style={styles.crown}>{'\u{1F451}'}</Text>
-      <Text style={styles.label}>Journey complete</Text>
+      <AppText style={styles.crown}>{'\u{1F451}'}</AppText>
+      <AppText style={styles.label}>{t('levelMap.journeyComplete')}</AppText>
     </View>
   );
 }
@@ -40,6 +44,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#FFFFFF',
+    textAlign: 'center',
   },
 });
-

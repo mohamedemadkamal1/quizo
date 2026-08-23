@@ -4,14 +4,16 @@ import {
   Modal,
   Pressable,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Line, Path } from 'react-native-svg';
 
+import { AppText } from '@/components/common/AppText';
 import { colors } from '@/constants/colors';
+import { useLanguageDirection } from '@/hooks/useLanguageDirection';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const REFERENCE_WIDTH = 600;
 const REFERENCE_HEIGHT = 720;
@@ -106,6 +108,8 @@ export function LevelStartConfirmationModal({
   onClose,
   onStart,
 }: LevelStartConfirmationModalProps) {
+  const { t } = useTranslation();
+  const { directionStyle } = useLanguageDirection();
   const insets = useSafeAreaInsets();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const availableHeight =
@@ -135,6 +139,7 @@ export function LevelStartConfirmationModal({
       <View
         style={[
           styles.backdrop,
+          directionStyle,
           {
             paddingTop: insets.top + SCREEN_MARGIN,
             paddingBottom: insets.bottom + SCREEN_MARGIN,
@@ -155,7 +160,7 @@ export function LevelStartConfirmationModal({
           <ModalDecorations />
 
           <Pressable
-            accessibilityLabel="Close level confirmation"
+            accessibilityLabel={t('levelMap.startModal.closeLabel')}
             accessibilityRole="button"
             accessibilityState={{ disabled: isStarting }}
             disabled={isStarting}
@@ -164,7 +169,7 @@ export function LevelStartConfirmationModal({
               styles.closeButton,
               {
                 top: 31 * scale - closeTouchOffset,
-                right: 34 * scale - closeTouchOffset,
+                end: 34 * scale - closeTouchOffset,
               },
             ]}
           >
@@ -217,8 +222,11 @@ export function LevelStartConfirmationModal({
           </View>
 
           <View pointerEvents="none" style={styles.copy}>
-            <Text
+            <AppText
               accessibilityRole="header"
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+              numberOfLines={1}
               style={[
                 styles.title,
                 {
@@ -228,9 +236,14 @@ export function LevelStartConfirmationModal({
                 },
               ]}
             >
-              {isReplay ? 'Play Again?' : 'Ready To start?'}
-            </Text>
-            <Text
+              {isReplay
+                ? t('levelMap.startModal.replayTitle')
+                : t('levelMap.startModal.readyTitle')}
+            </AppText>
+            <AppText
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+              numberOfLines={1}
               style={[
                 styles.subtitle,
                 {
@@ -240,9 +253,11 @@ export function LevelStartConfirmationModal({
                 },
               ]}
             >
-              {isReplay ? 'You’re about to replay' : 'You’re about to begin'}
-            </Text>
-            <Text
+              {isReplay
+                ? t('levelMap.startModal.replaySubtitle')
+                : t('levelMap.startModal.readySubtitle')}
+            </AppText>
+            <AppText
               style={[
                 styles.level,
                 {
@@ -252,10 +267,10 @@ export function LevelStartConfirmationModal({
                 },
               ]}
             >
-              Level {levelNumber}
-            </Text>
+              {t('levelMap.startModal.level', { number: levelNumber })}
+            </AppText>
             {errorMessage ? (
-              <Text
+              <AppText
                 accessibilityRole="alert"
                 style={[
                   styles.error,
@@ -268,15 +283,15 @@ export function LevelStartConfirmationModal({
                 ]}
               >
                 {errorMessage}
-              </Text>
+              </AppText>
             ) : null}
           </View>
 
           <Pressable
             accessibilityLabel={
               isReplay
-                ? `Replay Level ${levelNumber}`
-                : `Start Level ${levelNumber}`
+                ? t('levelMap.startModal.replayLabel', { number: levelNumber })
+                : t('levelMap.startModal.startLabel', { number: levelNumber })
             }
             accessibilityRole="button"
             accessibilityState={{ disabled: isStarting, busy: isStarting }}
@@ -351,14 +366,19 @@ export function LevelStartConfirmationModal({
                   {isStarting ? (
                     <ActivityIndicator color="#FFFFFF" size="small" />
                   ) : (
-                    <Text
+                    <AppText
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.7}
+                      numberOfLines={1}
                       style={[
                         styles.buttonLabel,
                         { fontSize: 33.5 * scale, lineHeight: 42 * scale },
                       ]}
                     >
-                      {isReplay ? 'Let’s Replay' : 'Let’s Play'}
-                    </Text>
+                      {isReplay
+                        ? t('levelMap.startModal.replayAction')
+                        : t('levelMap.startModal.startAction')}
+                    </AppText>
                   )}
                 </View>
               </View>

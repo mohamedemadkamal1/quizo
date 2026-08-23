@@ -1,9 +1,11 @@
 import { Controller } from 'react-hook-form';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import { AppButton } from '@/components/common/AppButton';
+import { AppText } from '@/components/common/AppText';
 import { AuthInput } from '@/components/auth/AuthInput';
 import { AuthScreenLayout } from '@/components/auth/AuthScreenLayout';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { useGuestProfileScreen } from '@/hooks/auth/useGuestProfileScreen';
 
 type GuestProfileFormProps = {
@@ -11,11 +13,12 @@ type GuestProfileFormProps = {
 };
 
 export function GuestProfileForm({ screen }: GuestProfileFormProps) {
+  const { t } = useTranslation();
 
   return (
     <AuthScreenLayout
-      title="Let's Get to Know You!"
-      subtitle="Choose a nickname and enter your age to start playing."
+      title={t('auth.guestProfile.title')}
+      subtitle={t('auth.guestProfile.subtitle')}
     >
       <View className="w-[280px] max-w-full gap-4">
         <Controller
@@ -27,7 +30,7 @@ export function GuestProfileForm({ screen }: GuestProfileFormProps) {
               onChangeText={field.onChange}
               onBlur={field.onBlur}
               error={screen.errors.nickname?.message}
-              placeholder="Nickname"
+              placeholder={t('auth.fields.nickname')}
               autoCapitalize="words"
               autoCorrect={false}
               autoComplete="off"
@@ -47,10 +50,11 @@ export function GuestProfileForm({ screen }: GuestProfileFormProps) {
               onChangeText={screen.onAgeChange}
               onBlur={field.onBlur}
               error={screen.errors.age?.message}
-              placeholder="Age"
+              placeholder={t('auth.fields.age')}
               keyboardType="number-pad"
               maxLength={3}
               returnKeyType="done"
+              ltrContent
               editable={!screen.isSubmitting}
               onSubmitEditing={screen.onSubmit}
             />
@@ -58,14 +62,14 @@ export function GuestProfileForm({ screen }: GuestProfileFormProps) {
         />
 
         {screen.errors.root?.message ? (
-          <Text className="text-center font-nunito text-xs font-medium leading-4 text-red-500">
+          <AppText className="text-center font-nunito text-xs font-medium leading-4 text-red-500">
             {screen.errors.root.message}
-          </Text>
+          </AppText>
         ) : null}
       </View>
 
       <AppButton
-        label="Start Learning!"
+        label={t('auth.guestProfile.submit')}
         isLoading={screen.isSubmitting}
         onPress={screen.onSubmit}
       />

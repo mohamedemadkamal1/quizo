@@ -19,9 +19,11 @@ import {
 
 export type CharacterReaction = 'idle' | 'correct' | 'wrong';
 
-// Design-sheet placement of the character inside the question card.
+// Design-sheet placement of the character inside the question card. The offset
+// is logical, so the mascot sits opposite the prompt in both writing
+// directions; the artwork itself is never mirrored.
 const CHARACTER_TOP = 5;
-const CHARACTER_RIGHT = 21;
+const CHARACTER_END = 21;
 const CHARACTER_WIDTH = 108;
 const CHARACTER_HEIGHT = 173;
 const IDLE_BREATH_DURATION = 1500;
@@ -246,7 +248,7 @@ export function QuestionCharacter({ reaction, scale }: QuestionCharacterProps) {
         styles.slot,
         {
           top: CHARACTER_TOP * scale,
-          right: CHARACTER_RIGHT * scale,
+          end: CHARACTER_END * scale,
           width: CHARACTER_WIDTH * scale,
           height: CHARACTER_HEIGHT * scale,
         },

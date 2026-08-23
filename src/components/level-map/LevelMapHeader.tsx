@@ -1,5 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { AppText } from '@/components/common/AppText';
+import { useTranslation } from '@/hooks/useTranslation';
 import type {
   LevelMapCategory,
   LevelMapTheme,
@@ -18,38 +20,43 @@ export function LevelMapHeader({
   theme,
   onClose,
 }: LevelMapHeaderProps) {
-  const stars = '\u2605 '.repeat(theme.stars).trim();
+  const { t } = useTranslation();
+  const stars = '★ '.repeat(theme.stars).trim();
 
   return (
     <View>
       <View style={[styles.topBar, { backgroundColor: theme.headerColor }]}>
         <View style={styles.categoryIconSlot}>
-          <Text style={styles.categoryIcon}>{category.icon}</Text>
+          <AppText style={styles.categoryIcon}>{category.icon}</AppText>
         </View>
 
         <View style={styles.categoryCopy}>
-          <Text numberOfLines={1} style={styles.categoryName}>
+          <AppText numberOfLines={1} style={styles.categoryName}>
             {category.name}
-          </Text>
-          <Text style={styles.subtitle}>Level Map · {totalLevels} levels</Text>
+          </AppText>
+          <AppText numberOfLines={1} style={styles.subtitle}>
+            {t('levelMap.subtitle', {
+              levels: t('levelMap.levelCount', { count: totalLevels }),
+            })}
+          </AppText>
         </View>
 
         <Pressable
-          accessibilityLabel="Close level map"
+          accessibilityLabel={t('levelMap.closeLabel')}
           accessibilityRole="button"
           hitSlop={10}
           onPress={onClose}
           style={styles.closeButton}
         >
-          <Text style={styles.closeIcon}>{'\u00D7'}</Text>
+          <AppText style={styles.closeIcon}>{'×'}</AppText>
         </Pressable>
       </View>
 
       <View style={styles.chipRow}>
         <View style={[styles.chip, { backgroundColor: theme.chipColor }]}>
-          <Text style={styles.difficultyIcon}>{theme.icon}</Text>
-          <Text style={styles.difficultyLabel}>{theme.label}</Text>
-          <Text style={styles.stars}>{stars}</Text>
+          <AppText style={styles.difficultyIcon}>{theme.icon}</AppText>
+          <AppText style={styles.difficultyLabel}>{t(theme.labelKey)}</AppText>
+          <AppText style={styles.stars}>{stars}</AppText>
         </View>
       </View>
     </View>
@@ -74,8 +81,9 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
   },
   categoryCopy: {
+    minWidth: 0,
     flex: 1,
-    marginLeft: 8,
+    marginStart: 8,
   },
   categoryName: {
     fontFamily: 'Fredoka',
@@ -97,6 +105,7 @@ const styles = StyleSheet.create({
   closeButton: {
     width: 46,
     height: 46,
+    flexShrink: 0,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 23,

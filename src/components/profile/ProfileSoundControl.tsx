@@ -1,13 +1,16 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { GestureResponderEvent, LayoutChangeEvent } from 'react-native';
-import { PanResponder, StyleSheet, Text, View } from 'react-native';
+import { PanResponder, StyleSheet, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
 
+import { AppText } from '@/components/common/AppText';
 import { colors } from '@/constants/colors';
+import { useLanguageDirection } from '@/hooks/useLanguageDirection';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const THUMB_SIZE = 36;
 const ACCESSIBILITY_STEP = 0.1;
@@ -25,10 +28,15 @@ export function ProfileSoundControl({
   value,
   onChangeEnd,
 }: ProfileSoundControlProps) {
+  const { t } = useTranslation();
+  const { isRTL } = useLanguageDirection();
   const normalizedValue = clamp(value);
   const progress = useSharedValue(normalizedValue);
   const trackWidth = useSharedValue(0);
   const [measuredTrackWidth, setMeasuredTrackWidth] = useState(0);
+  // The track fills from the reading side, so the thumb travels towards the
+  // physical left in Arabic and towards the physical right in English.
+  const travelSign = isRTL ? -1 : 1;
 
   useEffect(() => {
     progress.set(clamp(value));
@@ -40,7 +48,10 @@ export function ProfileSoundControl({
   const thumbStyle = useAnimatedStyle(() => ({
     transform: [
       {
-        translateX: progress.value * Math.max(0, trackWidth.value - THUMB_SIZE),
+        translateX:
+          travelSign *
+          progress.value *
+          Math.max(0, trackWidth.value - THUMB_SIZE),
       },
     ],
   }));
@@ -59,10 +70,14 @@ export function ProfileSoundControl({
   const updateFromGesture = useCallback(
     (event: GestureResponderEvent, commit: boolean) => {
       if (measuredTrackWidth > 0) {
-        setProgress(event.nativeEvent.locationX / measuredTrackWidth, commit);
+        // `locationX` is always a physical offset from the view's left edge,
+        // so it is flipped by hand when the interface runs right-to-left.
+        const ratio = event.nativeEvent.locationX / measuredTrackWidth;
+
+        setProgress(isRTL ? 1 - ratio : ratio, commit);
       }
     },
-    [measuredTrackWidth, setProgress],
+    [isRTL, measuredTrackWidth, setProgress],
   );
   const panResponder = useMemo(
     () =>
@@ -99,21 +114,25 @@ export function ProfileSoundControl({
       end={{ x: 1, y: 0.5 }}
       style={styles.container}
     >
-      <Text style={styles.label}>Sound</Text>
+      <AppText numberOfLines={1} style={styles.label}>
+        {t('profile.soundLabel')}
+      </AppText>
 
       <View
         accessible
         accessibilityActions={[
-          { name: 'increment', label: 'Increase sound' },
-          { name: 'decrement', label: 'Decrease sound' },
+          { name: 'increment', label: t('profile.soundIncrease') },
+          { name: 'decrement', label: t('profile.soundDecrease') },
         ]}
-        accessibilityLabel="Sound preference"
+        accessibilityLabel={t('profile.soundPreference')}
         accessibilityRole="adjustable"
         accessibilityValue={{
           min: 0,
           max: 100,
           now: Math.round(normalizedValue * 100),
-          text: `${Math.round(normalizedValue * 100)} percent`,
+          text: t('profile.soundValue', {
+            percent: Math.round(normalizedValue * 100),
+          }),
         }}
         onAccessibilityAction={onAccessibilityAction}
         onLayout={onTrackLayout}
@@ -162,7 +181,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   label: {
-    width: 55,
+    minWidth: 55,
+    flexShrink: 0,
     color: '#FFFFFF',
     fontFamily: 'Nunito',
     fontSize: 15,
@@ -177,22 +197,22 @@ const styles = StyleSheet.create({
   },
   rail: {
     position: 'absolute',
-    right: 0,
-    left: 0,
+    end: 0,
+    start: 0,
     height: 14,
     borderRadius: 7,
     backgroundColor: colors.settings.sliderTrack,
   },
   fill: {
     position: 'absolute',
-    left: 0,
+    start: 0,
     height: 14,
     overflow: 'hidden',
     borderRadius: 7,
   },
   thumb: {
     position: 'absolute',
-    left: 0,
+    start: 0,
     width: THUMB_SIZE,
     height: THUMB_SIZE,
     borderRadius: THUMB_SIZE / 2,

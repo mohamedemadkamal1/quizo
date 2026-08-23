@@ -1,12 +1,14 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
 
+import { AppText } from "@/components/common/AppText";
 import { ProfileIcon } from "@/components/profile/ProfileIcon";
 import { colors } from "@/constants/colors";
 import {
   getProfileAvatar,
   PROFILE_AVATAR_ARTWORK_ASPECT_RATIO,
 } from "@/constants/profile-avatars";
+import { useTranslation } from "@/hooks/useTranslation";
 import type { ProfileViewModel } from "@/types/profile.types";
 
 type ProfileHeaderProps = {
@@ -15,6 +17,7 @@ type ProfileHeaderProps = {
 };
 
 export function ProfileHeader({ profile, onEditProfile }: ProfileHeaderProps) {
+  const { t } = useTranslation();
   const isRegistered = profile.mode === "registered";
   const avatar = getProfileAvatar(profile.avatar);
 
@@ -26,10 +29,12 @@ export function ProfileHeader({ profile, onEditProfile }: ProfileHeaderProps) {
       style={styles.header}
     >
       <View style={[styles.badge, isRegistered && styles.registeredBadge]}>
-        {isRegistered ? <Text style={styles.badgeStar}>⭐</Text> : null}
-        <Text style={styles.badgeText}>
-          {isRegistered ? "REGISTERED" : "Guest"}
-        </Text>
+        {isRegistered ? <AppText style={styles.badgeStar}>⭐</AppText> : null}
+        <AppText numberOfLines={1} style={styles.badgeText}>
+          {isRegistered
+            ? t("profile.badgeRegistered")
+            : t("profile.badgeGuest")}
+        </AppText>
       </View>
 
       <View style={styles.identityRow}>
@@ -37,8 +42,11 @@ export function ProfileHeader({ profile, onEditProfile }: ProfileHeaderProps) {
           accessible
           accessibilityLabel={
             avatar
-              ? `${profile.displayName}, ${avatar.accessibilityLabel}`
-              : `${profile.displayName} initials`
+              ? t("profile.avatarLabel", {
+                  name: profile.displayName,
+                  avatar: t(avatar.accessibilityLabelKey),
+                })
+              : t("profile.initialsLabel", { name: profile.displayName })
           }
           style={[styles.avatar, avatar && styles.avatarWithArtwork]}
         >
@@ -52,24 +60,25 @@ export function ProfileHeader({ profile, onEditProfile }: ProfileHeaderProps) {
                 style={styles.avatarImage}
               />
             ) : (
-              <Text style={styles.initials}>{profile.initials}</Text>
+              <AppText style={styles.initials}>{profile.initials}</AppText>
             )}
           </View>
         </View>
 
         <View style={styles.nameColumn}>
           <View style={styles.nameRow}>
-            <Text
+            {/* The player's own name is content and is never translated. */}
+            <AppText
               accessibilityRole="header"
               numberOfLines={1}
               style={styles.name}
             >
               {profile.displayName}
-            </Text>
+            </AppText>
 
             {isRegistered ? (
               <Pressable
-                accessibilityLabel="Edit avatar and nickname"
+                accessibilityLabel={t("profile.editLabel")}
                 accessibilityRole="button"
                 hitSlop={12}
                 onPress={onEditProfile}
@@ -102,7 +111,8 @@ const styles = StyleSheet.create({
   badge: {
     position: "absolute",
     top: 19,
-    right: 34,
+    end: 34,
+    maxWidth: 160,
     minWidth: 64,
     height: 26,
     flexDirection: "row",
@@ -114,8 +124,8 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.18)",
   },
   registeredBadge: {
-    paddingLeft: 12,
-    paddingRight: 10,
+    paddingStart: 12,
+    paddingEnd: 10,
   },
   badgeStar: {
     fontSize: 14,
