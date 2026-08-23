@@ -158,7 +158,6 @@ export function LanguageDropdown({
       <Modal
         animationType="fade"
         navigationBarTranslucent
-        onOrientationChange={close}
         onRequestClose={close}
         presentationStyle="overFullScreen"
         statusBarTranslucent
