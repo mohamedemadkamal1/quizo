@@ -14,8 +14,9 @@ import { useTranslation } from '@/hooks/useTranslation';
 type AuthInputProps = Omit<TextInputProps, 'style'> & {
   error?: string;
   /**
-   * Keeps the field left-to-right in Arabic. Password fields set it
-   * automatically; email and code fields opt in explicitly.
+   * Keeps the value's character order left-to-right. Password fields set it
+   * automatically; email and code fields opt in explicitly. Field alignment
+   * still follows the interface language.
    */
   ltrContent?: boolean;
 };

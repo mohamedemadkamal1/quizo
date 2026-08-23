@@ -11,7 +11,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 type ProfileFormInputProps = Omit<TextInputProps, 'style'> & {
   error?: string;
   isPassword?: boolean;
-  /** Keeps the field left-to-right in Arabic (emails, identifiers). */
+  /** Keeps value characters LTR while field alignment follows the language. */
   ltrContent?: boolean;
 };
 

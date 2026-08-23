@@ -2,12 +2,17 @@ import { forwardRef } from 'react';
 import { TextInput, type TextInputProps } from 'react-native';
 
 import { useLanguageDirection } from '@/hooks/useLanguageDirection';
-import { getLanguageTextStyle, ltrContentTextStyle } from '@/theme/typography';
+import {
+  getLanguageDirectionalTextStyle,
+  getLanguageTextStyle,
+  ltrInputContentTextStyle,
+} from '@/theme/typography';
 
 export type AppTextInputProps = TextInputProps & {
   /**
-   * Keeps the field left-to-right and left-aligned even in Arabic, which is
-   * what email, password, OTP and identifier inputs need.
+   * Keeps the value's character order left-to-right. Its physical alignment
+   * still follows the active interface language, so technical values sit on
+   * the right in Arabic without being reversed.
    */
   ltrContent?: boolean;
 };
@@ -27,7 +32,8 @@ export const AppTextInput = forwardRef<TextInput, AppTextInputProps>(
         style={[
           style,
           getLanguageTextStyle(language),
-          ltrContent ? ltrContentTextStyle : null,
+          getLanguageDirectionalTextStyle(language),
+          ltrContent ? ltrInputContentTextStyle : null,
         ]}
       />
     );

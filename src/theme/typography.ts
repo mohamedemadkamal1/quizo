@@ -43,6 +43,16 @@ const styles = StyleSheet.create({
     writingDirection: 'ltr',
     textAlign: 'left',
   },
+
+  /**
+   * Technical input values retain LTR character order, but their physical
+   * alignment still comes from the active interface language. For example,
+   * an email field is right-aligned in Arabic without reversing the address.
+   */
+  ltrInputContent: {
+    direction: 'ltr',
+    writingDirection: 'ltr',
+  },
 });
 
 export function getLanguageTextStyle(language: AppLanguage): TextStyle | null {
@@ -63,3 +73,4 @@ export function getLanguageDirectionalTextStyle(
 }
 
 export const ltrContentTextStyle: TextStyle = styles.ltrContent;
+export const ltrInputContentTextStyle: TextStyle = styles.ltrInputContent;

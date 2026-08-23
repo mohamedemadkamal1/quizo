@@ -51,7 +51,7 @@ function CompleteProfileInput({
 }: CompleteProfileInputProps) {
   return (
     <View style={styles.fieldWrapper}>
-      {/* Email and password stay left-to-right in every language. */}
+      {/* Technical values stay LTR, while field alignment follows the UI. */}
       <AppTextInput
         {...inputProps}
         editable={editable}
