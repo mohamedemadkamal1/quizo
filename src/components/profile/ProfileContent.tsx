@@ -58,7 +58,7 @@ export function ProfileContent({ screen }: ProfileContentProps) {
                 value={screen.soundVolume}
               />
               <ProgressAction onPress={screen.onNavigateToProgress} />
-              <LanguageAction onPress={screen.onChangeLanguage} />
+              <LanguageAction />
             </>
           ) : (
             <>
@@ -67,7 +67,6 @@ export function ProfileContent({ screen }: ProfileContentProps) {
                 value={screen.soundVolume}
               />
               <ProgressAction onPress={screen.onNavigateToProgress} />
-              <LanguageAction onPress={screen.onChangeLanguage} />
               <RegisteredProfileActions
                 onChangePassword={screen.onChangePassword}
                 onDeleteProfile={screen.onRequestDeleteProfile}

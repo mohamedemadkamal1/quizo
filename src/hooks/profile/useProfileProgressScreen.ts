@@ -8,7 +8,7 @@ import {
   HOME_CATEGORY_ICONS,
 } from '@/constants/home';
 import { useTranslation } from '@/hooks/useTranslation';
-import { getHome, HOME_QUERY_KEY } from '@/services/home.service';
+import { getHome, getHomeQueryKey } from '@/services/home.service';
 import { useAuthStore } from '@/store/auth.store';
 import type { HomeItem } from '@/types/home.types';
 import { getApiErrorMessage } from '@/utils/get-api-error-message';
@@ -17,12 +17,12 @@ import { getSafeNonNegativeValue } from '@/utils/profile';
 const EMPTY_HOME_ITEMS: HomeItem[] = [];
 
 export function useProfileProgressScreen() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const tabBarHeight = useBottomTabBarHeight();
   const userId = useAuthStore((state) => state.session?.user.id);
   const hasFocusedOnceRef = useRef(false);
   const homeQuery = useQuery({
-    queryKey: [...HOME_QUERY_KEY, userId],
+    queryKey: getHomeQueryKey(userId, language),
     queryFn: getHome,
     enabled: Boolean(userId),
     refetchOnWindowFocus: false,

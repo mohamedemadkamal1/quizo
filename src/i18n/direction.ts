@@ -27,6 +27,7 @@ const nativeDirectionAtStartup: TextDirection = I18nManager.isRTL
 I18nManager.swapLeftAndRightInRTL(false);
 
 let reloadRequested = false;
+let configuredDirection: TextDirection = nativeDirectionAtStartup;
 
 export type DirectionSyncResult =
   /** Native layout already matches; nothing to do. */
@@ -58,23 +59,32 @@ export function isNativeDirectionInSync(direction: TextDirection): boolean {
 export async function syncNativeDirection(
   direction: TextDirection,
 ): Promise<DirectionSyncResult> {
-  if (isNativeDirectionInSync(direction) || reloadRequested) {
+  if (reloadRequested || configuredDirection === direction) {
     return 'in-sync';
   }
 
   const shouldBeRtl = direction === 'rtl';
 
-  reloadRequested = true;
   I18nManager.allowRTL(shouldBeRtl);
   I18nManager.forceRTL(shouldBeRtl);
+  configuredDirection = direction;
+
+  // A failed earlier reload may have left a pending flag behind. Switching
+  // back to the direction that is already rendered only needs to reset that
+  // flag; restarting would be redundant.
+  if (isNativeDirectionInSync(direction)) {
+    return 'in-sync';
+  }
+
+  reloadRequested = true;
 
   try {
     await reloadAppAsync('Quizo language direction changed');
     return 'reloaded';
   } catch {
-    // Development clients that cannot restart themselves keep running with the
-    // JavaScript direction applied at the React root; the native layout picks
-    // the new flags up on the next launch.
+    // A runtime that cannot restart itself keeps running with the JavaScript
+    // direction applied at the React root. The native flag takes effect on the
+    // next manual launch, and selecting the startup direction again resets it.
     reloadRequested = false;
     return 'reload-unavailable';
   }

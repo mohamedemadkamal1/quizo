@@ -37,7 +37,7 @@ function getPositiveIntegerParam(value: string | string[] | undefined) {
 
 export function useLevelMapScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const tabBarHeight = useBottomTabBarHeight();
   const params = useLocalSearchParams<RouteParams>();
   const subCategoryId = getPositiveIntegerParam(params.categoryId);
@@ -67,7 +67,7 @@ export function useLevelMapScreen() {
   const isStartingLevelRef = useRef(false);
 
   const levelMapQuery = useQuery({
-    queryKey: getLevelMapQueryKey(requestParams),
+    queryKey: getLevelMapQueryKey(requestParams, language),
     queryFn: () => getLevelMap(requestParams),
     enabled: hasValidRoute,
     refetchOnWindowFocus: false,

@@ -113,7 +113,17 @@
           "enableBackgroundRecording": false
         }
       ],
-      "expo-localization"
+      [
+        "expo-localization",
+        {
+          "supportedLocales": [
+            "en",
+            "ar"
+          ],
+          "supportsRTL": true
+        }
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,

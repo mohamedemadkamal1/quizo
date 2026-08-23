@@ -3,7 +3,6 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useBottomTabBarHeight } from 'expo-router/js-tabs';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { useLanguageSelection } from '@/hooks/useLanguageSelection';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
   createProfileEmailSchema,
@@ -32,7 +31,6 @@ type ProfileModal =
 export function useProfileScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { presentLanguagePicker } = useLanguageSelection();
   const queryClient = useQueryClient();
   const tabBarHeight = useBottomTabBarHeight();
   const session = useAuthStore((state) => state.session);
@@ -361,6 +359,5 @@ export function useProfileScreen() {
     onConfirmLogout: confirmLogout,
     onNavigateToProgress: navigateToProgress,
     onChangeSoundVolume: changeSoundVolume,
-    onChangeLanguage: presentLanguagePicker,
   };
 }

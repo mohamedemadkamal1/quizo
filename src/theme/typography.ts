@@ -18,6 +18,23 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
 
+  arabicDirectionalText: {
+    // React Native Android treats left/right text alignment as logical when
+    // the Text node itself has RTL layout direction, which turns `right` into
+    // the physical left edge. Keep layout direction neutral here so the
+    // explicit alignment stays physical; `writingDirection` still controls
+    // the bidi flow of the text itself.
+    direction: 'ltr',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+  },
+
+  englishDirectionalText: {
+    direction: 'ltr',
+    textAlign: 'left',
+    writingDirection: 'ltr',
+  },
+
   /**
    * Content that stays Latin and left-to-right whatever the interface
    * language: email addresses, passwords, OTP codes, URLs and identifiers.
@@ -30,6 +47,19 @@ const styles = StyleSheet.create({
 
 export function getLanguageTextStyle(language: AppLanguage): TextStyle | null {
   return language === 'ar' ? styles.arabic : null;
+}
+
+/**
+ * Explicit alignment for dynamic prose whose characters may not match the
+ * active interface language (for example, backend-provided quiz content).
+ * Centered headings opt out by simply not requesting this style.
+ */
+export function getLanguageDirectionalTextStyle(
+  language: AppLanguage,
+): TextStyle {
+  return language === 'ar'
+    ? styles.arabicDirectionalText
+    : styles.englishDirectionalText;
 }
 
 export const ltrContentTextStyle: TextStyle = styles.ltrContent;

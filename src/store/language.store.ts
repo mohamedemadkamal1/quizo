@@ -6,19 +6,24 @@ import {
   DEFAULT_LANGUAGE,
   getDeviceLanguage,
   getDirection,
-  isAppLanguage,
   type AppLanguage,
 } from '@/i18n';
 import { syncNativeDirection, type DirectionSyncResult } from '@/i18n/direction';
+import {
+  readLanguagePreference,
+  resolveInitialLanguage,
+  writeLanguagePreference,
+  type LanguagePreferenceStorage,
+  type PersistedLanguage,
+} from '@/i18n/language-preference';
 import { queryClient } from '@/services/api/query-client';
+import { LANGUAGE_STORAGE_KEY } from '@/store/storage-keys';
 
 /**
  * Stored separately from `quizo-auth-session` on purpose: signing out or
  * deleting the account clears that key and must never take the language with
  * it.
  */
-const LANGUAGE_STORAGE_KEY = 'quizo-language';
-
 type LanguageStore = {
   language: AppLanguage;
   /** True once the user has picked a language themselves. */
@@ -27,49 +32,24 @@ type LanguageStore = {
   setLanguage: (language: AppLanguage) => Promise<DirectionSyncResult>;
 };
 
-type PersistedLanguage = {
-  language: AppLanguage;
-  hasExplicitSelection: boolean;
+const languageStorage: LanguagePreferenceStorage = {
+  getItem: (key) => SecureStore.getItemAsync(key),
+  setItem: (key, value) => SecureStore.setItemAsync(key, value),
 };
-
-function parsePersistedLanguage(value: string | null): PersistedLanguage | null {
-  if (!value) {
-    return null;
-  }
-
-  try {
-    const parsed: unknown = JSON.parse(value);
-
-    if (typeof parsed !== 'object' || parsed === null) {
-      return null;
-    }
-
-    const record: Record<string, unknown> = { ...parsed };
-
-    return isAppLanguage(record.language)
-      ? {
-          language: record.language,
-          hasExplicitSelection: record.hasExplicitSelection === true,
-        }
-      : null;
-  } catch {
-    return null;
-  }
-}
 
 async function readPersistedLanguage(): Promise<PersistedLanguage | null> {
   try {
-    return parsePersistedLanguage(
-      await SecureStore.getItemAsync(LANGUAGE_STORAGE_KEY),
-    );
+    return await readLanguagePreference(languageStorage, LANGUAGE_STORAGE_KEY);
   } catch {
     return null;
   }
 }
 
 async function writePersistedLanguage(value: PersistedLanguage) {
-  await SecureStore.setItemAsync(LANGUAGE_STORAGE_KEY, JSON.stringify(value));
+  await writeLanguagePreference(languageStorage, LANGUAGE_STORAGE_KEY, value);
 }
+
+let languageChangePromise: Promise<DirectionSyncResult> | null = null;
 
 export const useLanguageStore = create<LanguageStore>()((set, get) => ({
   language: DEFAULT_LANGUAGE,
@@ -82,20 +62,32 @@ export const useLanguageStore = create<LanguageStore>()((set, get) => ({
       return 'in-sync';
     }
 
-    // Persisted first: a successful direction change restarts the process, so
-    // the new value has to already be on disk by then.
-    await writePersistedLanguage({ language, hasExplicitSelection: true });
+    if (languageChangePromise) {
+      return languageChangePromise;
+    }
 
-    applyLanguage(language);
-    set({ language, hasExplicitSelection: true });
+    languageChangePromise = (async () => {
+      // Persisted first: a successful direction change restarts the process,
+      // so the new value has to already be on disk by then.
+      await writePersistedLanguage({ language, hasExplicitSelection: true });
 
-    // Backend copy (categories, questions) is language-specific, so everything
-    // fetched under the previous `lng` header is dropped and refetched under
-    // the new one. The auth session lives in SecureStore and is untouched.
-    await queryClient.cancelQueries();
-    queryClient.clear();
+      // Stop old-language requests before exposing the new language. Every
+      // localized query key also carries the language, so mounted observers
+      // immediately move to an empty key and refetch with the new `lng` header.
+      await queryClient.cancelQueries();
 
-    return syncNativeDirection(getDirection(language));
+      applyLanguage(language);
+      set({ language, hasExplicitSelection: true });
+      queryClient.removeQueries();
+
+      return syncNativeDirection(getDirection(language));
+    })();
+
+    try {
+      return await languageChangePromise;
+    } finally {
+      languageChangePromise = null;
+    }
   },
 }));
 
@@ -111,7 +103,7 @@ export function hydrateLanguage(): Promise<void> {
   if (!hydrationPromise) {
     hydrationPromise = (async () => {
       const persisted = await readPersistedLanguage();
-      const language = persisted?.language ?? getDeviceLanguage();
+      const language = resolveInitialLanguage(persisted, getDeviceLanguage());
 
       applyLanguage(language);
       useLanguageStore.setState({

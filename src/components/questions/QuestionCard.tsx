@@ -73,6 +73,7 @@ export function QuestionCard({
         repositioned — never flipped.
       */}
       <AppText
+        alignToLanguage
         style={[
           styles.prompt,
           {

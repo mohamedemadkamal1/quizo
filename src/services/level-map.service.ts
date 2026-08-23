@@ -1,4 +1,5 @@
 import { isLevelMapDifficulty } from '@/constants/level-map';
+import type { AppLanguage } from '@/i18n';
 import { apiClient } from '@/services/api/api-client';
 import type {
   GetLevelMapParams,
@@ -12,9 +13,13 @@ import { isLevelStatus } from '@/utils/level-map-status';
 export const LEVEL_MAP_PAGE = 1;
 export const LEVEL_MAP_LIMIT = 15;
 
-export function getLevelMapQueryKey(params: GetLevelMapParams) {
+export function getLevelMapQueryKey(
+  params: GetLevelMapParams,
+  language: AppLanguage,
+) {
   return [
     'level-map',
+    language,
     {
       subCategoryId: params.subCategoryId,
       stage: params.stage,

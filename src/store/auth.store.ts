@@ -11,6 +11,7 @@ import {
   SignUpPayload,
 } from '@/types/auth.types';
 import { setApiAccessToken } from '@/services/api/api-client';
+import { AUTH_STORAGE_KEY } from '@/store/storage-keys';
 import { normalizeAvatarId } from '@/types/avatar.types';
 
 import {
@@ -119,7 +120,7 @@ export const useAuthStore = create<AuthStore>()(
       },
     }),
     {
-      name: 'quizo-auth-session',
+      name: AUTH_STORAGE_KEY,
       storage: createJSONStorage(() => secureStorage),
       partialize: (state) => ({
         session: state.session,

@@ -2,9 +2,18 @@ import { forwardRef } from 'react';
 import { Text, type TextProps } from 'react-native';
 
 import { useLanguageDirection } from '@/hooks/useLanguageDirection';
-import { getLanguageTextStyle, ltrContentTextStyle } from '@/theme/typography';
+import {
+  getLanguageDirectionalTextStyle,
+  getLanguageTextStyle,
+  ltrContentTextStyle,
+} from '@/theme/typography';
 
 export type AppTextProps = TextProps & {
+  /**
+   * Aligns natural-language prose to the active interface direction. This is
+   * intentionally opt-in so centered headings and buttons remain centered.
+   */
+  alignToLanguage?: boolean;
   /**
    * Keeps this text Latin and left-to-right even in Arabic. Use it for email
    * addresses, OTP codes, URLs and other technical identifiers.
@@ -21,7 +30,7 @@ export type AppTextProps = TextProps & {
  * the direction — it keeps writing the layout it already had.
  */
 export const AppText = forwardRef<Text, AppTextProps>(function AppText(
-  { ltrContent = false, style, ...textProps },
+  { alignToLanguage = false, ltrContent = false, style, ...textProps },
   ref,
 ) {
   const { language } = useLanguageDirection();
@@ -33,6 +42,7 @@ export const AppText = forwardRef<Text, AppTextProps>(function AppText(
       style={[
         style,
         getLanguageTextStyle(language),
+        alignToLanguage ? getLanguageDirectionalTextStyle(language) : null,
         ltrContent ? ltrContentTextStyle : null,
       ]}
     />

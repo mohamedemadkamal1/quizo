@@ -1,4 +1,5 @@
 import { QUESTION_DURATION_SECONDS } from "@/constants/questions";
+import type { AppLanguage } from "@/i18n";
 import { apiClient } from "@/services/api/api-client";
 import type {
   GameplayQuestion,
@@ -361,8 +362,11 @@ function parseLevelCompletion(
   };
 }
 
-export function getSessionQuestionsQueryKey(sessionId: number) {
-  return ["session-questions", sessionId] as const;
+export function getSessionQuestionsQueryKey(
+  sessionId: number,
+  language: AppLanguage,
+) {
+  return ["session-questions", language, sessionId] as const;
 }
 
 export async function startLevel(

@@ -1,9 +1,7 @@
 import { create } from 'axios';
 
+import { applyApiRequestHeaders } from '@/services/api/request-headers';
 import { getStoredLanguage } from '@/store/language.store';
-
-/** The header the backend reads to localize its responses. */
-const LANGUAGE_HEADER = 'lng';
 
 let accessToken: string | null = null;
 
@@ -27,19 +25,9 @@ export const apiClient = create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  if (accessToken && !config.headers.Authorization) {
-    config.headers.Authorization = `Bearer ${accessToken}`;
-  }
-
   // Read at send time rather than at module load, so a service that was
   // written before a language change can never carry the previous language.
-  //
-  // Axios normalizes `config.headers` into an `AxiosHeaders` instance before
-  // request interceptors run — which is why its type is declared that way — so
-  // `set` is available here. It also replaces any existing value
-  // case-insensitively, meaning a request can never leave with two conflicting
-  // language headers.
-  config.headers.set(LANGUAGE_HEADER, getStoredLanguage());
+  applyApiRequestHeaders(config.headers, getStoredLanguage(), accessToken);
 
   // Query parameters are left exactly as the service passed them: the language
   // travels in the header only.

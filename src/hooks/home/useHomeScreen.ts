@@ -12,9 +12,9 @@ import {
 import { useTranslation } from '@/hooks/useTranslation';
 import {
   getHome,
+  getHomeQueryKey,
   getSubCategoryLevelCounts,
   getSubCategoryLevelCountsQueryKey,
-  HOME_QUERY_KEY,
 } from '@/services/home.service';
 import { useAuthStore } from '@/store/auth.store';
 import type {
@@ -58,7 +58,7 @@ function getItemIdentityKey(items: HomeItem[]) {
 
 export function useHomeScreen() {
   const router = useRouter();
-  const { t, formatShortDate } = useTranslation();
+  const { t, formatShortDate, language } = useTranslation();
   const tabBarHeight = useBottomTabBarHeight();
   const session = useAuthStore((state) => state.session);
   const displayName = session?.user.displayName;
@@ -73,7 +73,7 @@ export function useHomeScreen() {
   const navigationLockedRef = useRef(false);
 
   const homeQuery = useQuery({
-    queryKey: [...HOME_QUERY_KEY, userId],
+    queryKey: getHomeQueryKey(userId, language),
     queryFn: getHome,
     enabled: Boolean(userId),
     refetchOnWindowFocus: false,
@@ -82,7 +82,7 @@ export function useHomeScreen() {
   const subCatId = selectedCategory?.id ?? null;
   const hasValidSubCatId = isPositiveInteger(subCatId);
   const levelCountsQuery = useQuery({
-    queryKey: getSubCategoryLevelCountsQueryKey(subCatId),
+    queryKey: getSubCategoryLevelCountsQueryKey(subCatId, language),
     queryFn: () => {
       if (!isPositiveInteger(subCatId)) {
         throw new Error('A valid subcategory ID is required.');

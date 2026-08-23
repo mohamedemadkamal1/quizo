@@ -1,31 +1,11 @@
-import { useCallback, useRef, useState } from 'react';
-import {
-  Modal,
-  Pressable,
-  StyleSheet,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import Svg, { Circle, Path, Polyline } from 'react-native-svg';
 
-import { AppText } from '@/components/common/AppText';
+import { LanguageDropdown } from '@/components/common/LanguageDropdown';
 import { colors } from '@/constants/colors';
-import { useLanguageDirection } from '@/hooks/useLanguageDirection';
-import { useLanguageSelection } from '@/hooks/useLanguageSelection';
 import { useTranslation } from '@/hooks/useTranslation';
-import type { AppLanguage } from '@/i18n';
 
 const CONTROL_HEIGHT = 44;
-const MENU_WIDTH = 116;
-const MENU_GAP = 8;
-const SCREEN_MARGIN = 12;
-
-type TriggerFrame = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
 
 function GlobeIcon({ color, size }: { color: string; size: number }) {
   return (
@@ -78,124 +58,27 @@ function ChevronDownIcon({ color, size }: { color: string; size: number }) {
  */
 export function AuthLanguageSelector() {
   const { t } = useTranslation();
-  const { isRTL, directionStyle } = useLanguageDirection();
-  const { choices, selectLanguage } = useLanguageSelection();
-  const { width: windowWidth } = useWindowDimensions();
-  const triggerRef = useRef<View>(null);
-  const [triggerFrame, setTriggerFrame] = useState<TriggerFrame | null>(null);
-
-  const open = useCallback(() => {
-    triggerRef.current?.measureInWindow((x, y, width, height) => {
-      setTriggerFrame({ x, y, width, height });
-    });
-  }, []);
-
-  const close = useCallback(() => {
-    setTriggerFrame(null);
-  }, []);
-
-  const handleSelect = useCallback(
-    (language: AppLanguage) => {
-      // Closing first keeps the picked option from flashing behind a reload.
-      close();
-      void selectLanguage(language);
-    },
-    [close, selectLanguage],
-  );
-
-  const isOpen = triggerFrame !== null;
-  // The menu hangs from the control's logical end edge, measured in physical
-  // window coordinates so it lands correctly in both writing directions.
-  const menuLeft = triggerFrame
-    ? Math.min(
-        Math.max(
-          isRTL
-            ? triggerFrame.x
-            : triggerFrame.x + triggerFrame.width - MENU_WIDTH,
-          SCREEN_MARGIN,
-        ),
-        windowWidth - MENU_WIDTH - SCREEN_MARGIN,
-      )
-    : 0;
 
   return (
-    <>
-      <Pressable
-        ref={triggerRef}
-        accessibilityHint={t('language.selectorHint')}
-        accessibilityLabel={t('language.selectorLabel')}
-        accessibilityRole="button"
-        accessibilityState={{ expanded: isOpen }}
-        hitSlop={8}
-        onPress={open}
-        style={({ pressed }) => [styles.trigger, pressed && styles.pressed]}
-      >
-        <GlobeIcon color={colors.languageSelector.icon} size={22} />
-        <ChevronDownIcon color={colors.languageSelector.icon} size={16} />
-      </Pressable>
-
-      <Modal
-        animationType="fade"
-        onRequestClose={close}
-        statusBarTranslucent
-        transparent
-        visible={isOpen}
-      >
-        <View style={[styles.overlay, directionStyle]}>
-          <Pressable
-            accessibilityLabel={t('common.close')}
-            accessibilityRole="button"
-            onPress={close}
-            style={StyleSheet.absoluteFill}
-          />
-
-          {triggerFrame ? (
-            <View
-              accessibilityRole="menu"
-              accessibilityViewIsModal
-              style={[
-                styles.menu,
-                {
-                  top: triggerFrame.y + triggerFrame.height + MENU_GAP,
-                  left: menuLeft,
-                },
-              ]}
-            >
-              {choices.map((choice) => (
-                <Pressable
-                  accessibilityLabel={choice.compactLabel}
-                  accessibilityRole="menuitem"
-                  accessibilityState={{ selected: choice.isSelected }}
-                  key={choice.language}
-                  onPress={() => handleSelect(choice.language)}
-                  style={({ pressed }) => [
-                    styles.option,
-                    choice.isSelected && styles.optionSelected,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <AppText
-                    numberOfLines={1}
-                    style={[
-                      styles.optionLabel,
-                      choice.isSelected && styles.optionLabelSelected,
-                    ]}
-                  >
-                    {choice.compactLabel}
-                  </AppText>
-
-                  {choice.isSelected ? (
-                    <AppText accessible={false} style={styles.optionCheck}>
-                      ✓
-                    </AppText>
-                  ) : null}
-                </Pressable>
-              ))}
-            </View>
-          ) : null}
-        </View>
-      </Modal>
-    </>
+    <LanguageDropdown
+      renderTrigger={({ triggerRef, isOpen, open }) => (
+        <Pressable
+          ref={triggerRef}
+          accessibilityHint={t('language.selectorHint')}
+          accessibilityLabel={t('language.selectorLabel')}
+          accessibilityRole="button"
+          accessibilityState={{ expanded: isOpen }}
+          android_ripple={{ color: 'rgba(124, 58, 237, 0.12)' }}
+          hitSlop={8}
+          onPress={open}
+          style={styles.trigger}
+        >
+          <GlobeIcon color={colors.languageSelector.icon} size={22} />
+          <ChevronDownIcon color={colors.languageSelector.icon} size={16} />
+        </Pressable>
+      )}
+      variant="compact"
+    />
   );
 }
 
@@ -219,65 +102,4 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
 
-  pressed: {
-    opacity: 0.85,
-  },
-
-  overlay: {
-    flex: 1,
-  },
-
-  menu: {
-    position: 'absolute',
-    width: MENU_WIDTH,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.languageSelector.menuBorder,
-    borderRadius: 16,
-    padding: 6,
-    backgroundColor: colors.languageSelector.menuSurface,
-    shadowColor: '#1E1A4D',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.22,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-
-  option: {
-    minHeight: 44,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 6,
-    borderRadius: 12,
-    paddingHorizontal: 10,
-  },
-
-  optionSelected: {
-    backgroundColor: colors.languageSelector.optionSelected,
-  },
-
-  optionLabel: {
-    minWidth: 0,
-    flexShrink: 1,
-    color: colors.languageSelector.optionText,
-    fontFamily: 'Fredoka',
-    fontSize: 15,
-    fontWeight: '500',
-    includeFontPadding: false,
-  },
-
-  optionLabelSelected: {
-    color: colors.languageSelector.optionSelectedText,
-    fontWeight: '600',
-  },
-
-  optionCheck: {
-    flexShrink: 0,
-    color: colors.languageSelector.optionSelectedText,
-    fontFamily: 'Nunito',
-    fontSize: 14,
-    fontWeight: '700',
-    includeFontPadding: false,
-  },
 });

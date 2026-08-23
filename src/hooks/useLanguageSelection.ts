@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useRef } from 'react';
-import { ActionSheetIOS, Alert, Platform } from 'react-native';
 
 import { useTranslation } from '@/hooks/useTranslation';
 import { LANGUAGE_OPTIONS, type AppLanguage } from '@/i18n';
@@ -7,10 +6,11 @@ import { useLanguageStore } from '@/store/language.store';
 
 export type LanguageChoice = {
   language: AppLanguage;
-  /** `🇪🇬 AR` — the compact form used by the auth dropdown. */
+  flag: string;
+  shortCode: string;
   compactLabel: string;
-  /** `🇪🇬 Egypt — العربية (AR)` — the form used by the native pickers. */
-  detailedLabel: string;
+  /** Localized full name used by the Profile dropdown. */
+  fullLabel: string;
   isSelected: boolean;
 };
 
@@ -28,8 +28,10 @@ export function useLanguageSelection() {
     () =>
       LANGUAGE_OPTIONS.map((descriptor) => ({
         language: descriptor.language,
+        flag: descriptor.flag,
+        shortCode: descriptor.shortCode,
         compactLabel: `${descriptor.flag} ${descriptor.shortCode}`,
-        detailedLabel: `${descriptor.flag} ${t(descriptor.countryKey)} — ${descriptor.endonym} (${descriptor.shortCode})`,
+        fullLabel: t(descriptor.nameKey),
         isSelected: descriptor.language === language,
       })),
     [language, t],
@@ -54,54 +56,9 @@ export function useLanguageSelection() {
     [language, setLanguage],
   );
 
-  /**
-   * Opens the platform's own selection UI: an action sheet on iOS and an alert
-   * dialog on Android, rather than a Quizo-styled modal.
-   */
-  const presentLanguagePicker = useCallback(() => {
-    const cancelLabel = t('common.cancel');
-
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          title: t('language.sheetTitle'),
-          message: t('language.sheetMessage'),
-          options: [...choices.map((choice) => choice.detailedLabel), cancelLabel],
-          cancelButtonIndex: choices.length,
-          userInterfaceStyle: 'light',
-        },
-        (selectedIndex) => {
-          const choice = choices[selectedIndex];
-
-          if (choice) {
-            void selectLanguage(choice.language);
-          }
-        },
-      );
-
-      return;
-    }
-
-    Alert.alert(
-      t('language.sheetTitle'),
-      t('language.sheetMessage'),
-      [
-        ...choices.map((choice) => ({
-          text: choice.detailedLabel,
-          onPress: () => {
-            void selectLanguage(choice.language);
-          },
-        })),
-        { text: cancelLabel, style: 'cancel' as const },
-      ],
-      { cancelable: true },
-    );
-  }, [choices, selectLanguage, t]);
-
   return {
     language,
     choices,
     selectLanguage,
-    presentLanguagePicker,
   };
 }

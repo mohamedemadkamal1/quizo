@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/common/AppText';
 import { CheckGlyph, WrongGlyph } from '@/components/questions/QuestionIcons';
 import { gameplayColors } from '@/constants/questions';
+import { useLanguageDirection } from '@/hooks/useLanguageDirection';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { QuestionOption, QuestionType } from '@/types/questions.types';
 
@@ -28,6 +29,7 @@ export function AnswerOption({
   onPress,
 }: AnswerOptionProps) {
   const { t } = useTranslation();
+  const { directionStyle } = useLanguageDirection();
   const isFeedback = visualState !== 'idle';
   // `True` is a backend enum value, so the comparison stays untranslated even
   // though the option text the player reads is localized by the API.
@@ -100,18 +102,19 @@ export function AnswerOption({
       <View
         style={[
           styles.content,
-          questionType === 'multiple-choice' && styles.multipleContent,
+          directionStyle,
           { gap: 9 * scale, paddingHorizontal: 23 * scale },
         ]}
       >
-        {questionType === 'true-false' && showCheck ? (
+        {showCheck ? (
           <CheckGlyph color={iconColor} size={25 * scale} />
         ) : null}
-        {questionType === 'true-false' && showWrong ? (
+        {showWrong ? (
           <WrongGlyph color={iconColor} size={25 * scale} />
         ) : null}
 
         <AppText
+          alignToLanguage
           adjustsFontSizeToFit
           minimumFontScale={0.75}
           numberOfLines={2}
@@ -128,13 +131,6 @@ export function AnswerOption({
         >
           {feedbackLabel}
         </AppText>
-
-        {questionType === 'multiple-choice' && showCheck ? (
-          <CheckGlyph color={iconColor} size={25 * scale} />
-        ) : null}
-        {questionType === 'multiple-choice' && showWrong ? (
-          <WrongGlyph color={iconColor} size={25 * scale} />
-        ) : null}
       </View>
     </Pressable>
   );
@@ -150,18 +146,16 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   content: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  multipleContent: {
     justifyContent: 'flex-start',
   },
   label: {
     // Longer Arabic labels shrink and wrap inside the pill instead of being
     // clipped by its fixed width.
     minWidth: 0,
-    flexShrink: 1,
+    flex: 1,
     fontFamily: 'Fredoka',
     fontWeight: '600',
     includeFontPadding: false,

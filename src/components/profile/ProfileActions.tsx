@@ -2,10 +2,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/common/AppText';
+import { LanguageDropdown } from '@/components/common/LanguageDropdown';
 import { ProfileIcon } from '@/components/profile/ProfileIcon';
 import { colors } from '@/constants/colors';
 import { useTranslation } from '@/hooks/useTranslation';
-import { getLanguageDescriptor, type TranslationKey } from '@/i18n';
+import { type TranslationKey } from '@/i18n';
 
 type GuestProfileActionsProps = {
   onCompleteProfile: () => void;
@@ -18,10 +19,6 @@ type RegisteredProfileActionsProps = {
 };
 
 type ProgressActionProps = {
-  onPress: () => void;
-};
-
-type LanguageActionProps = {
   onPress: () => void;
 };
 
@@ -118,35 +115,52 @@ export function ProgressAction({ onPress }: ProgressActionProps) {
  * Available to guests and registered players alike, and placed between
  * "My Progress" and the registered-only account actions.
  *
- * Pressing it hands off to the platform's own selection UI rather than opening
- * a Quizo-styled dialog.
+ * Its full-name dropdown is shared with Welcome's compact selector and is
+ * rendered through a root modal, so the surrounding ScrollView cannot clip it.
  */
-export function LanguageAction({ onPress }: LanguageActionProps) {
+export function LanguageAction() {
   const { t, language } = useTranslation();
-  const descriptor = getLanguageDescriptor(language);
-  const currentLanguageLabel = `${descriptor.flag} ${descriptor.endonym}`;
 
   return (
-    <Pressable
-      accessibilityHint={t('language.selectorHint')}
-      accessibilityLabel={t('language.title')}
-      accessibilityRole="button"
-      accessibilityValue={{ text: currentLanguageLabel }}
-      android_ripple={{ color: 'rgba(124, 58, 237, 0.08)' }}
-      onPress={onPress}
-      style={styles.passwordRow}
-    >
-      <View style={styles.passwordIconTile}>
-        <ProfileIcon name="globe" color={colors.settings.violet} size={21} />
-      </View>
-      <View style={styles.passwordCopy}>
-        <AppText style={styles.passwordTitle}>{t('language.title')}</AppText>
-        <AppText numberOfLines={1} style={styles.passwordSubtitle}>
-          {currentLanguageLabel}
-        </AppText>
-      </View>
-      <ProfileIcon name="chevron" color={colors.settings.muted} size={18} />
-    </Pressable>
+    <LanguageDropdown
+      renderTrigger={({ triggerRef, isOpen, open }) => (
+        <Pressable
+          ref={triggerRef}
+          accessibilityHint={t('language.selectorHint')}
+          accessibilityLabel={t('language.title')}
+          accessibilityRole="button"
+          accessibilityState={{ expanded: isOpen }}
+          accessibilityValue={{
+            text: t(
+              language === 'ar' ? 'language.arabic' : 'language.english',
+            ),
+          }}
+          android_ripple={{ color: 'rgba(124, 58, 237, 0.08)' }}
+          onPress={open}
+          style={styles.passwordRow}
+        >
+          <View style={styles.passwordIconTile}>
+            <ProfileIcon
+              name="globe"
+              color={colors.settings.violet}
+              size={21}
+            />
+          </View>
+          <View style={styles.passwordCopy}>
+            <AppText style={styles.passwordTitle}>{t('language.title')}</AppText>
+            <AppText numberOfLines={2} style={styles.passwordSubtitle}>
+              {t('language.subtitle')}
+            </AppText>
+          </View>
+          <ProfileIcon
+            name="chevron"
+            color={colors.settings.muted}
+            size={18}
+          />
+        </Pressable>
+      )}
+      variant="full"
+    />
   );
 }
 
@@ -178,6 +192,8 @@ export function RegisteredProfileActions({
         </View>
         <ProfileIcon name="chevron" color={colors.settings.muted} size={18} />
       </Pressable>
+
+      <LanguageAction />
 
       <View style={styles.destructiveRow}>
         <Pressable

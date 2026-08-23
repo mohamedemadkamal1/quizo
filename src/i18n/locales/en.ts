@@ -35,8 +35,8 @@ export const en = {
   },
 
   language: {
-    title: 'Language',
-    subtitle: 'Choose the language of the app',
+    title: 'Select Language',
+    subtitle: 'Choose your language',
     selectorLabel: 'Change language',
     selectorHint: 'Opens the language options',
     optionLabel: '{{country}} — {{language}}',

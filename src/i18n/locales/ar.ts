@@ -37,8 +37,8 @@ export const ar = {
   },
 
   language: {
-    title: 'اللغة',
-    subtitle: 'اختر لغة التطبيق',
+    title: 'اختيار اللغة',
+    subtitle: 'اختر لغتك',
     selectorLabel: 'تغيير اللغة',
     selectorHint: 'يفتح خيارات اللغة',
     optionLabel: '{{country}} — {{language}}',

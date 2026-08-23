@@ -86,7 +86,7 @@ function toRankedEntry(
 }
 
 export function useLeaderboardScreen() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { width } = useWindowDimensions();
   const tabBarHeight = useBottomTabBarHeight();
   const queryClient = useQueryClient();
@@ -101,7 +101,7 @@ export function useLeaderboardScreen() {
   const hasFocusedOnceRef = useRef(false);
   const hasScrolledRef = useRef(false);
 
-  const queryKey = getLeaderboardQueryKey(sessionUserId);
+  const queryKey = getLeaderboardQueryKey(sessionUserId, language);
   const leaderboardQuery = useInfiniteQuery({
     queryKey,
     queryFn: ({ pageParam }) =>

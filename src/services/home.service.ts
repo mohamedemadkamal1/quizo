@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/api/api-client';
+import type { AppLanguage } from '@/i18n';
 import type {
   HomeApiResponse,
   HomeData,
@@ -7,10 +8,18 @@ import type {
   SubCategoryLevelsApiResponse,
 } from '@/types/home.types';
 
-export const HOME_QUERY_KEY = ['home'] as const;
+export function getHomeQueryKey(
+  userId: string | undefined,
+  language: AppLanguage,
+) {
+  return ['home', language, userId ?? null] as const;
+}
 
-export function getSubCategoryLevelCountsQueryKey(subCatId: number | null) {
-  return ['sub-categories', subCatId, 'level-counts'] as const;
+export function getSubCategoryLevelCountsQueryKey(
+  subCatId: number | null,
+  language: AppLanguage,
+) {
+  return ['sub-categories', language, subCatId, 'level-counts'] as const;
 }
 
 function isFiniteNumber(value: unknown): value is number {

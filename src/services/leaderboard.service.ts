@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/api/api-client';
+import type { AppLanguage } from '@/i18n';
 import { isAvatarId } from '@/types/avatar.types';
 import type {
   GetLeaderboardParams,
@@ -10,8 +11,11 @@ import type {
 export const LEADERBOARD_FIRST_PAGE = 1;
 export const LEADERBOARD_LIMIT = 10;
 
-export function getLeaderboardQueryKey(userId: string | undefined) {
-  return ['leaderboard', userId ?? null, LEADERBOARD_LIMIT] as const;
+export function getLeaderboardQueryKey(
+  userId: string | undefined,
+  language: AppLanguage,
+) {
+  return ['leaderboard', language, userId ?? null, LEADERBOARD_LIMIT] as const;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

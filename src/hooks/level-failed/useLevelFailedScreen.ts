@@ -9,7 +9,7 @@ import {
   LEVEL_MAP_LIMIT,
   LEVEL_MAP_PAGE,
 } from "@/services/level-map.service";
-import { HOME_QUERY_KEY } from "@/services/home.service";
+import { getHomeQueryKey } from "@/services/home.service";
 import {
   getSessionQuestionsQueryKey,
   startLevel,
@@ -24,7 +24,7 @@ import {
 
 export function useLevelFailedScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const queryClient = useQueryClient();
   const userId = useAuthStore((state) => state.session?.user.id);
   const params = useLocalSearchParams<LevelResultRouteParams>();
@@ -93,9 +93,9 @@ export function useLevelFailedScreen() {
 
     queryClient.removeQueries({
       exact: true,
-      queryKey: getSessionQuestionsQueryKey(summary.sessionId),
+      queryKey: getSessionQuestionsQueryKey(summary.sessionId, language),
     });
-  }, [queryClient, summary]);
+  }, [language, queryClient, summary]);
 
   const refreshProgressQueries = useCallback(() => {
     if (!summary) {
@@ -104,21 +104,24 @@ export function useLevelFailedScreen() {
 
     void queryClient.invalidateQueries({
       exact: true,
-      queryKey: getLevelMapQueryKey({
-        subCategoryId: summary.categoryId,
-        stage: summary.difficulty,
-        page: LEVEL_MAP_PAGE,
-        limit: LEVEL_MAP_LIMIT,
-      }),
+      queryKey: getLevelMapQueryKey(
+        {
+          subCategoryId: summary.categoryId,
+          stage: summary.difficulty,
+          page: LEVEL_MAP_PAGE,
+          limit: LEVEL_MAP_LIMIT,
+        },
+        language,
+      ),
     });
 
     if (userId) {
       void queryClient.invalidateQueries({
         exact: true,
-        queryKey: [...HOME_QUERY_KEY, userId],
+        queryKey: getHomeQueryKey(userId, language),
       });
     }
-  }, [queryClient, summary, userId]);
+  }, [language, queryClient, summary, userId]);
 
   const handleTryAgain = useCallback(async () => {
     if (!summary || navigationLockedRef.current || retryInFlightRef.current) {
@@ -147,7 +150,7 @@ export function useLevelFailedScreen() {
       removeCompletedSession();
       queryClient.removeQueries({
         exact: true,
-        queryKey: getSessionQuestionsQueryKey(newSession.id),
+        queryKey: getSessionQuestionsQueryKey(newSession.id, language),
       });
       router.replace({
         pathname: "/questions",
@@ -170,6 +173,7 @@ export function useLevelFailedScreen() {
       }
     }
   }, [
+    language,
     queryClient,
     removeCompletedSession,
     router,

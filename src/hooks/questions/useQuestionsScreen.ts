@@ -28,7 +28,7 @@ import {
   LEVEL_MAP_LIMIT,
   LEVEL_MAP_PAGE,
 } from "@/services/level-map.service";
-import { HOME_QUERY_KEY } from "@/services/home.service";
+import { getHomeQueryKey } from "@/services/home.service";
 import {
   playAnswerSound,
   prepareAnswerSounds,
@@ -237,7 +237,7 @@ function getFirstUnansweredQuestionIndex(session: QuestionSession) {
 
 export function useQuestionsScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const queryClient = useQueryClient();
   const userId = useAuthStore((state) => state.session?.user.id);
   const params = useLocalSearchParams<RouteParams>();
@@ -274,7 +274,7 @@ export function useQuestionsScreen() {
     : null;
   const sessionId = routeContext?.sessionId ?? 0;
   const questionsQuery = useQuery({
-    queryKey: getSessionQuestionsQueryKey(sessionId),
+    queryKey: getSessionQuestionsQueryKey(sessionId, language),
     queryFn: () => getSessionQuestions(sessionId),
     enabled: routeContext !== null,
     refetchOnWindowFocus: false,
@@ -594,7 +594,10 @@ export function useQuestionsScreen() {
         ) {
           void queryClient.invalidateQueries({
             exact: true,
-            queryKey: getSessionQuestionsQueryKey(currentSession.sessionId),
+            queryKey: getSessionQuestionsQueryKey(
+              currentSession.sessionId,
+              language,
+            ),
           });
           throw new Error(t("questions.sessionMismatch"));
         }
@@ -624,23 +627,29 @@ export function useQuestionsScreen() {
         void playAnswerSound(result.isCorrect ? "correct" : "wrong");
         void queryClient.invalidateQueries({
           exact: true,
-          queryKey: getSessionQuestionsQueryKey(currentSession.sessionId),
+          queryKey: getSessionQuestionsQueryKey(
+            currentSession.sessionId,
+            language,
+          ),
         });
 
         if (result.isLevelCompleted) {
           void queryClient.invalidateQueries({
             exact: true,
-            queryKey: getLevelMapQueryKey({
-              subCategoryId: currentRoute.categoryId,
-              stage: currentRoute.difficulty,
-              page: LEVEL_MAP_PAGE,
-              limit: LEVEL_MAP_LIMIT,
-            }),
+            queryKey: getLevelMapQueryKey(
+              {
+                subCategoryId: currentRoute.categoryId,
+                stage: currentRoute.difficulty,
+                page: LEVEL_MAP_PAGE,
+                limit: LEVEL_MAP_LIMIT,
+              },
+              language,
+            ),
           });
           if (userId) {
             void queryClient.invalidateQueries({
               exact: true,
-              queryKey: [...HOME_QUERY_KEY, userId],
+              queryKey: getHomeQueryKey(userId, language),
             });
           }
         }
@@ -670,7 +679,7 @@ export function useQuestionsScreen() {
         });
       }
     },
-    [queryClient, submitAnswerMutation, t, userId],
+    [language, queryClient, submitAnswerMutation, t, userId],
   );
 
   useEffect(() => {

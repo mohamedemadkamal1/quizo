@@ -1,7 +1,6 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/common/AppText';
-import { NotificationBellIcon } from '@/components/common/icons/NotificationBellIcon';
 import { useTranslation } from '@/hooks/useTranslation';
 
 type HomeWelcomeSectionProps = {
@@ -39,19 +38,6 @@ export function HomeWelcomeSection({
           {t('home.subtitle')}
         </AppText>
       </View>
-
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('home.openNotifications')}
-        accessibilityState={{ disabled: notificationsDisabled }}
-        disabled={notificationsDisabled}
-        hitSlop={8}
-        onPress={onPressNotifications}
-        className="h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-white active:scale-95 active:opacity-80"
-        style={styles.notificationButton}
-      >
-        <NotificationBellIcon />
-      </Pressable>
     </View>
   );
 }
