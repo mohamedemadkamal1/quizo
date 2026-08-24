@@ -335,29 +335,39 @@ export function useProfileScreen() {
     [changePasswordMutation, t],
   );
 
-  const confirmDeleteProfile = useCallback(async () => {
-    if (deleteLockedRef.current || !session) {
-      return;
-    }
-
-    deleteLockedRef.current = true;
-    setModalErrorMessage(null);
-
-    try {
-      await deleteProfileMutation.mutateAsync();
-      await queryClient.cancelQueries();
-      queryClient.clear();
-      signOut();
-    } catch (error) {
-      if (mountedRef.current) {
-        setModalErrorMessage(
-          getApiErrorMessage(error, t('profile.errors.deleteAccount')),
-        );
+  const confirmDeleteProfile = useCallback(
+    async (reason: string) => {
+      if (deleteLockedRef.current || !session) {
+        return;
       }
-    } finally {
-      deleteLockedRef.current = false;
-    }
-  }, [deleteProfileMutation, queryClient, session, signOut, t]);
+
+      const trimmedReason = reason.trim();
+
+      if (!trimmedReason) {
+        setModalErrorMessage(t('profile.deleteModal.reasonRequired'));
+        return;
+      }
+
+      deleteLockedRef.current = true;
+      setModalErrorMessage(null);
+
+      try {
+        await deleteProfileMutation.mutateAsync({ reason: trimmedReason });
+        await queryClient.cancelQueries();
+        queryClient.clear();
+        signOut();
+      } catch (error) {
+        if (mountedRef.current) {
+          setModalErrorMessage(
+            getApiErrorMessage(error, t('profile.errors.deleteAccount')),
+          );
+        }
+      } finally {
+        deleteLockedRef.current = false;
+      }
+    },
+    [deleteProfileMutation, queryClient, session, signOut, t],
+  );
 
   const confirmLogout = useCallback(async () => {
     if (logoutLockedRef.current) {

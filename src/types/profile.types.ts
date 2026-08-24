@@ -38,6 +38,10 @@ export type UpdateProfileApiResponse = {
   data: UpdateProfileData;
 };
 
+export type DeleteProfileRequest = {
+  reason: string;
+};
+
 export type ChangePasswordRequest = {
   currentPassword: string;
   newPassword: string;

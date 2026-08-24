@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/common/AppText';
+import { AppTextInput } from '@/components/common/AppTextInput';
 import { ProfileModalError } from '@/components/profile/ProfileModalElements';
 import { ProfileModalFrame } from '@/components/profile/ProfileModalFrame';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -10,7 +12,7 @@ type DeleteProfileModalProps = {
   isDeleting: boolean;
   errorMessage: string | null;
   onCancel: () => void;
-  onConfirm: () => void;
+  onConfirm: (reason: string) => void;
 };
 
 export function DeleteProfileModal({
@@ -21,30 +23,59 @@ export function DeleteProfileModal({
   onConfirm,
 }: DeleteProfileModalProps) {
   const { t } = useTranslation();
+  const [reason, setReason] = useState('');
+  const canDelete = reason.trim().length > 0;
+
+  // Cancelling is the only way out that keeps the screen mounted, so it is
+  // also where the typed reason is dropped.
+  const cancel = () => {
+    setReason('');
+    onCancel();
+  };
 
   return (
     <ProfileModalFrame
       accessibilityLabel={t('profile.deleteModal.dialogLabel')}
       isBusy={isDeleting}
       maxWidth={430}
-      onClose={onCancel}
+      onClose={cancel}
       visible={visible}
     >
       <AppText accessibilityRole="header" style={styles.title}>
         {t('profile.deleteModal.title')}
       </AppText>
       <AppText style={styles.body}>{t('profile.deleteModal.body')}</AppText>
+
+      <AppText style={styles.reasonLabel}>
+        {t('profile.deleteModal.reasonLabel')}
+      </AppText>
+      <AppTextInput
+        accessibilityLabel={t('profile.deleteModal.reasonLabel')}
+        editable={!isDeleting}
+        maxLength={500}
+        multiline
+        onChangeText={setReason}
+        placeholder={t('profile.deleteModal.reasonPlaceholder')}
+        placeholderTextColor="#9CA3AF"
+        style={[styles.reasonInput, isDeleting && styles.disabled]}
+        textAlignVertical="top"
+        value={reason}
+      />
+
       <ProfileModalError message={errorMessage} />
       <View style={styles.actions}>
         <Pressable
           accessibilityRole="button"
-          accessibilityState={{ busy: isDeleting, disabled: isDeleting }}
-          disabled={isDeleting}
-          onPress={onConfirm}
+          accessibilityState={{
+            busy: isDeleting,
+            disabled: isDeleting || !canDelete,
+          }}
+          disabled={isDeleting || !canDelete}
+          onPress={() => onConfirm(reason)}
           style={[
             styles.button,
             styles.deleteButton,
-            isDeleting && styles.disabled,
+            (isDeleting || !canDelete) && styles.disabled,
           ]}
         >
           {isDeleting ? (
@@ -58,7 +89,7 @@ export function DeleteProfileModal({
         <Pressable
           accessibilityRole="button"
           disabled={isDeleting}
-          onPress={onCancel}
+          onPress={cancel}
           style={[
             styles.button,
             styles.cancelButton,
@@ -90,6 +121,28 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 26,
     textAlign: 'center',
+  },
+  reasonLabel: {
+    marginTop: 24,
+    color: '#4B5563',
+    fontFamily: 'Nunito',
+    fontSize: 15,
+    fontWeight: '700',
+    lineHeight: 20,
+  },
+  reasonInput: {
+    minHeight: 96,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: '#F9FAFB',
+    color: '#374151',
+    fontFamily: 'Nunito',
+    fontSize: 15,
+    lineHeight: 21,
   },
   actions: {
     alignItems: 'center',

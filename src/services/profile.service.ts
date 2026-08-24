@@ -3,6 +3,7 @@ import { normalizeAvatarId } from '@/types/avatar.types';
 import type {
   ChangePasswordApiResponse,
   ChangePasswordRequest,
+  DeleteProfileRequest,
   SoundPreferences,
   UpdateProfileData,
   UpdateProfileRequest,
@@ -69,8 +70,17 @@ export async function updateProfile(
   return parseUpdateProfileResponse(response.data);
 }
 
-export async function deleteProfile(): Promise<void> {
-  await apiClient.delete('/auth/profile');
+export async function deleteProfile(
+  payload: DeleteProfileRequest,
+): Promise<void> {
+  const reason = payload.reason.trim();
+
+  if (!reason) {
+    throw new Error('A reason is required to delete an account.');
+  }
+
+  // Axios only sends a body on DELETE when it is passed as `data`.
+  await apiClient.delete('/auth/profile', { data: { reason } });
 }
 
 function parseChangePasswordResponse(
