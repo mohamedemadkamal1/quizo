@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText } from '@/components/common/AppText';
+import { ProfileIcon } from '@/components/profile/ProfileIcon';
 import { colors } from '@/constants/colors';
 import type { useProfileProgressScreen } from '@/hooks/profile/useProfileProgressScreen';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -33,6 +34,25 @@ export function ProfileProgressContent({
       <View pointerEvents="none" style={styles.topShape} />
       <View pointerEvents="none" style={styles.leftShape} />
       <View pointerEvents="none" style={styles.bottomShape} />
+
+      {/*
+        A row rather than an aligned box, so the button sits on the leading
+        edge — left in English, right in Arabic — from the layout direction
+        alone. It stays outside the scroll view to remain reachable however
+        far the category list is scrolled.
+      */}
+      <View style={styles.header}>
+        <Pressable
+          accessibilityLabel={t('profile.progressScreen.backLabel')}
+          accessibilityRole="button"
+          hitSlop={10}
+          onPress={screen.goBack}
+          style={styles.backButton}
+        >
+          <ProfileIcon name="back" color={colors.settings.violet} size={22} />
+        </Pressable>
+      </View>
+
       <ScrollView
         bounces={false}
         contentContainerStyle={[
@@ -251,9 +271,23 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(139, 92, 246, 0.1)',
     transform: [{ rotate: '-22deg' }],
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 22,
+    paddingTop: 6,
+  },
+  backButton: {
+    width: 42,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 21,
+    backgroundColor: 'rgba(255, 255, 255, 0.69)',
+  },
   content: {
     paddingHorizontal: 22,
-    paddingTop: 25,
+    paddingTop: 16,
   },
   heading: {
     color: '#8654E8',

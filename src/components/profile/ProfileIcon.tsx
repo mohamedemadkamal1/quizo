@@ -4,6 +4,7 @@ import { useLanguageDirection } from '@/hooks/useLanguageDirection';
 import { getDirectionalIconStyle } from '@/theme/direction-styles';
 
 export type ProfileIconName =
+  | 'back'
   | 'chevron'
   | 'close'
   | 'edit'
@@ -28,6 +29,22 @@ export function ProfileIcon({ name, color, size = 22 }: ProfileIconProps) {
     viewBox: '0 0 24 24',
     fill: 'none',
   } as const;
+
+  if (name === 'back') {
+    // Points back along the reading direction: towards the left in English and
+    // towards the right in Arabic.
+    return (
+      <Svg {...commonProps} style={getDirectionalIconStyle(isRTL)}>
+        <Path
+          d="M19 12H5.5M11.5 5.5 5 12l6.5 6.5"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
+    );
+  }
 
   if (name === 'close') {
     return (

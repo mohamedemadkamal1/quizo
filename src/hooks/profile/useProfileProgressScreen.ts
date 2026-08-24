@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useBottomTabBarHeight } from 'expo-router/js-tabs';
 import { useCallback, useMemo, useRef } from 'react';
 
@@ -17,10 +17,12 @@ import { getSafeNonNegativeValue } from '@/utils/profile';
 const EMPTY_HOME_ITEMS: HomeItem[] = [];
 
 export function useProfileProgressScreen() {
+  const router = useRouter();
   const { t, language } = useTranslation();
   const tabBarHeight = useBottomTabBarHeight();
   const userId = useAuthStore((state) => state.session?.user.id);
   const hasFocusedOnceRef = useRef(false);
+  const navigationLockedRef = useRef(false);
   const homeQuery = useQuery({
     queryKey: getHomeQueryKey(userId, language),
     queryFn: getHome,
@@ -31,6 +33,8 @@ export function useProfileProgressScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      navigationLockedRef.current = false;
+
       if (hasFocusedOnceRef.current) {
         void refetchHome({ cancelRefetch: false });
       } else {
@@ -38,6 +42,22 @@ export function useProfileProgressScreen() {
       }
     }, [refetchHome]),
   );
+
+  const goBack = useCallback(() => {
+    if (navigationLockedRef.current) {
+      return;
+    }
+
+    navigationLockedRef.current = true;
+
+    // Reached through a deep link there is nothing to pop, so fall back to the
+    // profile tab this screen belongs to.
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)/profile');
+    }
+  }, [router]);
 
   const items = homeQuery.data?.items ?? EMPTY_HOME_ITEMS;
   const totals = useMemo(
@@ -103,6 +123,7 @@ export function useProfileProgressScreen() {
       : null,
     isRetrying: homeQuery.isFetching,
     contentBottomPadding: tabBarHeight + 24,
+    goBack,
     retry: () => {
       void refetchHome();
     },

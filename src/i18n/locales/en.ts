@@ -471,6 +471,7 @@ export const en = {
     },
 
     progressScreen: {
+      backLabel: 'Back to profile',
       heading: 'My Progress',
       subtitle: 'Track your journey and see how far you’ve come!',
       loadingLabel: 'Loading progress',

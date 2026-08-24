@@ -477,6 +477,7 @@ export const ar = {
     },
 
     progressScreen: {
+      backLabel: 'العودة إلى الملف الشخصي',
       heading: 'تقدّمي',
       subtitle: 'تابع رحلتك وشاهد إلى أين وصلت!',
       loadingLabel: 'جارٍ تحميل التقدّم',
