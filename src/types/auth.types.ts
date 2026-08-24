@@ -31,6 +31,10 @@ export type SignUpApiData = {
   user: BackendAuthUserDto;
 };
 
+export type SignUpOtpApiData = {
+  message?: string;
+};
+
 export type SignInApiData = {
   accessToken: string;
   user: BackendAuthUserDto;
@@ -66,14 +70,58 @@ export type VerifyResetCodePayload = {
   code: string;
 };
 
+export type VerifyAccountPayload = {
+  email: string;
+  code: string;
+};
+
+export type CompleteProfilePayload = {
+  email: string;
+  password: string;
+};
+
+export type VerifyCompleteProfilePayload = {
+  email: string;
+  code: string;
+};
+
+/**
+ * `/auth/verify` backs every one-time code the backend issues, so the purpose
+ * is what tells it which flow the code was sent for.
+ */
+export type OtpPurpose =
+  | 'PASSWORD_RESET'
+  | 'SIGNUP'
+  | 'COMPLETE_PROFILE'
+  | 'CHANGE_EMAIL';
+
 export type VerifyOtpApiPayload = {
   email: string;
   otp: string;
+  purpose: OtpPurpose;
 };
 
-export type VerifyOtpApiData = {
+export type VerifyResetOtpApiData = {
   resetToken: string;
   expiresIn: number;
+};
+
+export type VerifyAccountApiData = {
+  accessToken: string;
+  user: BackendAuthUserDto;
+};
+
+export type CompleteProfileOtpApiData = {
+  message?: string;
+};
+
+/**
+ * Converting a guest issues fresh credentials, because the role on the token
+ * changes along with the account.
+ */
+export type VerifyCompleteProfileApiData = {
+  accessToken: string;
+  user: BackendAuthUserDto;
 };
 
 export type ResetPasswordPayload = {

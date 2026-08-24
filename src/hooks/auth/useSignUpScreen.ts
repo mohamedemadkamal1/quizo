@@ -9,13 +9,16 @@ import {
   createSignUpSchema,
   type SignUpFormValues,
 } from '@/schemas/auth.schemas';
-import { useAuthStore } from '@/store/auth.store';
+import { signUp } from '@/services/auth.service';
+import { useAccountVerificationStore } from '@/store/account-verification.store';
 import { getApiErrorMessage } from '@/utils/get-api-error-message';
 
 export function useSignUpScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const signUp = useAuthStore((state) => state.signUp);
+  const beginVerification = useAccountVerificationStore(
+    (state) => state.begin,
+  );
   const schema = useMemo(() => createSignUpSchema(t), [t]);
   const {
     control,
@@ -28,12 +31,17 @@ export function useSignUpScreen() {
   });
 
   async function submit(values: SignUpFormValues) {
+    const email = values.email.trim().toLowerCase();
+
     try {
       await signUp({
         signupType: 'ACCOUNT',
-        email: values.email.trim().toLowerCase(),
+        email,
         password: values.password,
       });
+
+      beginVerification(email);
+      router.push('/verify-account');
     } catch (error) {
       if (
         isAxiosError<{ message?: string }>(error) &&

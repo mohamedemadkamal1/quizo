@@ -4,10 +4,8 @@ import { useBottomTabBarHeight } from 'expo-router/js-tabs';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useTranslation } from '@/hooks/useTranslation';
-import {
-  createProfileEmailSchema,
-  createProfileUsernameSchema,
-} from '@/schemas/profile.schemas';
+import { createProfileUsernameSchema } from '@/schemas/profile.schemas';
+import { completeProfile } from '@/services/auth.service';
 import {
   changePassword,
   deleteProfile,
@@ -35,8 +33,16 @@ export function useProfileScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const session = useAuthStore((state) => state.session);
   const replaceSessionUser = useAuthStore((state) => state.replaceSessionUser);
+  const verifyCompleteProfile = useAuthStore(
+    (state) => state.verifyCompleteProfile,
+  );
   const signOut = useAuthStore((state) => state.signOut);
   const [activeModal, setActiveModal] = useState<ProfileModal | null>(null);
+  // Set once the conversion code has been sent, which is also what switches
+  // the complete-profile modal over to its code step.
+  const [pendingConversionEmail, setPendingConversionEmail] = useState<
+    string | null
+  >(null);
   const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
     null,
   );
@@ -62,6 +68,14 @@ export function useProfileScreen() {
   });
   const changePasswordMutation = useMutation({
     mutationFn: changePassword,
+    retry: false,
+  });
+  const completeProfileMutation = useMutation({
+    mutationFn: completeProfile,
+    retry: false,
+  });
+  const verifyCompleteProfileMutation = useMutation({
+    mutationFn: verifyCompleteProfile,
     retry: false,
   });
 
@@ -114,16 +128,21 @@ export function useProfileScreen() {
 
       setModalErrorMessage(null);
       setSuccessFeedbackMessage(null);
+      setPendingConversionEmail(null);
       updateProfileMutation.reset();
       deleteProfileMutation.reset();
       changePasswordMutation.reset();
+      completeProfileMutation.reset();
+      verifyCompleteProfileMutation.reset();
       setActiveModal(modal);
     },
     [
       activeModal,
       changePasswordMutation,
+      completeProfileMutation,
       deleteProfileMutation,
       updateProfileMutation,
+      verifyCompleteProfileMutation,
     ],
   );
 
@@ -131,11 +150,14 @@ export function useProfileScreen() {
     updateProfileMutation.isPending ||
     deleteProfileMutation.isPending ||
     changePasswordMutation.isPending ||
+    completeProfileMutation.isPending ||
+    verifyCompleteProfileMutation.isPending ||
     isLoggingOut;
 
   const dismissModal = useCallback(() => {
     if (!isModalBusy) {
       setModalErrorMessage(null);
+      setPendingConversionEmail(null);
       setActiveModal(null);
     }
   }, [isModalBusy]);
@@ -211,22 +233,20 @@ export function useProfileScreen() {
       setModalErrorMessage(null);
 
       try {
-        const data = await updateProfileMutation.mutateAsync({
-          email: email.trim().toLowerCase(),
+        const normalizedEmail = email.trim().toLowerCase();
+
+        await completeProfileMutation.mutateAsync({
+          email: normalizedEmail,
           password,
         });
-        const validEmail = createProfileEmailSchema(t).safeParse(data.email);
-
-        if (!data.profileCompleted || !validEmail.success) {
-          throw new Error(t('profile.errors.missingEmail'));
-        }
 
         if (!mountedRef.current) {
           return false;
         }
 
-        replaceSessionUser(mapProfileDataToAuthUser(data, 'learner'));
-        setActiveModal(null);
+        // The account is not converted yet: this only moves the modal on to
+        // the code that was just emailed.
+        setPendingConversionEmail(normalizedEmail);
         return true;
       } catch (error) {
         if (mountedRef.current) {
@@ -239,7 +259,43 @@ export function useProfileScreen() {
         updateLockedRef.current = false;
       }
     },
-    [replaceSessionUser, session, t, updateProfileMutation],
+    [completeProfileMutation, session, t],
+  );
+
+  const submitGuestConversionCode = useCallback(
+    async (code: string) => {
+      if (updateLockedRef.current || !pendingConversionEmail) {
+        return false;
+      }
+
+      updateLockedRef.current = true;
+      setModalErrorMessage(null);
+
+      try {
+        await verifyCompleteProfileMutation.mutateAsync({
+          email: pendingConversionEmail,
+          code,
+        });
+
+        if (!mountedRef.current) {
+          return false;
+        }
+
+        setPendingConversionEmail(null);
+        setActiveModal(null);
+        return true;
+      } catch (error) {
+        if (mountedRef.current) {
+          setModalErrorMessage(
+            getApiErrorMessage(error, t('auth.errors.verifyCodeFailed')),
+          );
+        }
+        return false;
+      } finally {
+        updateLockedRef.current = false;
+      }
+    },
+    [pendingConversionEmail, t, verifyCompleteProfileMutation],
   );
 
   const submitPasswordChange = useCallback(
@@ -343,6 +399,10 @@ export function useProfileScreen() {
     isDeleteProfileModalVisible: activeModal === 'delete-profile',
     isLogoutModalVisible: activeModal === 'logout',
     isUpdatingProfile: updateProfileMutation.isPending,
+    isCompletingProfile:
+      completeProfileMutation.isPending ||
+      verifyCompleteProfileMutation.isPending,
+    completeProfilePendingEmail: pendingConversionEmail,
     isChangingPassword: changePasswordMutation.isPending,
     isDeletingProfile: deleteProfileMutation.isPending,
     isLoggingOut,
@@ -354,6 +414,7 @@ export function useProfileScreen() {
     onDismissModal: dismissModal,
     onSubmitEditedProfile: submitEditedProfile,
     onSubmitGuestConversion: submitGuestConversion,
+    onSubmitGuestConversionCode: submitGuestConversionCode,
     onSubmitPasswordChange: submitPasswordChange,
     onConfirmDeleteProfile: confirmDeleteProfile,
     onConfirmLogout: confirmLogout,

@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
   ActivityIndicator,
@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { OtpInput } from '@/components/auth/OtpInput';
 import { AppText } from '@/components/common/AppText';
 import { AppTextInput } from '@/components/common/AppTextInput';
 import { ProfileIcon } from '@/components/profile/ProfileIcon';
@@ -26,12 +27,20 @@ import {
   type CompleteProfileFormValues,
 } from '@/schemas/profile.schemas';
 
+const OTP_LENGTH = 6;
+
 type CompleteProfileModalProps = {
   visible: boolean;
   isSubmitting: boolean;
   errorMessage: string | null;
+  /**
+   * Non-null once the code has been sent, which is what moves the modal from
+   * its credentials step to its code step.
+   */
+  pendingEmail: string | null;
   onDismiss: () => void;
   onSubmit: (email: string, password: string) => Promise<boolean>;
+  onSubmitCode: (code: string) => Promise<boolean>;
 };
 
 type CompleteProfileInputProps = TextInputProps & {
@@ -77,8 +86,10 @@ export function CompleteProfileModal({
   visible,
   isSubmitting,
   errorMessage,
+  pendingEmail,
   onDismiss,
   onSubmit,
+  onSubmitCode,
 }: CompleteProfileModalProps) {
   const { t } = useTranslation();
   const { directionStyle } = useLanguageDirection();
@@ -93,6 +104,10 @@ export function CompleteProfileModal({
     resolver: zodResolver(schema),
     defaultValues,
   });
+  const [code, setCode] = useState('');
+  const isCodeStep = pendingEmail !== null;
+  const isSubmitDisabled =
+    isSubmitting || (isCodeStep && code.length !== OTP_LENGTH);
 
   useEffect(() => {
     if (visible) {
@@ -100,15 +115,31 @@ export function CompleteProfileModal({
     }
   }, [reset, visible]);
 
+  // The credentials are cleared as soon as the code is on its way, so a
+  // password never sits in the form behind the code step.
+  useEffect(() => {
+    if (isCodeStep) {
+      reset(defaultValues);
+    }
+  }, [isCodeStep, reset]);
+
   const dismiss = () => {
     reset(defaultValues);
+    setCode('');
     onDismiss();
   };
   const submit = handleSubmit(async ({ email, password }) => {
-    if (await onSubmit(email, password)) {
-      reset(defaultValues);
-    }
+    await onSubmit(email, password);
   });
+  const submitCode = async () => {
+    if (code.length !== OTP_LENGTH) {
+      return;
+    }
+
+    if (await onSubmitCode(code)) {
+      setCode('');
+    }
+  };
 
   return (
     <Modal
@@ -155,83 +186,100 @@ export function CompleteProfileModal({
                 </Pressable>
 
                 <AppText accessibilityRole="header" style={styles.title}>
-                  {t('profile.completeModal.title')}
+                  {isCodeStep
+                    ? t('auth.verifyEmail.title')
+                    : t('profile.completeModal.title')}
                 </AppText>
 
-                <View style={[styles.fields, { width: fieldWidth }]}>
-                  <Controller
-                    control={control}
-                    name="email"
-                    render={({
-                      field: { onBlur, onChange, value },
-                      fieldState,
-                    }) => (
-                      <CompleteProfileInput
-                        accessibilityLabel={t('auth.fields.email')}
-                        autoCapitalize="none"
-                        autoComplete="email"
-                        editable={!isSubmitting}
-                        error={fieldState.error?.message}
-                        keyboardType="email-address"
-                        maxLength={120}
-                        onBlur={onBlur}
-                        onChangeText={onChange}
-                        placeholder={t('auth.fields.email')}
-                        value={value}
-                      />
-                    )}
-                  />
+                {isCodeStep ? (
+                  <View style={[styles.codeStep, { width: fieldWidth }]}>
+                    <AppText style={styles.codeSubtitle}>
+                      {t('auth.verifyEmail.subtitle')}
+                    </AppText>
 
-                  <Controller
-                    control={control}
-                    name="password"
-                    render={({
-                      field: { onBlur, onChange, value },
-                      fieldState,
-                    }) => (
-                      <CompleteProfileInput
-                        accessibilityLabel={t('auth.fields.password')}
-                        autoCapitalize="none"
-                        autoComplete="new-password"
-                        editable={!isSubmitting}
-                        error={fieldState.error?.message}
-                        maxLength={128}
-                        onBlur={onBlur}
-                        onChangeText={onChange}
-                        placeholder={t('auth.fields.password')}
-                        secureTextEntry
-                        value={value}
-                      />
-                    )}
-                  />
+                    <OtpInput
+                      autoFocus
+                      editable={!isSubmitting}
+                      onChange={setCode}
+                      value={code}
+                    />
+                  </View>
+                ) : (
+                  <View style={[styles.fields, { width: fieldWidth }]}>
+                    <Controller
+                      control={control}
+                      name="email"
+                      render={({
+                        field: { onBlur, onChange, value },
+                        fieldState,
+                      }) => (
+                        <CompleteProfileInput
+                          accessibilityLabel={t('auth.fields.email')}
+                          autoCapitalize="none"
+                          autoComplete="email"
+                          editable={!isSubmitting}
+                          error={fieldState.error?.message}
+                          keyboardType="email-address"
+                          maxLength={120}
+                          onBlur={onBlur}
+                          onChangeText={onChange}
+                          placeholder={t('auth.fields.email')}
+                          value={value}
+                        />
+                      )}
+                    />
 
-                  <Controller
-                    control={control}
-                    name="confirmPassword"
-                    render={({
-                      field: { onBlur, onChange, value },
-                      fieldState,
-                    }) => (
-                      <CompleteProfileInput
-                        accessibilityLabel={t(
-                          'profile.completeModal.confirmPasswordLabel',
-                        )}
-                        autoCapitalize="none"
-                        autoComplete="new-password"
-                        editable={!isSubmitting}
-                        error={fieldState.error?.message}
-                        maxLength={128}
-                        onBlur={onBlur}
-                        onChangeText={onChange}
-                        onSubmitEditing={submit}
-                        placeholder={t('auth.fields.confirmPassword')}
-                        returnKeyType="done"
-                        secureTextEntry
-                        value={value}
-                      />
-                    )}
-                  />
-                </View>
+                    <Controller
+                      control={control}
+                      name="password"
+                      render={({
+                        field: { onBlur, onChange, value },
+                        fieldState,
+                      }) => (
+                        <CompleteProfileInput
+                          accessibilityLabel={t('auth.fields.password')}
+                          autoCapitalize="none"
+                          autoComplete="new-password"
+                          editable={!isSubmitting}
+                          error={fieldState.error?.message}
+                          maxLength={128}
+                          onBlur={onBlur}
+                          onChangeText={onChange}
+                          placeholder={t('auth.fields.password')}
+                          secureTextEntry
+                          value={value}
+                        />
+                      )}
+                    />
+
+                    <Controller
+                      control={control}
+                      name="confirmPassword"
+                      render={({
+                        field: { onBlur, onChange, value },
+                        fieldState,
+                      }) => (
+                        <CompleteProfileInput
+                          accessibilityLabel={t(
+                            'profile.completeModal.confirmPasswordLabel',
+                          )}
+                          autoCapitalize="none"
+                          autoComplete="new-password"
+                          editable={!isSubmitting}
+                          error={fieldState.error?.message}
+                          maxLength={128}
+                          onBlur={onBlur}
+                          onChangeText={onChange}
+                          onSubmitEditing={submit}
+                          placeholder={t('auth.fields.confirmPassword')}
+                          returnKeyType="done"
+                          secureTextEntry
+                          value={value}
+                        />
+                      )}
+                    />
+                  </View>
+                )}
 
                 {errorMessage ? (
                   <AppText
@@ -247,28 +295,32 @@ export function CompleteProfileModal({
                   accessibilityRole="button"
                   accessibilityState={{
                     busy: isSubmitting,
-                    disabled: isSubmitting,
+                    disabled: isSubmitDisabled,
                   }}
-                  disabled={isSubmitting}
-                  onPress={submit}
+                  disabled={isSubmitDisabled}
+                  onPress={isCodeStep ? submitCode : submit}
                   style={[
                     styles.submitButton,
                     { width: submitWidth },
-                    isSubmitting && styles.disabled,
+                    isSubmitDisabled && styles.disabled,
                   ]}
                 >
                   {isSubmitting ? (
                     <ActivityIndicator color="#FFFFFF" size="small" />
                   ) : (
                     <AppText numberOfLines={1} style={styles.submitLabel}>
-                      {t('profile.completeModal.submit')}
+                      {isCodeStep
+                        ? t('auth.verifyEmail.submit')
+                        : t('profile.completeModal.submit')}
                     </AppText>
                   )}
                 </Pressable>
 
-                <View style={styles.socialContainer}>
-                  <SocialIconPlaceholders disabled={isSubmitting} />
-                </View>
+                {isCodeStep ? null : (
+                  <View style={styles.socialContainer}>
+                    <SocialIconPlaceholders disabled={isSubmitting} />
+                  </View>
+                )}
               </View>
             </View>
           </ScrollView>
@@ -342,6 +394,19 @@ const styles = StyleSheet.create({
   fields: {
     gap: 11,
     marginTop: 25,
+  },
+  codeStep: {
+    alignItems: 'center',
+    gap: 18,
+    marginTop: 25,
+  },
+  codeSubtitle: {
+    color: '#485BDD',
+    fontFamily: 'Nunito',
+    fontSize: 13,
+    fontWeight: '600',
+    lineHeight: 18,
+    textAlign: 'center',
   },
   fieldWrapper: {
     width: '100%',

@@ -3,6 +3,8 @@ import {
   AuthSession,
   AuthUser,
   BackendAuthUserDto,
+  CompleteProfileOtpApiData,
+  CompleteProfilePayload,
   EmailPayload,
   GuestProfilePayload,
   GuestSignUpApiPayload,
@@ -10,10 +12,15 @@ import {
   SignInApiData,
   SignInPayload,
   SignUpApiData,
+  SignUpOtpApiData,
   SignUpPayload,
-  VerifyOtpApiData,
+  VerifyAccountApiData,
+  VerifyAccountPayload,
+  VerifyCompleteProfileApiData,
+  VerifyCompleteProfilePayload,
   VerifyOtpApiPayload,
   VerifyResetCodePayload,
+  VerifyResetOtpApiData,
 } from '@/types/auth.types';
 
 import { apiClient } from '@/services/api/api-client';
@@ -106,14 +113,81 @@ export async function verifyPasswordResetCode(
   const apiPayload: VerifyOtpApiPayload = {
     email: payload.email.trim().toLowerCase(),
     otp: payload.code,
+    purpose: 'PASSWORD_RESET',
   };
 
-  const response = await apiClient.post<ApiEnvelope<VerifyOtpApiData>>(
+  const response = await apiClient.post<ApiEnvelope<VerifyResetOtpApiData>>(
     '/auth/verify',
     apiPayload,
   );
 
   return response.data.data.resetToken;
+}
+
+export async function verifyAccount(
+  payload: VerifyAccountPayload,
+): Promise<AuthSession> {
+  const apiPayload: VerifyOtpApiPayload = {
+    email: payload.email.trim().toLowerCase(),
+    otp: payload.code,
+    purpose: 'SIGNUP',
+  };
+
+  const response = await apiClient.post<ApiEnvelope<VerifyAccountApiData>>(
+    '/auth/verify',
+    apiPayload,
+  );
+
+  const { accessToken, user } = response.data.data;
+
+  return {
+    accessToken,
+    // A verified email account goes straight to the app: the username and age
+    // are optional details it can fill in later from the profile screen, so the
+    // account is complete as far as the navigation guard is concerned.
+    user: {
+      ...mapBackendUser(user, 'learner'),
+      profileCompleted: true,
+    },
+  };
+}
+
+/**
+ * Turns a guest into a full account. Like signing up it only issues a code:
+ * the guest keeps playing under the old session until `verifyCompleteProfile`
+ * hands back credentials for the converted account.
+ */
+export async function completeProfile(
+  payload: CompleteProfilePayload,
+): Promise<void> {
+  await apiClient.post<ApiEnvelope<CompleteProfileOtpApiData>>(
+    '/auth/complete-profile',
+    {
+      email: payload.email.trim().toLowerCase(),
+      password: payload.password,
+    },
+  );
+}
+
+export async function verifyCompleteProfile(
+  payload: VerifyCompleteProfilePayload,
+): Promise<AuthSession> {
+  const apiPayload: VerifyOtpApiPayload = {
+    email: payload.email.trim().toLowerCase(),
+    otp: payload.code,
+    purpose: 'COMPLETE_PROFILE',
+  };
+
+  const response = await apiClient.post<
+    ApiEnvelope<VerifyCompleteProfileApiData>
+  >('/auth/verify', apiPayload);
+
+  const { accessToken, user } = response.data.data;
+
+  return {
+    accessToken,
+    user: mapBackendUser(user, 'learner'),
+  };
 }
 
 export async function resetPassword(
@@ -132,22 +206,13 @@ export async function resetPassword(
   );
 }
 
-export async function signUp(payload: SignUpPayload): Promise<AuthSession> {
-  const response = await apiClient.post<ApiEnvelope<SignUpApiData>>(
-    '/auth/signup',
-    {
-      ...payload,
-      email: payload.email.trim().toLowerCase(),
-    },
-  );
-
-  const { accessToken, user } = response.data.data;
-
-  return {
-    accessToken,
-    user: {
-      ...mapBackendUser(user, 'learner'),
-      profileCompleted: false,
-    },
-  };
+/**
+ * Signing up does not open a session: the backend emails a one-time code and
+ * only `verifyAccount` below hands back the credentials.
+ */
+export async function signUp(payload: SignUpPayload): Promise<void> {
+  await apiClient.post<ApiEnvelope<SignUpOtpApiData>>('/auth/signup', {
+    ...payload,
+    email: payload.email.trim().toLowerCase(),
+  });
 }

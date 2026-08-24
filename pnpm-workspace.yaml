@@ -20,5 +20,8 @@ minimumReleaseAgeExclude:
   - expo-camera@57.0.3
   - '@expo/config@57.0.8'
   - '@expo/log-box@57.0.3'
+  - expo-dev-client@57.0.15
+  - expo-dev-launcher@57.0.15
+  - expo-dev-menu@57.0.15
 allowBuilds:
   unrs-resolver: true

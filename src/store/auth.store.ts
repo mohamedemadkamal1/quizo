@@ -8,7 +8,8 @@ import {
   AuthSession,
   GuestProfilePayload,
   SignInPayload,
-  SignUpPayload,
+  VerifyAccountPayload,
+  VerifyCompleteProfilePayload,
 } from '@/types/auth.types';
 import { setApiAccessToken } from '@/services/api/api-client';
 import { AUTH_STORAGE_KEY } from '@/store/storage-keys';
@@ -18,7 +19,8 @@ import {
   completeAccountProfile as completeAccountProfileRequest,
   createGuestSession,
   signIn as signInRequest,
-  signUp as signUpRequest,
+  verifyAccount as verifyAccountRequest,
+  verifyCompleteProfile as verifyCompleteProfileRequest,
 } from '@/services/auth.service';
 
 const secureStorage: StateStorage = {
@@ -30,7 +32,10 @@ const secureStorage: StateStorage = {
 type AuthStore = {
   session: AuthSession | null;
   signIn: (payload: SignInPayload) => Promise<void>;
-  signUp: (payload: SignUpPayload) => Promise<void>;
+  verifyAccount: (payload: VerifyAccountPayload) => Promise<void>;
+  verifyCompleteProfile: (
+    payload: VerifyCompleteProfilePayload,
+  ) => Promise<void>;
   completeAccountProfile: (payload: GuestProfilePayload) => Promise<void>;
   continueAsGuest: (payload: GuestProfilePayload) => Promise<void>;
   replaceSessionUser: (user: AuthUser) => void;
@@ -65,8 +70,18 @@ export const useAuthStore = create<AuthStore>()(
         set({ session });
       },
 
-      signUp: async (payload) => {
-        const session = await signUpRequest(payload);
+      verifyAccount: async (payload) => {
+        const session = await verifyAccountRequest(payload);
+
+        setApiAccessToken(session.accessToken);
+        set({ session });
+      },
+
+      // Replaces the whole session rather than just the user: converting a
+      // guest issues a new token, so keeping the old one would leave every
+      // later request authenticated as the guest that no longer exists.
+      verifyCompleteProfile: async (payload) => {
+        const session = await verifyCompleteProfileRequest(payload);
 
         setApiAccessToken(session.accessToken);
         set({ session });

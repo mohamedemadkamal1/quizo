@@ -98,9 +98,11 @@ export function ProfileContent({ screen }: ProfileContentProps) {
       />
       <CompleteProfileModal
         errorMessage={screen.modalErrorMessage}
-        isSubmitting={screen.isUpdatingProfile}
+        isSubmitting={screen.isCompletingProfile}
         onDismiss={screen.onDismissModal}
         onSubmit={screen.onSubmitGuestConversion}
+        onSubmitCode={screen.onSubmitGuestConversionCode}
+        pendingEmail={screen.completeProfilePendingEmail}
         visible={screen.isCompleteProfileModalVisible}
       />
       <ChangePasswordModal
