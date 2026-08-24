@@ -9,7 +9,12 @@ export type SubCategoryId = number;
 
 export type Difficulty = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
 
-export type SubCategoryLevelCounts = Record<Difficulty, number>;
+export type DifficultyLevelProgress = {
+  totalLevels: number;
+  completedLevels: number;
+};
+
+export type SubCategoryLevelCounts = Record<Difficulty, DifficultyLevelProgress>;
 
 export type SubCategoryLevelsApiResponse =
   ApiEnvelope<SubCategoryLevelCounts> & {
@@ -75,6 +80,7 @@ export type CategoryLevelConfig = {
 
 export type CategoryLevel = CategoryLevelConfig & {
   levelCount: number;
+  completedLevels: number;
 };
 
 export type RecentActivity = {

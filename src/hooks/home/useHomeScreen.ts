@@ -177,10 +177,15 @@ export function useHomeScreen() {
   const categoryLevels = useMemo<CategoryLevel[]>(
     () =>
       levelCountsQuery.data
-        ? CATEGORY_LEVELS.map((config) => ({
-            ...config,
-            levelCount: levelCountsQuery.data[config.difficulty],
-          }))
+        ? CATEGORY_LEVELS.map((config) => {
+            const progress = levelCountsQuery.data[config.difficulty];
+
+            return {
+              ...config,
+              levelCount: progress.totalLevels,
+              completedLevels: progress.completedLevels,
+            };
+          })
         : [],
     [levelCountsQuery.data],
   );

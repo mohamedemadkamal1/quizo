@@ -1,6 +1,7 @@
 import { apiClient } from '@/services/api/api-client';
 import type { AppLanguage } from '@/i18n';
 import type {
+  DifficultyLevelProgress,
   HomeApiResponse,
   HomeData,
   HomeItem,
@@ -54,6 +55,26 @@ function isValidLevelCount(value: unknown): value is number {
   return isFiniteNumber(value) && Number.isInteger(value) && value >= 0;
 }
 
+function parseDifficultyLevelProgress(value: unknown): DifficultyLevelProgress {
+  if (!value || typeof value !== 'object') {
+    throw new Error('The difficulty response is malformed.');
+  }
+
+  const progress = value as Record<string, unknown>;
+
+  if (
+    !isValidLevelCount(progress.totalLevels) ||
+    !isValidLevelCount(progress.completedLevels)
+  ) {
+    throw new Error('The difficulty response is malformed.');
+  }
+
+  return {
+    totalLevels: progress.totalLevels,
+    completedLevels: progress.completedLevels,
+  };
+}
+
 function parseSubCategoryLevelCounts(value: unknown): SubCategoryLevelCounts {
   if (!value || typeof value !== 'object') {
     throw new Error('The difficulty response is malformed.');
@@ -61,18 +82,10 @@ function parseSubCategoryLevelCounts(value: unknown): SubCategoryLevelCounts {
 
   const counts = value as Record<string, unknown>;
 
-  if (
-    !isValidLevelCount(counts.BEGINNER) ||
-    !isValidLevelCount(counts.INTERMEDIATE) ||
-    !isValidLevelCount(counts.ADVANCED)
-  ) {
-    throw new Error('The difficulty response is malformed.');
-  }
-
   return {
-    BEGINNER: counts.BEGINNER,
-    INTERMEDIATE: counts.INTERMEDIATE,
-    ADVANCED: counts.ADVANCED,
+    BEGINNER: parseDifficultyLevelProgress(counts.BEGINNER),
+    INTERMEDIATE: parseDifficultyLevelProgress(counts.INTERMEDIATE),
+    ADVANCED: parseDifficultyLevelProgress(counts.ADVANCED),
   };
 }
 
