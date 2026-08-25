@@ -14,6 +14,7 @@ import {
   updateProfile,
 } from '@/services/profile.service';
 import { useAuthStore } from '@/store/auth.store';
+import { usePreferencesStore } from '@/store/preferences.store';
 import { isAvatarId, type AvatarId } from '@/types/avatar.types';
 import type { ChangePasswordRequest } from '@/types/profile.types';
 import { getApiErrorMessage } from '@/utils/get-api-error-message';
@@ -37,6 +38,12 @@ export function useProfileScreen() {
     (state) => state.verifyCompleteProfile,
   );
   const signOut = useAuthStore((state) => state.signOut);
+  const readQuestionsAloud = usePreferencesStore(
+    (state) => state.readQuestionsAloud,
+  );
+  const setReadQuestionsAloud = usePreferencesStore(
+    (state) => state.setReadQuestionsAloud,
+  );
   const [activeModal, setActiveModal] = useState<ProfileModal | null>(null);
   // Set once the conversion code has been sent, which is also what switches
   // the complete-profile modal over to its code step.
@@ -399,6 +406,7 @@ export function useProfileScreen() {
 
   return {
     profile,
+    readQuestionsAloud,
     soundVolume,
     tabBarHeight,
     modalErrorMessage,
@@ -430,5 +438,6 @@ export function useProfileScreen() {
     onConfirmLogout: confirmLogout,
     onNavigateToProgress: navigateToProgress,
     onChangeSoundVolume: changeSoundVolume,
+    onChangeReadQuestionsAloud: setReadQuestionsAloud,
   };
 }

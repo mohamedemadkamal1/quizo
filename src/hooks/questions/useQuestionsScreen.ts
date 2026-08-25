@@ -22,6 +22,7 @@ import {
   QUESTION_REVEAL_FEEDBACK_DURATION_MS,
   QUESTION_TIMER_INTERVAL_MS,
 } from "@/constants/questions";
+import { useQuestionNarration } from "@/hooks/questions/useQuestionNarration";
 import { useTranslation } from "@/hooks/useTranslation";
 import {
   getLevelMapQueryKey,
@@ -310,6 +311,7 @@ export function useQuestionsScreen() {
     optionId: number;
     revealedCorrectOptionId?: number;
   } | null>(null);
+  const stopQuestionNarrationRef = useRef<() => void>(() => {});
   const feedbackDeadlineRef = useRef<number | null>(null);
   const feedbackRemainingRef = useRef(QUESTION_FEEDBACK_DURATION_MS);
   const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -335,6 +337,7 @@ export function useQuestionsScreen() {
 
   const clearGameplayWork = useCallback(() => {
     clearFeedbackTimeout();
+    stopQuestionNarrationRef.current();
     timerDeadlineRef.current = null;
     feedbackDeadlineRef.current = null;
     submissionGenerationRef.current += 1;
@@ -444,6 +447,19 @@ export function useQuestionsScreen() {
 
   const readyState: QuestionsReadyState | null =
     state.status === "ready" ? state : null;
+  const questionNarration = useQuestionNarration({
+    active:
+      readyState?.phase === "answering" && readyState.overlay === null,
+    language,
+    questionKey:
+      readyState && currentQuestion
+        ? `${readyState.session.sessionId}:${currentQuestion.id}`
+        : null,
+    text: currentQuestion?.prompt,
+  });
+  useEffect(() => {
+    stopQuestionNarrationRef.current = questionNarration.stop;
+  }, [questionNarration.stop]);
   const effectStatus = state.status;
   const effectQuestionIndex = readyState?.questionIndex ?? -1;
   const effectPhase = readyState?.phase ?? null;
@@ -521,6 +537,7 @@ export function useQuestionsScreen() {
 
     submissionGenerationRef.current += 1;
     submissionInFlightRef.current = false;
+    stopQuestionNarrationRef.current();
     timerDeadlineRef.current = null;
     timerExpiredQuestionRef.current = null;
     retrySubmissionRef.current = null;
@@ -556,6 +573,7 @@ export function useQuestionsScreen() {
       }
 
       submissionInFlightRef.current = true;
+      stopQuestionNarrationRef.current();
       retrySubmissionRef.current = { optionId, revealedCorrectOptionId };
       completionRef.current = null;
       timerDeadlineRef.current = null;
@@ -771,6 +789,7 @@ export function useQuestionsScreen() {
       }
 
       pauseRequestRef.current = true;
+      stopQuestionNarrationRef.current();
       let remainingMs: number | undefined;
 
       if (
@@ -978,6 +997,10 @@ export function useQuestionsScreen() {
     timerRatio,
     timerColor,
     formattedTime: `00:${remainingSeconds.toString().padStart(2, "0")}`,
+    isQuestionSpeaking: questionNarration.isSpeaking,
+    canReplayQuestion:
+      readyState?.phase === "answering" && readyState.overlay === null,
+    handleReplayQuestion: questionNarration.toggle,
     handleSelectAnswer: submitCurrentAnswer,
     handleRetrySubmission,
     handlePause,

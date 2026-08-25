@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { AppText } from '@/components/common/AppText';
@@ -8,17 +8,24 @@ import {
   QuestionCharacter,
   type CharacterReaction,
 } from '@/components/questions/QuestionCharacter';
-import { ClockGlyph } from '@/components/questions/QuestionIcons';
+import {
+  ClockGlyph,
+  SpeakerGlyph,
+} from '@/components/questions/QuestionIcons';
 import { gameplayColors, gameplayGradients } from '@/constants/questions';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { GameplayQuestion } from '@/types/questions.types';
 
 type QuestionCardProps = {
+  canReplay: boolean;
   question: GameplayQuestion;
   formattedTime: string;
   timerRatio: number;
   timerColor: string;
   reaction: CharacterReaction;
   scale: number;
+  isSpeaking: boolean;
+  onReplay: () => void;
 };
 
 function CardDecorations() {
@@ -41,13 +48,17 @@ function CardDecorations() {
 }
 
 export function QuestionCard({
+  canReplay,
   question,
   formattedTime,
   timerRatio,
   timerColor,
   reaction,
   scale,
+  isSpeaking,
+  onReplay,
 }: QuestionCardProps) {
+  const { t } = useTranslation();
   const trackWidth = 214 * scale;
   const fillWidth = Math.min(trackWidth, Math.max(0, trackWidth * timerRatio));
 
@@ -66,6 +77,34 @@ export function QuestionCard({
       ]}
     >
       <CardDecorations />
+
+      <Pressable
+        accessibilityLabel={t(
+          isSpeaking
+            ? 'questions.stopReadingQuestionLabel'
+            : 'questions.readQuestionLabel',
+        )}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: !canReplay, selected: isSpeaking }}
+        android_ripple={{ color: 'rgba(72, 91, 221, 0.12)' }}
+        disabled={!canReplay}
+        hitSlop={6}
+        onPress={onReplay}
+        style={[
+          styles.speakerButton,
+          {
+            top: 8 * scale,
+            start: 19 * scale,
+            width: 34 * scale,
+            height: 34 * scale,
+            borderRadius: 17 * scale,
+          },
+          isSpeaking && styles.speakerButtonActive,
+          !canReplay && styles.speakerButtonDisabled,
+        ]}
+      >
+        <SpeakerGlyph active={isSpeaking} size={20 * scale} />
+      </Pressable>
 
       {/*
         The prompt, clock and timer use logical offsets so the card reads from
@@ -154,6 +193,20 @@ const styles = StyleSheet.create({
     fontFamily: 'Fredoka',
     fontWeight: '600',
     includeFontPadding: false,
+  },
+  speakerButton: {
+    position: 'absolute',
+    zIndex: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255, 255, 255, 0.58)',
+  },
+  speakerButtonActive: {
+    backgroundColor: '#FFFFFF',
+  },
+  speakerButtonDisabled: {
+    opacity: 0.5,
   },
   clock: {
     position: 'absolute',

@@ -5,6 +5,9 @@ import { useLanguageDirection } from '@/hooks/useLanguageDirection';
 import { setApiAccessToken } from '@/services/api/api-client';
 import { useAuthStore } from '@/store/auth.store';
 import { hydrateLanguage } from '@/store/language.store';
+import {
+  hydratePreferences as hydrateStoredPreferences,
+} from '@/store/preferences.store';
 
 let authHydrationPromise: Promise<void> | null = null;
 
@@ -37,7 +40,7 @@ export function useAppInitialization() {
   useEffect(() => {
     let active = true;
 
-    async function hydratePreferences() {
+    async function initializeAppState() {
       setInitializationFailed(false);
       setInitializationFinalized(false);
 
@@ -45,7 +48,11 @@ export function useAppInitialization() {
         // Authentication and language are restored together, and the language
         // hydration also brings the native layout direction in line, so the
         // navigation tree is only ever mounted once in its final direction.
-        await Promise.all([restorePersistedAuth(), hydrateLanguage()]);
+        await Promise.all([
+          restorePersistedAuth(),
+          hydrateLanguage(),
+          hydrateStoredPreferences(),
+        ]);
       } catch (error) {
         console.error(
           `[initialization] Failed to restore app state: ${
@@ -63,7 +70,7 @@ export function useAppInitialization() {
       }
     }
 
-    void hydratePreferences();
+    void initializeAppState();
 
     return () => {
       active = false;

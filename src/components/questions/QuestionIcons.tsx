@@ -175,6 +175,54 @@ export function ClockGlyph({ size }: { size: number }) {
   );
 }
 
+export function SpeakerGlyph({
+  active,
+  size,
+}: {
+  active: boolean;
+  size: number;
+}) {
+  const color = active ? gameplayColors.orange : gameplayColors.primaryText;
+
+  return (
+    <Svg
+      accessible={false}
+      pointerEvents="none"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+    >
+      <Path
+        d="M4 9v6h4l5 4V5L8 9H4Z"
+        fill={color}
+        stroke={color}
+        strokeLinejoin="round"
+        strokeWidth="1.2"
+      />
+      {active ? (
+        <Rect x="17" y="7" width="2.6" height="10" rx="1" fill={color} />
+      ) : (
+        <>
+          <Path
+            d="M16 9.2c1.5 1.5 1.5 4.1 0 5.6"
+            fill="none"
+            stroke={color}
+            strokeLinecap="round"
+            strokeWidth="1.8"
+          />
+          <Path
+            d="M18.7 6.7c2.9 2.9 2.9 7.7 0 10.6"
+            fill="none"
+            stroke={color}
+            strokeLinecap="round"
+            strokeWidth="1.8"
+          />
+        </>
+      )}
+    </Svg>
+  );
+}
+
 export function DoorGlyph({ size }: { size: number }) {
   return (
     <Svg

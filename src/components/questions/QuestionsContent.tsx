@@ -184,7 +184,10 @@ export function QuestionsContent({ screen }: QuestionsContentProps) {
             ]}
           >
             <QuestionCard
+              canReplay={screen.canReplayQuestion}
               formattedTime={screen.formattedTime}
+              isSpeaking={screen.isQuestionSpeaking}
+              onReplay={screen.handleReplayQuestion}
               question={currentQuestion}
               reaction={getCharacterReaction(readyState.feedback)}
               scale={scale}

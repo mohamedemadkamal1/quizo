@@ -299,6 +299,8 @@ export const en = {
     headerTotal: '/{{total}}',
     progressLabel: 'Question progress, {{current}} of {{total}}',
     pauseLabel: 'Pause questions',
+    readQuestionLabel: 'Read question aloud',
+    stopReadingQuestionLabel: 'Stop reading question',
     completingLabel: 'Completing question session',
     submissionErrorFallback: 'Unable to submit this answer. Please try again.',
     sessionMismatch:
@@ -401,6 +403,9 @@ export const en = {
     soundIncrease: 'Increase sound',
     soundDecrease: 'Decrease sound',
     soundValue: '{{percent}} percent',
+    readQuestionsAloudTitle: 'Read questions aloud',
+    readQuestionsAloudDescription:
+      'Automatically reads each question when it appears.',
     passwordChanged: 'Your password has been changed successfully.',
 
     unlockTitle: '🚀 Unlock Full Access!',

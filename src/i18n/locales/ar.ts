@@ -308,6 +308,8 @@ export const ar = {
     headerTotal: '/{{total}}',
     progressLabel: 'تقدّم الأسئلة، {{current}} من {{total}}',
     pauseLabel: 'إيقاف الأسئلة مؤقتًا',
+    readQuestionLabel: 'قراءة السؤال بصوت عالٍ',
+    stopReadingQuestionLabel: 'إيقاف قراءة السؤال',
     completingLabel: 'جارٍ إنهاء جلسة الأسئلة',
     submissionErrorFallback: 'تعذّر إرسال هذه الإجابة. حاول مرة أخرى.',
     sessionMismatch: 'نتيجة المرحلة المكتملة لا تطابق جلسة الأسئلة هذه.',
@@ -409,6 +411,8 @@ export const ar = {
     soundIncrease: 'رفع الصوت',
     soundDecrease: 'خفض الصوت',
     soundValue: '{{percent}} بالمئة',
+    readQuestionsAloudTitle: 'قراءة الأسئلة بصوت عالٍ',
+    readQuestionsAloudDescription: 'قراءة كل سؤال تلقائيًا عند ظهوره.',
     passwordChanged: 'تم تغيير كلمة المرور بنجاح.',
 
     unlockTitle: '🚀 افتح كل المزايا!',

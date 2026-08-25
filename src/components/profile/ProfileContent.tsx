@@ -15,6 +15,7 @@ import {
   RegisteredProfileActions,
 } from '@/components/profile/ProfileActions';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
+import { ProfileNarrationControl } from '@/components/profile/ProfileNarrationControl';
 import { ProfileSoundControl } from '@/components/profile/ProfileSoundControl';
 import { colors } from '@/constants/colors';
 import type { useProfileScreen } from '@/hooks/profile/useProfileScreen';
@@ -57,6 +58,10 @@ export function ProfileContent({ screen }: ProfileContentProps) {
                 onChangeEnd={screen.onChangeSoundVolume}
                 value={screen.soundVolume}
               />
+              <ProfileNarrationControl
+                enabled={screen.readQuestionsAloud}
+                onChange={screen.onChangeReadQuestionsAloud}
+              />
               <ProgressAction onPress={screen.onNavigateToProgress} />
               <LanguageAction />
             </>
@@ -65,6 +70,10 @@ export function ProfileContent({ screen }: ProfileContentProps) {
               <ProfileSoundControl
                 onChangeEnd={screen.onChangeSoundVolume}
                 value={screen.soundVolume}
+              />
+              <ProfileNarrationControl
+                enabled={screen.readQuestionsAloud}
+                onChange={screen.onChangeReadQuestionsAloud}
               />
               <ProgressAction onPress={screen.onNavigateToProgress} />
               <RegisteredProfileActions
