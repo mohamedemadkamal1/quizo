@@ -1,4 +1,5 @@
 import * as Speech from 'expo-speech';
+import { Platform } from 'react-native';
 
 import {
   createQuestionSpeechController,
@@ -20,5 +21,6 @@ export function createNativeQuestionSpeechController(
     },
     onSpeakingChange,
     reportSpeechError,
+    Platform.OS === 'ios' ? 'ios' : Platform.OS === 'web' ? 'web' : 'android',
   );
 }

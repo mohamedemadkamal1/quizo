@@ -23,6 +23,8 @@ export type QuestionSpeechController = {
   toggle: (text: string, language: AppLanguage) => Promise<void>;
 };
 
+export type QuestionSpeechPlatform = 'android' | 'ios' | 'web';
+
 export type AutomaticQuestionNarration = {
   active: boolean;
   enabled: boolean;
@@ -40,10 +42,21 @@ export type QuestionNarrationCoordinator = {
   >) => void;
 };
 
-export function getQuestionSpeechSettings(language: AppLanguage) {
-  return language === 'ar'
-    ? { language: 'ar-EG', rate: 0.85 }
-    : { language: 'en-US', rate: 0.9 };
+export function getQuestionSpeechSettings(
+  language: AppLanguage,
+  platform: QuestionSpeechPlatform = 'android',
+) {
+  if (language === 'ar') {
+    return {
+      language: 'ar-EG',
+      rate: platform === 'ios' ? 1 : 0.85,
+    };
+  }
+
+  return {
+    language: 'en-US',
+    rate: platform === 'ios' ? 1.05 : 0.9,
+  };
 }
 
 export function getQuestionNarrationLanguage(
@@ -67,6 +80,7 @@ export function createQuestionSpeechController(
   adapter: QuestionSpeechAdapter,
   onSpeakingChange: (isSpeaking: boolean) => void = () => {},
   reportError: (error: unknown) => void = () => {},
+  platform: QuestionSpeechPlatform = 'android',
 ): QuestionSpeechController {
   let speaking = false;
   let generation = 0;
@@ -109,7 +123,7 @@ export function createQuestionSpeechController(
       return false;
     }
 
-    const settings = getQuestionSpeechSettings(language);
+    const settings = getQuestionSpeechSettings(language, platform);
     const finish = () => {
       if (currentGeneration === generation) {
         setSpeaking(false);

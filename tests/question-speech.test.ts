@@ -91,6 +91,14 @@ test('Arabic and English use the requested native speech settings', () => {
     language: 'en-US',
     rate: 0.9,
   });
+  assert.deepEqual(getQuestionSpeechSettings('ar', 'ios'), {
+    language: 'ar-EG',
+    rate: 1,
+  });
+  assert.deepEqual(getQuestionSpeechSettings('en', 'ios'), {
+    language: 'en-US',
+    rate: 1.05,
+  });
 });
 
 test('the prompt script takes precedence over the app locale for mixed-language sessions', () => {
