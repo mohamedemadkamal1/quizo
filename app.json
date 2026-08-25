@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Quizo",
+    "name": "Mr. Quizo",
     "slug": "quizo",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -116,10 +116,7 @@
       [
         "expo-localization",
         {
-          "supportedLocales": [
-            "en",
-            "ar"
-          ],
+          "supportedLocales": ["en", "ar"],
           "supportsRTL": true
         }
       ],
