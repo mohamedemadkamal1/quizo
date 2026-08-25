@@ -48,6 +48,20 @@ export const ar = {
     egypt: 'مصر',
     sheetTitle: 'اختر لغة',
     sheetMessage: 'سيُعاد تشغيل التطبيق لتطبيق اتجاه الكتابة الجديد.',
+    switching: 'جارٍ تغيير اللغة…',
+    switchingAccessibilityLabel: 'جارٍ تغيير لغة التطبيق',
+    restartErrorTitle: 'يحتاج تغيير اللغة إلى انتباهك',
+    restartError:
+      'تعذّرت إعادة تشغيل Quizo تلقائيًا. أغلق التطبيق وافتحه مجددًا لإكمال تطبيق اتجاه اللغة.',
+    restartErrorAccessibilityLabel: 'تعذّر إكمال تغيير اللغة',
+    dismissRestartError: 'متابعة',
+  },
+
+  initialization: {
+    loading: 'جارٍ تجهيز Quizo…',
+    errorTitle: 'تعذّر إكمال تشغيل Quizo',
+    errorBody: 'لم تتم إعادة تعيين حسابك أو لغتك المحفوظة. حاول مرة أخرى.',
+    retry: 'حاول مرة أخرى',
   },
 
   validation: {

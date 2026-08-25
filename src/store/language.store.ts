@@ -8,7 +8,19 @@ import {
   getDirection,
   type AppLanguage,
 } from '@/i18n';
-import { syncNativeDirection, type DirectionSyncResult } from '@/i18n/direction';
+import {
+  configureNativeDirection,
+  getNativeDirection,
+  reloadLanguageApplication,
+} from '@/i18n/direction';
+import {
+  createLanguageSwitcher,
+  parseLanguageRestartMarker,
+  reconcileStartupDirection,
+  type LanguageRestartError,
+  type LanguageRestartMarker,
+  type LanguageSwitchResult,
+} from '@/i18n/language-switch';
 import {
   readLanguagePreference,
   resolveInitialLanguage,
@@ -17,7 +29,10 @@ import {
   type PersistedLanguage,
 } from '@/i18n/language-preference';
 import { queryClient } from '@/services/api/query-client';
-import { LANGUAGE_STORAGE_KEY } from '@/store/storage-keys';
+import {
+  LANGUAGE_RESTART_STORAGE_KEY,
+  LANGUAGE_STORAGE_KEY,
+} from '@/store/storage-keys';
 
 /**
  * Stored separately from `quizo-auth-session` on purpose: signing out or
@@ -29,7 +44,11 @@ type LanguageStore = {
   /** True once the user has picked a language themselves. */
   hasExplicitSelection: boolean;
   isHydrated: boolean;
-  setLanguage: (language: AppLanguage) => Promise<DirectionSyncResult>;
+  isRestarting: boolean;
+  restartTargetLanguage: AppLanguage | null;
+  restartError: LanguageRestartError | null;
+  dismissRestartError: () => void;
+  setLanguage: (language: AppLanguage) => Promise<LanguageSwitchResult>;
 };
 
 const languageStorage: LanguagePreferenceStorage = {
@@ -49,47 +68,102 @@ async function writePersistedLanguage(value: PersistedLanguage) {
   await writeLanguagePreference(languageStorage, LANGUAGE_STORAGE_KEY, value);
 }
 
-let languageChangePromise: Promise<DirectionSyncResult> | null = null;
+async function readRestartMarker(): Promise<LanguageRestartMarker | null> {
+  return parseLanguageRestartMarker(
+    await SecureStore.getItemAsync(LANGUAGE_RESTART_STORAGE_KEY),
+  );
+}
 
-export const useLanguageStore = create<LanguageStore>()((set, get) => ({
+async function writeRestartMarker(marker: LanguageRestartMarker): Promise<void> {
+  await SecureStore.setItemAsync(
+    LANGUAGE_RESTART_STORAGE_KEY,
+    JSON.stringify(marker),
+  );
+}
+
+async function clearRestartMarker(): Promise<void> {
+  await SecureStore.deleteItemAsync(LANGUAGE_RESTART_STORAGE_KEY);
+}
+
+function reportLanguageError(error: unknown): void {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(`[language] Restart operation failed: ${message}`);
+}
+
+function waitForRestartOverlayPaint(): Promise<void> {
+  return new Promise((resolve) => {
+    const scheduleFrame =
+      typeof requestAnimationFrame === 'function'
+        ? requestAnimationFrame
+        : (callback: FrameRequestCallback) => setTimeout(callback, 0);
+
+    scheduleFrame(() => {
+      scheduleFrame(() => resolve());
+    });
+  });
+}
+
+export const useLanguageStore = create<LanguageStore>()((set) => ({
   language: DEFAULT_LANGUAGE,
   hasExplicitSelection: false,
   isHydrated: false,
+  isRestarting: false,
+  restartTargetLanguage: null,
+  restartError: null,
+
+  dismissRestartError: () => {
+    set({ restartError: null, restartTargetLanguage: null });
+  },
 
   setLanguage: async (language) => {
-    if (get().language === language) {
-      // Re-picking the active language must not restart the app.
-      return 'in-sync';
-    }
-
-    if (languageChangePromise) {
-      return languageChangePromise;
-    }
-
-    languageChangePromise = (async () => {
-      // Persisted first: a successful direction change restarts the process,
-      // so the new value has to already be on disk by then.
-      await writePersistedLanguage({ language, hasExplicitSelection: true });
-
-      // Stop old-language requests before exposing the new language. Every
-      // localized query key also carries the language, so mounted observers
-      // immediately move to an empty key and refetch with the new `lng` header.
-      await queryClient.cancelQueries();
-
-      applyLanguage(language);
-      set({ language, hasExplicitSelection: true });
-      queryClient.removeQueries();
-
-      return syncNativeDirection(getDirection(language));
-    })();
-
-    try {
-      return await languageChangePromise;
-    } finally {
-      languageChangePromise = null;
-    }
+    return getLanguageSwitcher()(language);
   },
 }));
+
+let languageSwitcher: ReturnType<typeof createLanguageSwitcher> | null = null;
+
+function getLanguageSwitcher() {
+  if (!languageSwitcher) {
+    languageSwitcher = createLanguageSwitcher({
+      getActiveLanguage: () => useLanguageStore.getState().language,
+      getNativeDirection,
+      getDirection,
+      setRestartUi: ({ isRestarting, targetLanguage, error }) => {
+        useLanguageStore.setState({
+          isRestarting,
+          restartTargetLanguage: targetLanguage,
+          restartError: error,
+        });
+      },
+      persistLanguage: async (language) => {
+        await writePersistedLanguage({
+          language,
+          hasExplicitSelection: true,
+        });
+      },
+      applyLanguage: (language) => {
+        applyLanguage(language);
+        useLanguageStore.setState({
+          language,
+          hasExplicitSelection: true,
+        });
+      },
+      invalidateLocalizedQueries: () => {
+        void queryClient.cancelQueries().catch(reportLanguageError);
+        void queryClient
+          .invalidateQueries({ refetchType: 'none' })
+          .catch(reportLanguageError);
+      },
+      writeRestartMarker,
+      waitForRestartOverlayPaint,
+      configureNativeDirection,
+      reloadApp: reloadLanguageApplication,
+      reportError: reportLanguageError,
+    });
+  }
+
+  return languageSwitcher;
+}
 
 let hydrationPromise: Promise<void> | null = null;
 
@@ -109,7 +183,6 @@ export function hydrateLanguage(): Promise<void> {
       useLanguageStore.setState({
         language,
         hasExplicitSelection: persisted?.hasExplicitSelection ?? false,
-        isHydrated: true,
       });
 
       if (!persisted) {
@@ -121,8 +194,38 @@ export function hydrateLanguage(): Promise<void> {
         });
       }
 
-      await syncNativeDirection(getDirection(language));
-    })();
+      const directionResult = await reconcileStartupDirection(
+        language,
+        getDirection(language),
+        {
+          getNativeDirection,
+          readRestartMarker,
+          writeRestartMarker,
+          clearRestartMarker,
+          configureNativeDirection,
+          reloadApp: reloadLanguageApplication,
+          reportError: reportLanguageError,
+        },
+      );
+
+      useLanguageStore.setState({
+        isHydrated: true,
+        isRestarting: false,
+        restartTargetLanguage:
+          directionResult === 'direction-mismatch' ||
+          directionResult === 'recovery-reload-failed'
+            ? language
+            : null,
+        restartError:
+          directionResult === 'direction-mismatch' ||
+          directionResult === 'recovery-reload-failed'
+            ? 'language-direction-mismatch'
+            : null,
+      });
+    })().catch((error) => {
+      hydrationPromise = null;
+      throw error;
+    });
   }
 
   return hydrationPromise;

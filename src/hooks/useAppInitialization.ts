@@ -6,20 +6,19 @@ import { setApiAccessToken } from '@/services/api/api-client';
 import { useAuthStore } from '@/store/auth.store';
 import { hydrateLanguage } from '@/store/language.store';
 
-SplashScreen.preventAutoHideAsync().catch(() => {
-  // It may already be prevented during Fast Refresh.
-});
-
 let authHydrationPromise: Promise<void> | null = null;
 
 function restorePersistedAuth() {
   if (!authHydrationPromise) {
-    authHydrationPromise = Promise.resolve(
-      useAuthStore.persist.rehydrate(),
-    ).finally(() => {
-      const storedSession = useAuthStore.getState().session;
-      setApiAccessToken(storedSession?.accessToken ?? null);
-    });
+    authHydrationPromise = Promise.resolve(useAuthStore.persist.rehydrate())
+      .finally(() => {
+        const storedSession = useAuthStore.getState().session;
+        setApiAccessToken(storedSession?.accessToken ?? null);
+      })
+      .catch((error) => {
+        authHydrationPromise = null;
+        throw error;
+      });
   }
 
   return authHydrationPromise;
@@ -30,43 +29,88 @@ export function useAppInitialization() {
   const session = useAuthStore((state) => state.session);
   const { direction } = useLanguageDirection();
   const [splashAnimationFinished, setSplashAnimationFinished] = useState(false);
-  const [preferencesHydrated, setPreferencesHydrated] = useState(false);
+  const [initializationFinalized, setInitializationFinalized] = useState(false);
+  const [initializationFailed, setInitializationFailed] = useState(false);
+  const [initializationAttempt, setInitializationAttempt] = useState(0);
+  const [rootLaidOut, setRootLaidOut] = useState(false);
 
   useEffect(() => {
+    let active = true;
+
     async function hydratePreferences() {
+      setInitializationFailed(false);
+      setInitializationFinalized(false);
+
       try {
         // Authentication and language are restored together, and the language
         // hydration also brings the native layout direction in line, so the
         // navigation tree is only ever mounted once in its final direction.
         await Promise.all([restorePersistedAuth(), hydrateLanguage()]);
+      } catch (error) {
+        console.error(
+          `[initialization] Failed to restore app state: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+
+        if (active) {
+          setInitializationFailed(true);
+        }
       } finally {
-        setPreferencesHydrated(true);
+        if (active) {
+          setInitializationFinalized(true);
+        }
       }
     }
 
     void hydratePreferences();
-  }, []);
+
+    return () => {
+      active = false;
+    };
+  }, [initializationAttempt]);
 
   const onRootLayout = useCallback(() => {
-    if (nativeSplashHidden.current) {
+    setRootLaidOut(true);
+  }, []);
+
+  useEffect(() => {
+    if (
+      !initializationFinalized ||
+      !rootLaidOut ||
+      nativeSplashHidden.current
+    ) {
       return;
     }
 
-    nativeSplashHidden.current = true;
-    SplashScreen.hide();
-  }, []);
+    // The finalized loading/error/navigation view is committed before the
+    // native splash leaves, so a white native root is never exposed.
+    const frame = requestAnimationFrame(() => {
+      nativeSplashHidden.current = true;
+      SplashScreen.hide();
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [initializationFinalized, rootLaidOut]);
 
   const onSplashAnimationFinish = useCallback(() => {
     setSplashAnimationFinished(true);
   }, []);
 
+  const retryInitialization = useCallback(() => {
+    setInitializationAttempt((attempt) => attempt + 1);
+  }, []);
+
   return {
-    isHydrated: preferencesHydrated,
+    isHydrated: initializationFinalized && !initializationFailed,
+    initializationFinalized,
+    initializationFailed,
     direction,
     hasSession: Boolean(session),
     hasCompletedProfile: session?.user.profileCompleted === true,
-    showAnimatedSplash: !splashAnimationFinished || !preferencesHydrated,
+    showAnimatedSplash: !splashAnimationFinished,
     onRootLayout,
     onSplashAnimationFinish,
+    retryInitialization,
   };
 }

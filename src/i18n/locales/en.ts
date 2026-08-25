@@ -46,6 +46,20 @@ export const en = {
     egypt: 'Egypt',
     sheetTitle: 'Choose a language',
     sheetMessage: 'The app restarts to apply the new writing direction.',
+    switching: 'Switching language…',
+    switchingAccessibilityLabel: 'Switching application language',
+    restartErrorTitle: 'Language change needs attention',
+    restartError:
+      'Quizo could not restart automatically. Close and reopen the app to finish applying the language direction.',
+    restartErrorAccessibilityLabel: 'Language change could not finish',
+    dismissRestartError: 'Continue',
+  },
+
+  initialization: {
+    loading: 'Preparing Quizo…',
+    errorTitle: 'Quizo could not finish starting',
+    errorBody: 'Your saved account and language were not reset. Please try again.',
+    retry: 'Try again',
   },
 
   validation: {

@@ -1,4 +1,4 @@
-import { reloadAppAsync } from 'expo';
+import * as Expo from 'expo';
 import { I18nManager } from 'react-native';
 
 import type { TextDirection } from '@/i18n/types';
@@ -26,66 +26,24 @@ const nativeDirectionAtStartup: TextDirection = I18nManager.isRTL
  */
 I18nManager.swapLeftAndRightInRTL(false);
 
-let reloadRequested = false;
 let configuredDirection: TextDirection = nativeDirectionAtStartup;
-
-export type DirectionSyncResult =
-  /** Native layout already matches; nothing to do. */
-  | 'in-sync'
-  /** The native flags were updated and a reload was triggered. */
-  | 'reloaded'
-  /**
-   * The native flags were updated but the runtime refused to reload, so the
-   * new direction only takes effect on the next manual launch. Expo Go on
-   * SDK 57 behaves this way.
-   */
-  | 'reload-unavailable';
 
 export function getNativeDirection(): TextDirection {
   return nativeDirectionAtStartup;
 }
 
-export function isNativeDirectionInSync(direction: TextDirection): boolean {
-  return nativeDirectionAtStartup === direction;
+export function configureNativeDirection(direction: TextDirection): void {
+  // RTL support stays enabled for both languages. `forceRTL(false)` selects
+  // LTR; disabling RTL entirely would prevent the next Arabic selection.
+  I18nManager.allowRTL(true);
+
+  if (configuredDirection !== direction) {
+    I18nManager.forceRTL(direction === 'rtl');
+    configuredDirection = direction;
+  }
 }
 
-/**
- * Aligns React Native's native RTL flags with `direction`, restarting the app
- * only when the native layout actually has to flip.
- *
- * Callers must persist the language *before* awaiting this, because a
- * successful reload never returns.
- */
-export async function syncNativeDirection(
-  direction: TextDirection,
-): Promise<DirectionSyncResult> {
-  if (reloadRequested || configuredDirection === direction) {
-    return 'in-sync';
-  }
-
-  const shouldBeRtl = direction === 'rtl';
-
-  I18nManager.allowRTL(shouldBeRtl);
-  I18nManager.forceRTL(shouldBeRtl);
-  configuredDirection = direction;
-
-  // A failed earlier reload may have left a pending flag behind. Switching
-  // back to the direction that is already rendered only needs to reset that
-  // flag; restarting would be redundant.
-  if (isNativeDirectionInSync(direction)) {
-    return 'in-sync';
-  }
-
-  reloadRequested = true;
-
-  try {
-    await reloadAppAsync('Quizo language direction changed');
-    return 'reloaded';
-  } catch {
-    // A runtime that cannot restart itself keeps running with the JavaScript
-    // direction applied at the React root. The native flag takes effect on the
-    // next manual launch, and selecting the startup direction again resets it.
-    reloadRequested = false;
-    return 'reload-unavailable';
-  }
+/** SDK 57 application reload; it keeps the currently running JS bundle. */
+export function reloadLanguageApplication(reason: string): Promise<void> {
+  return Expo.reloadAppAsync(reason);
 }

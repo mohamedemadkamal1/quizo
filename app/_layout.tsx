@@ -1,5 +1,6 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -7,8 +8,16 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import '../global.css';
 
 import { AnimatedSplash } from '@/components/common/AnimatedSplash';
+import { AppInitializationState } from '@/components/common/AppInitializationState';
+import { LanguageRestartOverlay } from '@/components/common/LanguageRestartOverlay';
 import { useAppInitialization } from '@/hooks/useAppInitialization';
 import { queryClient } from '@/services/api/query-client';
+
+// SDK 57 recommends keeping this at module scope so native auto-hide cannot
+// win the race against React initialization.
+void SplashScreen.preventAutoHideAsync().catch(() => {
+  // Fast Refresh may evaluate this after the splash has already been handled.
+});
 
 export default function RootLayout() {
   const app = useAppInitialization();
@@ -63,14 +72,23 @@ export default function RootLayout() {
                 />
               </Stack.Protected>
             </Stack>
-          ) : null}
+          ) : (
+            <AppInitializationState
+              error={
+                app.initializationFinalized && app.initializationFailed
+              }
+              onRetry={app.retryInitialization}
+            />
+          )}
 
           {app.showAnimatedSplash ? (
             <AnimatedSplash
-              readyToFinish={app.isHydrated}
+              readyToFinish={app.initializationFinalized}
               onFinish={app.onSplashAnimationFinish}
             />
           ) : null}
+
+          <LanguageRestartOverlay />
         </View>
       </KeyboardProvider>
     </QueryClientProvider>
