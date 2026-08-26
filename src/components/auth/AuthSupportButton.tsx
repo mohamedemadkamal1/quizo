@@ -2,21 +2,21 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/common/AppText';
 import { ProfileIcon } from '@/components/profile/ProfileIcon';
+import { useSupportModal } from '@/components/support/SupportModalProvider';
 import { colors } from '@/constants/colors';
-import { useExternalLinks } from '@/hooks/useExternalLinks';
 import { useTranslation } from '@/hooks/useTranslation';
 
 export function AuthSupportButton() {
   const { t } = useTranslation();
-  const { openSupportEmail } = useExternalLinks();
+  const { openSupportModal } = useSupportModal();
 
   return (
     <Pressable
-      accessibilityHint={t('support.emailHint')}
+      accessibilityHint={t('support.openHint')}
       accessibilityLabel={t('support.label')}
       accessibilityRole="button"
       android_ripple={{ color: 'rgba(72, 91, 221, 0.1)' }}
-      onPress={() => void openSupportEmail()}
+      onPress={openSupportModal}
       style={({ pressed }) => [styles.button, pressed && styles.pressed]}
     >
       <View style={styles.content}>

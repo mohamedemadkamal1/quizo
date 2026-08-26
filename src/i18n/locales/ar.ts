@@ -66,12 +66,28 @@ export const ar = {
 
   support: {
     label: 'الدعم',
-    emailHint: 'يفتح تطبيق البريد للتواصل مع دعم Quizo',
+    openHint: 'يفتح نموذج التواصل مع دعم Quizo',
     title: 'الدعم',
     subtitle: 'احصل على المساعدة أو تواصل مع فريقنا',
-    unavailableTitle: 'تطبيق البريد غير متاح',
-    unavailableMessage:
-      'تعذّر فتح تطبيق بريد. يمكنك التواصل معنا عبر support@quizo.games.',
+    modal: {
+      dialogLabel: 'التواصل مع دعم Quizo',
+      title: 'كيف يمكننا مساعدتك؟',
+      subtitle: 'أرسل لنا رسالة وسيتواصل معك فريق الدعم.',
+      fullNameLabel: 'الاسم الكامل',
+      fullNamePlaceholder: 'اكتب اسمك الكامل',
+      emailLabel: 'البريد الإلكتروني',
+      emailPlaceholder: 'you@example.com',
+      messageLabel: 'الرسالة',
+      messagePlaceholder: 'أخبرنا بما تحتاج إليه…',
+      submit: 'إرسال',
+      done: 'تم',
+      success: 'تم إرسال رسالتك. سيتواصل معك فريق الدعم.',
+      failure: 'تعذّر إرسال رسالتك. حاول مرة أخرى.',
+    },
+    validation: {
+      nameRequired: 'الاسم الكامل مطلوب.',
+      messageRequired: 'الرسالة مطلوبة.',
+    },
   },
 
   legal: {

@@ -10,6 +10,7 @@ import '../global.css';
 import { AnimatedSplash } from '@/components/common/AnimatedSplash';
 import { AppInitializationState } from '@/components/common/AppInitializationState';
 import { LanguageRestartOverlay } from '@/components/common/LanguageRestartOverlay';
+import { SupportModalProvider } from '@/components/support/SupportModalProvider';
 import { useAppInitialization } from '@/hooks/useAppInitialization';
 import { queryClient } from '@/services/api/query-client';
 
@@ -25,16 +26,17 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <KeyboardProvider preload={false}>
-        {/*
-          Declaring the direction once at the root of the React tree is what
-          makes every `row`, `start` and `end` below follow the language, and
-          it keeps working in development clients that cannot restart to pick
-          up the native RTL flags.
-        */}
-        <View
-          style={[styles.container, { direction: app.direction }]}
-          onLayout={app.onRootLayout}
-        >
+        <SupportModalProvider>
+          {/*
+            Declaring the direction once at the root of the React tree is what
+            makes every `row`, `start` and `end` below follow the language, and
+            it keeps working in development clients that cannot restart to pick
+            up the native RTL flags.
+          */}
+          <View
+            style={[styles.container, { direction: app.direction }]}
+            onLayout={app.onRootLayout}
+          >
           <StatusBar style="dark" />
 
           {app.isHydrated ? (
@@ -89,8 +91,9 @@ export default function RootLayout() {
             />
           ) : null}
 
-          <LanguageRestartOverlay />
-        </View>
+            <LanguageRestartOverlay />
+          </View>
+        </SupportModalProvider>
       </KeyboardProvider>
     </QueryClientProvider>
   );

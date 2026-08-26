@@ -64,12 +64,29 @@ export const en = {
 
   support: {
     label: 'Support',
-    emailHint: 'Opens your email app to contact Quizo support',
+    openHint: 'Opens the Quizo support form',
     title: 'Support',
     subtitle: 'Get help or contact our team',
-    unavailableTitle: 'Email app unavailable',
-    unavailableMessage:
-      'No email app could be opened. You can contact us at support@quizo.games.',
+    modal: {
+      dialogLabel: 'Contact Quizo support',
+      title: 'How can we help?',
+      subtitle: 'Send a note and our support team will be in touch.',
+      fullNameLabel: 'Full Name',
+      fullNamePlaceholder: 'Your full name',
+      emailLabel: 'Email Address',
+      emailPlaceholder: 'you@example.com',
+      messageLabel: 'Message',
+      messagePlaceholder: 'Tell us what you need…',
+      submit: 'Submit',
+      done: 'Done',
+      success:
+        'Your message has been sent. Our support team will be in touch.',
+      failure: 'We couldn’t send your message. Please try again.',
+    },
+    validation: {
+      nameRequired: 'Full name is required.',
+      messageRequired: 'Message is required.',
+    },
   },
 
   legal: {

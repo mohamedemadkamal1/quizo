@@ -1,6 +1,5 @@
 import * as Linking from 'expo-linking';
 
-export const SUPPORT_EMAIL_URL = 'mailto:support@quizo.games';
 export const TERMS_URL = 'https://quizo.amer-group.com/terms';
 
 /**

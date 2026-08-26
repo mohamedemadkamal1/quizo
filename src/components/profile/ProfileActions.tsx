@@ -4,8 +4,8 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/common/AppText';
 import { LanguageDropdown } from '@/components/common/LanguageDropdown';
 import { ProfileIcon } from '@/components/profile/ProfileIcon';
+import { useSupportModal } from '@/components/support/SupportModalProvider';
 import { colors } from '@/constants/colors';
-import { useExternalLinks } from '@/hooks/useExternalLinks';
 import { useTranslation } from '@/hooks/useTranslation';
 import { type TranslationKey } from '@/i18n';
 
@@ -167,15 +167,15 @@ export function LanguageAction() {
 
 export function SupportAction() {
   const { t } = useTranslation();
-  const { openSupportEmail } = useExternalLinks();
+  const { openSupportModal } = useSupportModal();
 
   return (
     <Pressable
-      accessibilityHint={t('support.emailHint')}
+      accessibilityHint={t('support.openHint')}
       accessibilityLabel={t('support.title')}
       accessibilityRole="button"
       android_ripple={{ color: 'rgba(124, 58, 237, 0.08)' }}
-      onPress={() => void openSupportEmail()}
+      onPress={openSupportModal}
       style={styles.passwordRow}
     >
       <View style={styles.passwordIconTile}>
