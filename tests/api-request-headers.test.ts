@@ -6,6 +6,7 @@ import { AxiosHeaders } from 'axios';
 import {
   applyApiRequestHeaders,
   LANGUAGE_HEADER,
+  prepareApiRequestHeaders,
 } from '../src/services/api/request-headers.ts';
 
 test('English requests keep existing headers and receive lng: en', () => {
@@ -56,4 +57,26 @@ test('an explicit Authorization header and all query parameters remain intact', 
   assert.deepEqual(params, originalParams);
   assert.equal('lang' in params, false);
   assert.equal('lng' in params, false);
+});
+
+test('the first request waits for hydration before reading the live language', async () => {
+  const events: string[] = [];
+  let language: 'en' | 'ar' = 'en';
+  const headers = new AxiosHeaders();
+
+  await prepareApiRequestHeaders(headers, {
+    waitForLanguageHydration: async () => {
+      events.push('hydrate');
+      language = 'ar';
+    },
+    getLanguage: () => {
+      events.push(`read:${language}`);
+      return language;
+    },
+    getAccessToken: () => 'hydrated-token',
+  });
+
+  assert.deepEqual(events, ['hydrate', 'read:ar']);
+  assert.equal(headers.get(LANGUAGE_HEADER), 'ar');
+  assert.equal(headers.get('Authorization'), 'Bearer hydrated-token');
 });

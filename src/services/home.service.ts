@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/api/api-client';
+import { createLocalizedQueryKey } from '@/services/api/localized-query-key';
 import type { AppLanguage } from '@/i18n';
 import type {
   DifficultyLevelProgress,
@@ -13,14 +14,19 @@ export function getHomeQueryKey(
   userId: string | undefined,
   language: AppLanguage,
 ) {
-  return ['home', language, userId ?? null] as const;
+  return createLocalizedQueryKey('home', language, userId ?? null);
 }
 
 export function getSubCategoryLevelCountsQueryKey(
   subCatId: number | null,
   language: AppLanguage,
 ) {
-  return ['sub-categories', language, subCatId, 'level-counts'] as const;
+  return createLocalizedQueryKey(
+    'sub-categories',
+    language,
+    subCatId,
+    'level-counts',
+  );
 }
 
 function isFiniteNumber(value: unknown): value is number {

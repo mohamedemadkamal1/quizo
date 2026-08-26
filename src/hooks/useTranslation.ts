@@ -4,7 +4,7 @@ import {
   formatNumber,
   formatShortDate,
   getLanguageDescriptor,
-  translate,
+  translateForLanguage,
   type TranslateOptions,
   type TranslationKey,
 } from '@/i18n';
@@ -26,7 +26,7 @@ export function useTranslation() {
       isRTL,
       locale: getLanguageDescriptor(language).locale,
       t: (key: TranslationKey, options?: TranslateOptions) =>
-        translate(key, options),
+        translateForLanguage(language, key, options),
       formatNumber: (value: number) => formatNumber(value, language),
       formatShortDate: (value: Date) => formatShortDate(value, language),
     }),

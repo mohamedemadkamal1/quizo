@@ -186,6 +186,9 @@ export const en = {
     levelCount: {
       zero: 'No levels',
       one: '{{count}} Level',
+      two: '{{count}} Levels',
+      few: '{{count}} Levels',
+      many: '{{count}} Levels',
       other: '{{count}} Levels',
     },
     categoryLabel:
@@ -240,6 +243,9 @@ export const en = {
     points: {
       zero: 'no points',
       one: '{{count}} point',
+      two: '{{count}} points',
+      few: '{{count}} points',
+      many: '{{count}} points',
       other: '{{count}} points',
     },
     playerFallback: 'Player {{id}}',
@@ -256,6 +262,9 @@ export const en = {
     levelCount: {
       zero: 'no levels',
       one: '{{count}} level',
+      two: '{{count}} levels',
+      few: '{{count}} levels',
+      many: '{{count}} levels',
       other: '{{count}} levels',
     },
     journeyComplete: 'Journey complete',

@@ -1,18 +1,50 @@
+import { useCallback, useEffect, useRef } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/common/AppText';
 import { useLanguageDirection } from '@/hooks/useLanguageDirection';
 import { useTranslation } from '@/hooks/useTranslation';
+import { notifyRestartOverlayPainted } from '@/i18n/restart-overlay-paint';
 import { useLanguageStore } from '@/store/language.store';
 
 export function LanguageRestartOverlay() {
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
   const { directionStyle } = useLanguageDirection();
   const isRestarting = useLanguageStore((state) => state.isRestarting);
   const restartError = useLanguageStore((state) => state.restartError);
+  const restartTargetLanguage = useLanguageStore(
+    (state) => state.restartTargetLanguage,
+  );
   const dismissRestartError = useLanguageStore(
     (state) => state.dismissRestartError,
   );
+  const loadingOverlayLaidOut = useRef(false);
+
+  const acknowledgeTargetLanguagePaint = useCallback(() => {
+    if (
+      !isRestarting ||
+      !loadingOverlayLaidOut.current ||
+      language !== restartTargetLanguage
+    ) {
+      return;
+    }
+
+    // onLayout proves the target-language tree committed. Two frames give
+    // React Native one frame to composite it and one frame to present it
+    // before the native runtime is asked to reload.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(notifyRestartOverlayPainted);
+    });
+  }, [isRestarting, language, restartTargetLanguage]);
+
+  useEffect(() => {
+    if (!isRestarting) {
+      loadingOverlayLaidOut.current = false;
+      return;
+    }
+
+    acknowledgeTargetLanguagePaint();
+  }, [acknowledgeTargetLanguagePaint, isRestarting]);
 
   if (!isRestarting && !restartError) {
     return null;
@@ -21,10 +53,15 @@ export function LanguageRestartOverlay() {
   if (isRestarting) {
     return (
       <View
+        key="language-restart-loading"
         accessibilityLabel={t('language.switchingAccessibilityLabel')}
         accessibilityLiveRegion="assertive"
         accessibilityRole="progressbar"
         accessible
+        onLayout={() => {
+          loadingOverlayLaidOut.current = true;
+          acknowledgeTargetLanguagePaint();
+        }}
         pointerEvents="auto"
         style={[styles.overlay, directionStyle]}
       >

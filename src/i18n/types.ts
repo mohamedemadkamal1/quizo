@@ -12,11 +12,11 @@ export type TextDirection = 'ltr' | 'rtl';
  * only needs `zero`/`one`, Arabic additionally uses `two`, `few` and `many`.
  */
 export type PluralForms = {
-  readonly zero?: string;
-  readonly one?: string;
-  readonly two?: string;
-  readonly few?: string;
-  readonly many?: string;
+  readonly zero: string;
+  readonly one: string;
+  readonly two: string;
+  readonly few: string;
+  readonly many: string;
   readonly other: string;
 };
 

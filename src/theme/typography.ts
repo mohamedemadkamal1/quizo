@@ -1,6 +1,7 @@
 import { StyleSheet, type TextStyle } from 'react-native';
 
 import type { AppLanguage } from '@/i18n';
+import { getDirectionalTextValues } from '@/i18n/text-direction';
 
 /**
  * Fredoka and Nunito carry no Arabic glyphs, so Arabic runs on Cairo — a
@@ -24,15 +25,11 @@ const styles = StyleSheet.create({
     // the physical left edge. Keep layout direction neutral here so the
     // explicit alignment stays physical; `writingDirection` still controls
     // the bidi flow of the text itself.
-    direction: 'ltr',
-    textAlign: 'right',
-    writingDirection: 'rtl',
+    ...getDirectionalTextValues('ar'),
   },
 
   englishDirectionalText: {
-    direction: 'ltr',
-    textAlign: 'left',
-    writingDirection: 'ltr',
+    ...getDirectionalTextValues('en'),
   },
 
   /**

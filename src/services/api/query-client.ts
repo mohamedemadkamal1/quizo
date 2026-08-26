@@ -1,4 +1,6 @@
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, type Query } from '@tanstack/react-query';
+
+import { isLocalizedQueryKey } from './localized-query-key.ts';
 
 /**
  * The single React Query cache for the app.
@@ -8,3 +10,24 @@ import { QueryClient } from '@tanstack/react-query';
  * language without reaching for a hook.
  */
 export const queryClient = new QueryClient();
+
+function isLocalizedQuery(query: Query): boolean {
+  return isLocalizedQueryKey(query.queryKey);
+}
+
+/**
+ * Cancels in-flight localized reads and marks every language partition stale.
+ * Callers deliberately do not await this before a native reload; refetching is
+ * deferred until the next runtime mounts observers for the selected language.
+ */
+export async function markLocalizedQueriesStale(
+  client: QueryClient = queryClient,
+): Promise<void> {
+  await Promise.all([
+    client.cancelQueries({ predicate: isLocalizedQuery }),
+    client.invalidateQueries({
+      predicate: isLocalizedQuery,
+      refetchType: 'none',
+    }),
+  ]);
+}

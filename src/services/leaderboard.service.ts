@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/api/api-client';
+import { createLocalizedQueryKey } from '@/services/api/localized-query-key';
 import type { AppLanguage } from '@/i18n';
 import { isAvatarId } from '@/types/avatar.types';
 import type {
@@ -15,7 +16,12 @@ export function getLeaderboardQueryKey(
   userId: string | undefined,
   language: AppLanguage,
 ) {
-  return ['leaderboard', language, userId ?? null, LEADERBOARD_LIMIT] as const;
+  return createLocalizedQueryKey(
+    'leaderboard',
+    language,
+    userId ?? null,
+    LEADERBOARD_LIMIT,
+  );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

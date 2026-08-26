@@ -1,6 +1,7 @@
 import { isLevelMapDifficulty } from '@/constants/level-map';
 import type { AppLanguage } from '@/i18n';
 import { apiClient } from '@/services/api/api-client';
+import { createLocalizedQueryKey } from '@/services/api/localized-query-key';
 import type {
   GetLevelMapParams,
   LevelMapProgressDto,
@@ -17,7 +18,7 @@ export function getLevelMapQueryKey(
   params: GetLevelMapParams,
   language: AppLanguage,
 ) {
-  return [
+  return createLocalizedQueryKey(
     'level-map',
     language,
     {
@@ -26,7 +27,7 @@ export function getLevelMapQueryKey(
       page: params.page ?? LEVEL_MAP_PAGE,
       limit: params.limit ?? LEVEL_MAP_LIMIT,
     },
-  ] as const;
+  );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

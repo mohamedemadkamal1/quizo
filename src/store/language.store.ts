@@ -28,7 +28,8 @@ import {
   type LanguagePreferenceStorage,
   type PersistedLanguage,
 } from '@/i18n/language-preference';
-import { queryClient } from '@/services/api/query-client';
+import { waitForRestartOverlayPaint } from '@/i18n/restart-overlay-paint';
+import { markLocalizedQueriesStale } from '@/services/api/query-client';
 import {
   LANGUAGE_RESTART_STORAGE_KEY,
   LANGUAGE_STORAGE_KEY,
@@ -44,6 +45,8 @@ type LanguageStore = {
   /** True once the user has picked a language themselves. */
   hasExplicitSelection: boolean;
   isHydrated: boolean;
+  /** True only in the runtime created by a language-direction reload. */
+  didStartFromLanguageReload: boolean;
   isRestarting: boolean;
   restartTargetLanguage: AppLanguage | null;
   restartError: LanguageRestartError | null;
@@ -90,23 +93,11 @@ function reportLanguageError(error: unknown): void {
   console.error(`[language] Restart operation failed: ${message}`);
 }
 
-function waitForRestartOverlayPaint(): Promise<void> {
-  return new Promise((resolve) => {
-    const scheduleFrame =
-      typeof requestAnimationFrame === 'function'
-        ? requestAnimationFrame
-        : (callback: FrameRequestCallback) => setTimeout(callback, 0);
-
-    scheduleFrame(() => {
-      scheduleFrame(() => resolve());
-    });
-  });
-}
-
 export const useLanguageStore = create<LanguageStore>()((set) => ({
   language: DEFAULT_LANGUAGE,
   hasExplicitSelection: false,
   isHydrated: false,
+  didStartFromLanguageReload: false,
   isRestarting: false,
   restartTargetLanguage: null,
   restartError: null,
@@ -149,10 +140,7 @@ function getLanguageSwitcher() {
         });
       },
       invalidateLocalizedQueries: () => {
-        void queryClient.cancelQueries().catch(reportLanguageError);
-        void queryClient
-          .invalidateQueries({ refetchType: 'none' })
-          .catch(reportLanguageError);
+        void markLocalizedQueriesStale().catch(reportLanguageError);
       },
       writeRestartMarker,
       waitForRestartOverlayPaint,
@@ -176,7 +164,10 @@ let hydrationPromise: Promise<void> | null = null;
 export function hydrateLanguage(): Promise<void> {
   if (!hydrationPromise) {
     hydrationPromise = (async () => {
-      const persisted = await readPersistedLanguage();
+      const [persisted, restartMarker] = await Promise.all([
+        readPersistedLanguage(),
+        readRestartMarker(),
+      ]);
       const language = resolveInitialLanguage(persisted, getDeviceLanguage());
 
       applyLanguage(language);
@@ -199,7 +190,7 @@ export function hydrateLanguage(): Promise<void> {
         getDirection(language),
         {
           getNativeDirection,
-          readRestartMarker,
+          readRestartMarker: async () => restartMarker,
           writeRestartMarker,
           clearRestartMarker,
           configureNativeDirection,
@@ -210,14 +201,13 @@ export function hydrateLanguage(): Promise<void> {
 
       useLanguageStore.setState({
         isHydrated: true,
+        didStartFromLanguageReload: restartMarker !== null,
         isRestarting: false,
         restartTargetLanguage:
-          directionResult === 'direction-mismatch' ||
           directionResult === 'recovery-reload-failed'
             ? language
             : null,
         restartError:
-          directionResult === 'direction-mismatch' ||
           directionResult === 'recovery-reload-failed'
             ? 'language-direction-mismatch'
             : null,

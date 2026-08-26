@@ -10,13 +10,10 @@ type HomeWelcomeSectionProps = {
 
 export function HomeWelcomeSection({
   displayName,
-  onPressNotifications,
 }: HomeWelcomeSectionProps) {
   const { t } = useTranslation();
   // A player's own name is never translated; only the greeting around it is.
   const visibleName = displayName?.trim() || t('home.defaultName');
-  const notificationsDisabled = !onPressNotifications;
-
   return (
     <View className="w-full flex-row items-center justify-between">
       <View className="min-w-0 flex-1 pe-4">

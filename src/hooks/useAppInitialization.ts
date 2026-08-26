@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLanguageDirection } from '@/hooks/useLanguageDirection';
 import { setApiAccessToken } from '@/services/api/api-client';
 import { useAuthStore } from '@/store/auth.store';
-import { hydrateLanguage } from '@/store/language.store';
+import { hydrateLanguage, useLanguageStore } from '@/store/language.store';
 import {
   hydratePreferences as hydrateStoredPreferences,
 } from '@/store/preferences.store';
@@ -30,6 +30,10 @@ function restorePersistedAuth() {
 export function useAppInitialization() {
   const nativeSplashHidden = useRef(false);
   const session = useAuthStore((state) => state.session);
+  const languageIsHydrated = useLanguageStore((state) => state.isHydrated);
+  const didStartFromLanguageReload = useLanguageStore(
+    (state) => state.didStartFromLanguageReload,
+  );
   const { direction } = useLanguageDirection();
   const [splashAnimationFinished, setSplashAnimationFinished] = useState(false);
   const [initializationFinalized, setInitializationFinalized] = useState(false);
@@ -115,7 +119,13 @@ export function useAppInitialization() {
     direction,
     hasSession: Boolean(session),
     hasCompletedProfile: session?.user.profileCompleted === true,
-    showAnimatedSplash: !splashAnimationFinished,
+    // A direction reload already showed the global switching overlay and the
+    // native splash. Replaying the 2.3-second introduction makes a healthy
+    // reload look like a hang, so it is reserved for ordinary cold launches.
+    showAnimatedSplash:
+      languageIsHydrated &&
+      !didStartFromLanguageReload &&
+      !splashAnimationFinished,
     onRootLayout,
     onSplashAnimationFinish,
     retryInitialization,

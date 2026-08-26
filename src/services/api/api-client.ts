@@ -1,7 +1,10 @@
 import { create } from 'axios';
 
-import { applyApiRequestHeaders } from '@/services/api/request-headers';
-import { getStoredLanguage } from '@/store/language.store';
+import { prepareApiRequestHeaders } from '@/services/api/request-headers';
+import {
+  getStoredLanguage,
+  hydrateLanguage,
+} from '@/store/language.store';
 
 let accessToken: string | null = null;
 
@@ -24,11 +27,15 @@ export const apiClient = create({
   },
 });
 
-apiClient.interceptors.request.use((config) => {
+apiClient.interceptors.request.use(async (config) => {
+  await prepareApiRequestHeaders(config.headers, {
+    waitForLanguageHydration: hydrateLanguage,
+    getLanguage: getStoredLanguage,
+    getAccessToken: () => accessToken,
+  });
+
   // Read at send time rather than at module load, so a service that was
   // written before a language change can never carry the previous language.
-  applyApiRequestHeaders(config.headers, getStoredLanguage(), accessToken);
-
   // Query parameters are left exactly as the service passed them: the language
   // travels in the header only.
   return config;

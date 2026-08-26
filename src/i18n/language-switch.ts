@@ -68,6 +68,7 @@ export function createLanguageSwitcher(deps: LanguageSwitchDependencies) {
       const targetDirection = deps.getDirection(nextLanguage);
       const directionChanges =
         deps.getNativeDirection() !== targetDirection;
+      let restartOverlayPainted: Promise<void> | null = null;
 
       if (directionChanges) {
         deps.setRestartUi({
@@ -75,6 +76,9 @@ export function createLanguageSwitcher(deps: LanguageSwitchDependencies) {
           targetLanguage: nextLanguage,
           error: null,
         });
+        // Register synchronously, before persistence yields and React can
+        // mount the overlay, so an early onLayout acknowledgement is not lost.
+        restartOverlayPainted = deps.waitForRestartOverlayPaint();
       }
 
       try {
@@ -97,12 +101,15 @@ export function createLanguageSwitcher(deps: LanguageSwitchDependencies) {
         await deps.writeRestartMarker({
           targetLanguage: nextLanguage,
           targetDirection,
-          recoveryAttempted: false,
+          // This marker is consumed by the next runtime. It records that the
+          // one permitted direction reload has already been requested, so
+          // startup can never immediately issue a second reload.
+          recoveryAttempted: true,
         });
 
-        // The overlay is state-driven and mounted above navigation. Waiting for
-        // its paint means native direction work cannot expose an empty frame.
-        await deps.waitForRestartOverlayPaint();
+        // The overlay is mounted above navigation. Its acknowledgement is sent
+        // only after the target-language copy has committed and painted.
+        await restartOverlayPainted;
         deps.configureNativeDirection(targetDirection);
         await deps.reloadApp('language-direction-change');
 
@@ -167,8 +174,8 @@ export function parseLanguageRestartMarker(
 
 export type StartupDirectionResult =
   | 'in-sync'
+  | 'direction-fallback'
   | 'recovery-reload-requested'
-  | 'direction-mismatch'
   | 'recovery-reload-failed';
 
 export type StartupDirectionDependencies = {
@@ -206,8 +213,24 @@ export async function reconcileStartupDirection(
     marker?.targetLanguage === targetLanguage &&
     marker.targetDirection === targetDirection;
 
-  if (markerMatches && marker.recoveryAttempted) {
-    return 'direction-mismatch';
+  // A marker means the previous runtime already requested the one allowed
+  // reload. Repeating it here creates the observed reload/Metro/white-screen
+  // loop when iOS has not applied I18nManager's persisted flag yet. Every
+  // Quizo React root and Modal has an explicit direction, so this runtime can
+  // safely render in that direction while persisting the native flag for the
+  // next cold process launch.
+  if (markerMatches) {
+    deps.configureNativeDirection(targetDirection);
+
+    try {
+      await deps.clearRestartMarker();
+    } catch (error) {
+      // A stale marker cannot trigger a loop because a matching marker never
+      // reloads. Report the storage failure without blocking the application.
+      deps.reportError(error);
+    }
+
+    return 'direction-fallback';
   }
 
   try {

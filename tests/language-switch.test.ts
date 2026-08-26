@@ -122,11 +122,11 @@ test('simulated iOS English to Arabic paints the loader, persists, configures RT
   assert.equal(harness.ui.isRestarting, true);
   assert.deepEqual(harness.events, [
     'show-loader',
+    'overlay-painted',
     'persist:ar',
     'apply:ar',
     'invalidate-queries',
     'write-marker',
-    'overlay-painted',
     'configure:rtl',
     'reload:language-direction-change',
   ]);
@@ -240,12 +240,39 @@ test('startup hydration completes and clears the marker when the restarted nativ
   assert.equal(reloads, 0);
 });
 
-test('startup permits only one automatic recovery reload for the same language change', async () => {
+test('startup never repeats a reload recorded by the previous runtime', async () => {
   let marker: LanguageRestartMarker | null = {
     targetLanguage: 'ar',
     targetDirection: 'rtl',
-    recoveryAttempted: false,
+    recoveryAttempted: true,
   };
+  let reloads = 0;
+  const dependencies = {
+    getNativeDirection: () => 'ltr' as const,
+    readRestartMarker: async () => marker,
+    writeRestartMarker: async (value: LanguageRestartMarker) => {
+      marker = value;
+    },
+    clearRestartMarker: async () => {
+      marker = null;
+    },
+    configureNativeDirection: () => {},
+    reloadApp: async () => {
+      reloads += 1;
+    },
+    reportError: () => {},
+  };
+
+  assert.equal(
+    await reconcileStartupDirection('ar', 'rtl', dependencies),
+    'direction-fallback',
+  );
+  assert.equal(reloads, 0);
+  assert.equal(marker, null);
+});
+
+test('startup can request one initial direction reload when no marker exists', async () => {
+  let marker: LanguageRestartMarker | null = null;
   let reloads = 0;
   const dependencies = {
     getNativeDirection: () => 'ltr' as const,
@@ -267,14 +294,14 @@ test('startup permits only one automatic recovery reload for the same language c
     await reconcileStartupDirection('ar', 'rtl', dependencies),
     'recovery-reload-requested',
   );
-  assert.equal(marker?.recoveryAttempted, true);
   assert.equal(reloads, 1);
 
   assert.equal(
     await reconcileStartupDirection('ar', 'rtl', dependencies),
-    'direction-mismatch',
+    'direction-fallback',
   );
   assert.equal(reloads, 1);
+  assert.equal(marker, null);
 });
 
 test('both selectors share the central operation, requests read current language, and root initialization is visible', async () => {
@@ -310,6 +337,6 @@ test('both selectors share the central operation, requests read current language
   assert.match(direction, /import \* as Expo from 'expo'/);
   assert.match(direction, /I18nManager\.allowRTL\(true\)/);
   assert.match(direction, /Expo\.reloadAppAsync\(reason\)/);
-  assert.match(apiClient, /getStoredLanguage\(\)/);
-  assert.match(apiClient, /applyApiRequestHeaders/);
+  assert.match(apiClient, /waitForLanguageHydration: hydrateLanguage/);
+  assert.match(apiClient, /getLanguage: getStoredLanguage/);
 });

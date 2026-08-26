@@ -154,6 +154,20 @@ export function translate(
   return i18n.t(key, options);
 }
 
+/**
+ * Component translations are resolved from the same Zustand language value
+ * that drives direction and selector state. Passing the locale explicitly
+ * makes the view immune to a stale mutable i18n singleton during reloads and
+ * Fast Refresh.
+ */
+export function translateForLanguage(
+  language: AppLanguage,
+  key: TranslationKey,
+  options?: TranslateOptions,
+): string {
+  return i18n.t(key, { ...options, locale: language });
+}
+
 function formatWithIntl(
   format: () => string,
   fallback: () => string,

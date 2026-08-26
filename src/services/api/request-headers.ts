@@ -4,6 +4,12 @@ import type { AppLanguage } from '@/i18n';
 
 export const LANGUAGE_HEADER = 'lng';
 
+export type ApiRequestHeaderDependencies = {
+  waitForLanguageHydration: () => Promise<void>;
+  getLanguage: () => AppLanguage;
+  getAccessToken: () => string | null;
+};
+
 /** Applies Quizo-owned headers without replacing any caller-provided headers. */
 export function applyApiRequestHeaders(
   headers: AxiosHeaders,
@@ -19,4 +25,21 @@ export function applyApiRequestHeaders(
   headers.set(LANGUAGE_HEADER, language);
 
   return headers;
+}
+
+/**
+ * Prevents the first startup request from observing Zustand's temporary
+ * English default before the persisted/device language has been restored.
+ */
+export async function prepareApiRequestHeaders(
+  headers: AxiosHeaders,
+  dependencies: ApiRequestHeaderDependencies,
+): Promise<AxiosHeaders> {
+  await dependencies.waitForLanguageHydration();
+
+  return applyApiRequestHeaders(
+    headers,
+    dependencies.getLanguage(),
+    dependencies.getAccessToken(),
+  );
 }
