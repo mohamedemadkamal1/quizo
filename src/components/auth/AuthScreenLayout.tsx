@@ -210,6 +210,7 @@ const styles = StyleSheet.create({
   },
 
   supportContainer: {
+    height: 56,
     flexShrink: 0,
     alignItems: 'center',
     paddingHorizontal: 24,

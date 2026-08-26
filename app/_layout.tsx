@@ -1,5 +1,4 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import * as SecureStore from 'expo-secure-store';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -13,21 +12,6 @@ import { AppInitializationState } from '@/components/common/AppInitializationSta
 import { LanguageRestartOverlay } from '@/components/common/LanguageRestartOverlay';
 import { useAppInitialization } from '@/hooks/useAppInitialization';
 import { queryClient } from '@/services/api/query-client';
-import {
-  AUTH_STORAGE_KEY,
-  LANGUAGE_RESTART_STORAGE_KEY,
-  LANGUAGE_STORAGE_KEY,
-  PREFERENCES_STORAGE_KEY,
-} from '@/store/storage-keys';
-
-void Promise.all(
-  [
-    AUTH_STORAGE_KEY,
-    LANGUAGE_STORAGE_KEY,
-    LANGUAGE_RESTART_STORAGE_KEY,
-    PREFERENCES_STORAGE_KEY,
-  ].map((key) => SecureStore.deleteItemAsync(key)),
-).then(() => console.info('[simulator-reset] Secure storage cleared'));
 
 // SDK 57 recommends keeping this at module scope so native auto-hide cannot
 // win the race against React initialization.
@@ -40,7 +24,7 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <KeyboardProvider>
+      <KeyboardProvider preload={false}>
         {/*
           Declaring the direction once at the root of the React tree is what
           makes every `row`, `start` and `end` below follow the language, and
