@@ -4,14 +4,10 @@ import type { AppLanguage } from '@/i18n';
 import { getDirectionalTextValues } from '@/i18n/text-direction';
 
 /**
- * Fredoka and Nunito carry no Arabic glyphs, so Arabic runs on Cairo — a
- * rounded, highly legible Arabic family that sits well next to the existing
- * English type.
- *
- * The swap lives here and is applied once, inside `AppText` / `AppTextInput`,
- * rather than being re-decided in every component.
+ * Fredoka is the shared display family for every supported language. The
+ * override lives here so `AppText` and `AppTextInput` apply it consistently.
  */
-export const ARABIC_FONT_FAMILY = 'Cairo';
+export const ARABIC_FONT_FAMILY = 'Fredoka';
 
 const styles = StyleSheet.create({
   arabic: {
