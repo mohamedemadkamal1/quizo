@@ -8,6 +8,7 @@ import { hydrateLanguage, useLanguageStore } from '@/store/language.store';
 import {
   hydratePreferences as hydrateStoredPreferences,
 } from '@/store/preferences.store';
+import { hydrateReviewPrompt } from '@/store/review-prompt.store';
 
 let authHydrationPromise: Promise<void> | null = null;
 
@@ -56,6 +57,15 @@ export function useAppInitialization() {
           restorePersistedAuth(),
           hydrateLanguage(),
           hydrateStoredPreferences(),
+          // The rating counters are a nicety, so a storage failure here must
+          // never be the reason a player cannot open the app.
+          hydrateReviewPrompt().catch((error) => {
+            console.warn(
+              `[initialization] Failed to restore the rating prompt state: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            );
+          }),
         ]);
       } catch (error) {
         console.error(

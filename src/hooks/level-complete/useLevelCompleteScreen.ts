@@ -2,6 +2,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useRef } from "react";
 import { BackHandler } from "react-native";
 
+import { useReviewPrompt } from '@/hooks/level-complete/useReviewPrompt';
 import type { LevelCompleteLeaderboardRouteParams } from '@/types/leaderboard.types';
 import {
   getLevelResultSummary,
@@ -55,6 +56,8 @@ export function useLevelCompleteScreen() {
       params.xpEarned,
     ],
   );
+
+  const reviewPrompt = useReviewPrompt(summary?.sessionId ?? null);
 
   const handleBackToMap = useCallback(() => {
     if (navigationLockedRef.current) {
@@ -112,6 +115,8 @@ export function useLevelCompleteScreen() {
       const subscription = BackHandler.addEventListener(
         "hardwareBackPress",
         () => {
+          // While the rating card is up the native dialog consumes the back
+          // press itself and closes only the card, so nothing is needed here.
           handleBackToMap();
           return true;
         },
@@ -129,5 +134,6 @@ export function useLevelCompleteScreen() {
     handleBackToMap,
     handleHome,
     handleLeaderboard,
+    reviewPrompt,
   };
 }

@@ -21,7 +21,8 @@
         "backgroundColor": "#06142B"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.amergroup.quizo"
+      "package": "com.amergroup.quizo",
+      "playStoreUrl": "https://play.google.com/store/apps/details?id=com.amergroup.quizo"
     },
     "plugins": [
       "expo-router",

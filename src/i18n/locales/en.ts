@@ -89,6 +89,16 @@ export const en = {
     },
   },
 
+  review: {
+    dialogLabel: 'Rate Quizo on the store',
+    title: 'Enjoying Quizo?',
+    subtitle: 'You just cleared a level. Take a second to rate the game.',
+    starLabel: '{{stars}} of 5 stars',
+    ratePlayStore: 'Rate on Google Play',
+    rateAppStore: 'Rate on the App Store',
+    later: 'Maybe later',
+  },
+
   legal: {
     unavailableTitle: 'Unable to open terms',
     unavailableMessage: 'Please try again when a web browser is available.',

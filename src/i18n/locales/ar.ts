@@ -90,6 +90,16 @@ export const ar = {
     },
   },
 
+  review: {
+    dialogLabel: 'تقييم Quizo على المتجر',
+    title: 'هل تستمتع بـ Quizo؟',
+    subtitle: 'لقد أكملت مرحلة للتو. خصص لحظة لتقييم اللعبة.',
+    starLabel: '{{stars}} من 5 نجوم',
+    ratePlayStore: 'قيّمنا على Google Play',
+    rateAppStore: 'قيّمنا على App Store',
+    later: 'ربما لاحقًا',
+  },
+
   legal: {
     unavailableTitle: 'تعذّر فتح الشروط',
     unavailableMessage: 'حاول مرة أخرى عند توفر متصفح ويب.',

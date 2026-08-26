@@ -19,6 +19,7 @@ import {
 } from '@/components/level-complete/CompletionIcons';
 import { CompletionProgressRing } from '@/components/level-complete/CompletionProgressRing';
 import { CompletionStatCard } from '@/components/level-complete/CompletionStatCard';
+import { RatePromptModal } from '@/components/review/RatePromptModal';
 import {
   LEVEL_COMPLETE_MAX_WIDTH,
   LEVEL_COMPLETE_REFERENCE_CONTENT_HEIGHT,
@@ -495,6 +496,16 @@ export function LevelCompleteContent({ screen }: LevelCompleteContentProps) {
           verticalScale={verticalScale}
         />
       </View>
+
+      {screen.reviewPrompt.isVisible ? (
+        <RatePromptModal
+          isOpeningStore={screen.reviewPrompt.isOpeningStore}
+          onDismiss={screen.reviewPrompt.dismiss}
+          onRate={screen.reviewPrompt.openReview}
+          onSelectStars={screen.reviewPrompt.selectStars}
+          selectedStars={screen.reviewPrompt.selectedStars}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }
