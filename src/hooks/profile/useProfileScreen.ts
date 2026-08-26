@@ -9,8 +9,6 @@ import { completeProfile } from '@/services/auth.service';
 import {
   changePassword,
   deleteProfile,
-  getSoundPreferences,
-  saveSoundPreference,
   updateProfile,
 } from '@/services/profile.service';
 import { useAuthStore } from '@/store/auth.store';
@@ -38,11 +36,9 @@ export function useProfileScreen() {
     (state) => state.verifyCompleteProfile,
   );
   const signOut = useAuthStore((state) => state.signOut);
-  const readQuestionsAloud = usePreferencesStore(
-    (state) => state.readQuestionsAloud,
-  );
-  const setReadQuestionsAloud = usePreferencesStore(
-    (state) => state.setReadQuestionsAloud,
+  const soundEnabled = usePreferencesStore((state) => state.soundEnabled);
+  const setSoundEnabled = usePreferencesStore(
+    (state) => state.setSoundEnabled,
   );
   const [activeModal, setActiveModal] = useState<ProfileModal | null>(null);
   // Set once the conversion code has been sent, which is also what switches
@@ -53,7 +49,6 @@ export function useProfileScreen() {
   const [modalErrorMessage, setModalErrorMessage] = useState<string | null>(
     null,
   );
-  const [soundVolume, setSoundVolume] = useState(0.7);
   const [isLoggingOut, setLoggingOut] = useState(false);
   const [successFeedbackMessage, setSuccessFeedbackMessage] = useState<
     string | null
@@ -86,20 +81,12 @@ export function useProfileScreen() {
     retry: false,
   });
 
-  useEffect(() => {
-    let isActive = true;
-
-    void getSoundPreferences().then((preferences) => {
-      if (isActive) {
-        setSoundVolume(preferences.soundVolume);
-      }
-    });
-
-    return () => {
-      isActive = false;
+  useEffect(
+    () => () => {
       mountedRef.current = false;
-    };
-  }, []);
+    },
+    [],
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -398,16 +385,9 @@ export function useProfileScreen() {
     router.push('/(tabs)/profile/progress');
   }, [router]);
 
-  const changeSoundVolume = useCallback((value: number) => {
-    const normalized = Math.min(1, Math.max(0, value));
-    setSoundVolume(normalized);
-    void saveSoundPreference(normalized);
-  }, []);
-
   return {
     profile,
-    readQuestionsAloud,
-    soundVolume,
+    soundEnabled,
     tabBarHeight,
     modalErrorMessage,
     successFeedbackMessage,
@@ -437,7 +417,6 @@ export function useProfileScreen() {
     onConfirmDeleteProfile: confirmDeleteProfile,
     onConfirmLogout: confirmLogout,
     onNavigateToProgress: navigateToProgress,
-    onChangeSoundVolume: changeSoundVolume,
-    onChangeReadQuestionsAloud: setReadQuestionsAloud,
+    onChangeSoundEnabled: setSoundEnabled,
   };
 }

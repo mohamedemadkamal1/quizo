@@ -13,9 +13,9 @@ import {
   LanguageAction,
   ProgressAction,
   RegisteredProfileActions,
+  SupportAction,
 } from '@/components/profile/ProfileActions';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
-import { ProfileNarrationControl } from '@/components/profile/ProfileNarrationControl';
 import { ProfileSoundControl } from '@/components/profile/ProfileSoundControl';
 import { colors } from '@/constants/colors';
 import type { useProfileScreen } from '@/hooks/profile/useProfileScreen';
@@ -55,25 +55,18 @@ export function ProfileContent({ screen }: ProfileContentProps) {
                 onCompleteProfile={screen.onCompleteProfile}
               />
               <ProfileSoundControl
-                onChangeEnd={screen.onChangeSoundVolume}
-                value={screen.soundVolume}
-              />
-              <ProfileNarrationControl
-                enabled={screen.readQuestionsAloud}
-                onChange={screen.onChangeReadQuestionsAloud}
+                enabled={screen.soundEnabled}
+                onChange={screen.onChangeSoundEnabled}
               />
               <ProgressAction onPress={screen.onNavigateToProgress} />
               <LanguageAction />
+              <SupportAction />
             </>
           ) : (
             <>
               <ProfileSoundControl
-                onChangeEnd={screen.onChangeSoundVolume}
-                value={screen.soundVolume}
-              />
-              <ProfileNarrationControl
-                enabled={screen.readQuestionsAloud}
-                onChange={screen.onChangeReadQuestionsAloud}
+                enabled={screen.soundEnabled}
+                onChange={screen.onChangeSoundEnabled}
               />
               <ProgressAction onPress={screen.onNavigateToProgress} />
               <RegisteredProfileActions
@@ -165,12 +158,12 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '18deg' }],
   },
   content: {
-    gap: 20,
+    gap: 10,
     paddingHorizontal: 18,
-    paddingTop: 24,
+    paddingTop: 16,
   },
   guestContent: {
-    gap: 20,
+    gap: 10,
   },
   successFeedback: {
     color: '#15803D',

@@ -50,3 +50,9 @@ export type LeaderboardPodiumPlace = 1 | 2 | 3;
 export type LeaderboardPodiumEntry = LeaderboardRankedEntry & {
   place: LeaderboardPodiumPlace;
 };
+export type LevelCompleteLeaderboardRouteParams = {
+  categoryId: string;
+  levelId: string;
+  levelNumber: string;
+  sessionId: string;
+};

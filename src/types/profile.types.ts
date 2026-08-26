@@ -10,10 +10,6 @@ export type ProfileViewModel = {
   avatar: AvatarId | null;
 };
 
-export type SoundPreferences = {
-  soundVolume: number;
-};
-
 export type UpdateProfileRequest = {
   email?: string;
   username?: string;

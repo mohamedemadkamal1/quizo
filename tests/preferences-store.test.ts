@@ -20,23 +20,36 @@ function createMemoryStorage() {
   };
 }
 
-test('question narration defaults to disabled', () => {
+test('app sound defaults to enabled', () => {
   const { storage } = createMemoryStorage();
   const store = createPreferencesStore(storage);
 
-  assert.equal(store.getState().readQuestionsAloud, false);
+  assert.equal(store.getState().soundEnabled, true);
 });
 
-test('enabling question narration survives store rehydration', async () => {
+test('disabling app sound survives store rehydration', async () => {
   const { storage } = createMemoryStorage();
   const firstLaunch = createPreferencesStore(storage);
 
-  firstLaunch.getState().setReadQuestionsAloud(true);
+  firstLaunch.getState().setSoundEnabled(false);
 
   const nextLaunch = createPreferencesStore(storage);
-  assert.equal(nextLaunch.getState().readQuestionsAloud, false);
+  assert.equal(nextLaunch.getState().soundEnabled, true);
 
   await nextLaunch.persist.rehydrate();
 
-  assert.equal(nextLaunch.getState().readQuestionsAloud, true);
+  assert.equal(nextLaunch.getState().soundEnabled, false);
+});
+
+test('the previous narration preference migrates to the unified sound switch', async () => {
+  const { storage, values } = createMemoryStorage();
+  values.set(
+    'quizo-preferences',
+    JSON.stringify({ state: { readQuestionsAloud: false }, version: 0 }),
+  );
+  const store = createPreferencesStore(storage);
+
+  await store.persist.rehydrate();
+
+  assert.equal(store.getState().soundEnabled, false);
 });

@@ -4,7 +4,10 @@ import {
   type AudioPlayer,
 } from 'expo-audio';
 
-import { getSoundPreferences } from '@/services/profile.service';
+import {
+  getSoundEnabled,
+  subscribeToSoundEnabled,
+} from '@/store/preferences.store';
 
 const answerSoundSources = {
   correct: require('../assets/sounds/answer-correct.wav'),
@@ -56,14 +59,17 @@ export async function prepareAnswerSounds() {
 
 export async function playAnswerSound(sound: AnswerSound) {
   try {
-    const { soundVolume } = await getSoundPreferences();
-    if (soundVolume <= 0) {
+    if (!getSoundEnabled()) {
       return;
     }
 
     await configureAudioMode();
+    if (!getSoundEnabled()) {
+      return;
+    }
+
     const player = getPlayers()[sound];
-    player.volume = soundVolume;
+    player.volume = 0.7;
 
     // A cue that already ran sits at its end, so rewind before replaying it.
     if (player.currentTime > 0) {
@@ -73,6 +79,21 @@ export async function playAnswerSound(sound: AnswerSound) {
     player.play();
   } catch {
     // Audio is decorative: never let it interrupt gameplay.
+  }
+}
+
+export function stopAnswerSounds() {
+  if (!players) {
+    return;
+  }
+
+  for (const player of Object.values(players)) {
+    try {
+      player.pause();
+      void player.seekTo(0).catch(() => undefined);
+    } catch {
+      // A player can be released while a preference update is being handled.
+    }
   }
 }
 
@@ -91,3 +112,11 @@ export function releaseAnswerSounds() {
     // The players may already be released by a fast unmount.
   }
 }
+
+// The preference is app-wide, so a change from any screen immediately stops
+// cues without requiring each gameplay component to install its own check.
+subscribeToSoundEnabled((enabled) => {
+  if (!enabled) {
+    stopAnswerSounds();
+  }
+});

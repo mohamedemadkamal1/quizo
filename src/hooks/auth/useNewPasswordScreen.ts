@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'expo-router';
+import { useNavigation, useRouter } from 'expo-router';
+import { CommonActions } from 'expo-router/react-navigation';
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -14,6 +15,7 @@ import { getApiErrorMessage } from '@/utils/get-api-error-message';
 
 export function useNewPasswordScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
   const { t } = useTranslation();
   const resetToken = usePasswordResetStore((state) => state.resetToken);
   const clearResetFlow = usePasswordResetStore((state) => state.clear);
@@ -42,7 +44,17 @@ export function useNewPasswordScreen() {
     try {
       await resetPassword({ resetToken, password: values.password });
       clearResetFlow();
-      router.replace({ pathname: '/sign-in', params: { reset: 'success' } });
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'sign-in',
+              params: { reset: 'success' },
+            },
+          ],
+        }),
+      );
     } catch (error) {
       setError('root', {
         message: getApiErrorMessage(

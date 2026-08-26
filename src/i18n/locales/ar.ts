@@ -64,6 +64,21 @@ export const ar = {
     retry: 'حاول مرة أخرى',
   },
 
+  support: {
+    label: 'الدعم',
+    emailHint: 'يفتح تطبيق البريد للتواصل مع دعم Quizo',
+    title: 'الدعم',
+    subtitle: 'احصل على المساعدة أو تواصل مع فريقنا',
+    unavailableTitle: 'تطبيق البريد غير متاح',
+    unavailableMessage:
+      'تعذّر فتح تطبيق بريد. يمكنك التواصل معنا عبر support@quizo.games.',
+  },
+
+  legal: {
+    unavailableTitle: 'تعذّر فتح الشروط',
+    unavailableMessage: 'حاول مرة أخرى عند توفر متصفح ويب.',
+  },
+
   validation: {
     emailRequired: 'البريد الإلكتروني مطلوب.',
     emailInvalid: 'أدخل بريدًا إلكترونيًا صحيحًا.',
@@ -103,9 +118,8 @@ export const ar = {
       continueWithEmail: 'المتابعة بالبريد الإلكتروني',
       continueAsGuest: 'المتابعة كضيف',
       legalPrefix: 'بمتابعتك، فإنك توافق على ',
-      legalTerms: 'الشروط',
-      legalSeparator: ' و',
-      legalPrivacy: 'سياسة الخصوصية',
+      legalLink: 'الشروط وسياسة الخصوصية',
+      legalLinkLabel: 'فتح الشروط وسياسة الخصوصية',
       legalSuffix: '.',
     },
 
@@ -153,14 +167,6 @@ export const ar = {
       title: 'لنتعرّف عليك!',
       subtitle: 'اختر اسمًا مستعارًا وأدخل عمرك لتبدأ اللعب.',
       submit: 'ابدأ التعلّم!',
-    },
-
-    social: {
-      continueWith: 'المتابعة عبر {{provider}}',
-      apple: 'Apple',
-      google: 'Google',
-      googleUnavailable: 'تسجيل الدخول عبر Google غير متاح',
-      appleUnavailable: 'تسجيل الدخول عبر Apple غير متاح',
     },
 
     errors: {
@@ -366,7 +372,7 @@ export const ar = {
     replayNoXp: 'إعادة لعب — بدون نقاط خبرة',
     completedIn: 'أُكملت في {{duration}}',
     rankingLabel: '{{xp}}. أُكملت في {{duration}}',
-    rankingHint: 'يفتح تبويب المتصدرين',
+    rankingHint: 'يفتح قائمة المتصدرين مع الاحتفاظ بهذه النتيجة',
     backToMap: 'العودة إلى الخريطة ←',
     backToMapLabel: 'العودة إلى خريطة المراحل',
     goHome: 'الذهاب إلى الرئيسية',
@@ -407,12 +413,9 @@ export const ar = {
     avatarLabel: '{{name}}، {{avatar}}',
     initialsLabel: 'الأحرف الأولى لـ {{name}}',
     soundLabel: 'الصوت',
-    soundPreference: 'مستوى الصوت',
-    soundIncrease: 'رفع الصوت',
-    soundDecrease: 'خفض الصوت',
-    soundValue: '{{percent}} بالمئة',
-    readQuestionsAloudTitle: 'قراءة الأسئلة بصوت عالٍ',
-    readQuestionsAloudDescription: 'قراءة كل سؤال تلقائيًا عند ظهوره.',
+    soundDescription: 'فعّل صوت التطبيق أو أوقفه',
+    soundOn: 'مفعّل',
+    soundOff: 'متوقف',
     passwordChanged: 'تم تغيير كلمة المرور بنجاح.',
 
     unlockTitle: '🚀 افتح كل المزايا!',

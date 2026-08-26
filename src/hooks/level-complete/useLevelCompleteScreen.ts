@@ -1,7 +1,8 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useMemo, useRef } from "react";
 import { BackHandler } from "react-native";
 
+import type { LevelCompleteLeaderboardRouteParams } from '@/types/leaderboard.types';
 import {
   getLevelResultSummary,
   type LevelResultRouteParams,
@@ -87,25 +88,38 @@ export function useLevelCompleteScreen() {
   }, [router]);
 
   const handleLeaderboard = useCallback(() => {
-    if (navigationLockedRef.current) {
+    if (navigationLockedRef.current || !summary) {
       return;
     }
 
     navigationLockedRef.current = true;
-    router.dismissTo("/(tabs)/leaderboard");
-  }, [router]);
+    const leaderboardParams = {
+      categoryId: String(summary.categoryId),
+      levelId: String(summary.levelId),
+      levelNumber: String(summary.levelNumber),
+      sessionId: String(summary.sessionId),
+    } satisfies LevelCompleteLeaderboardRouteParams;
 
-  useEffect(() => {
-    const subscription = BackHandler.addEventListener(
-      "hardwareBackPress",
-      () => {
-        handleBackToMap();
-        return true;
-      },
-    );
+    router.push({
+      pathname: "/level-complete-leaderboard",
+      params: leaderboardParams,
+    });
+  }, [router, summary]);
 
-    return () => subscription.remove();
-  }, [handleBackToMap]);
+  useFocusEffect(
+    useCallback(() => {
+      navigationLockedRef.current = false;
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        () => {
+          handleBackToMap();
+          return true;
+        },
+      );
+
+      return () => subscription.remove();
+    }, [handleBackToMap]),
+  );
 
   return {
     summary,

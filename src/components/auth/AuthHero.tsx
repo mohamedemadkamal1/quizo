@@ -3,8 +3,8 @@ import { Image, StyleSheet, View } from 'react-native';
 
 import { gradients } from '@/constants/colors';
 
-const MAX_HERO_HEIGHT = 440;
-const HERO_SCREEN_RATIO = 0.55;
+const MAX_HERO_HEIGHT = 355;
+const HERO_SCREEN_RATIO = 0.445;
 
 type AuthHeroProps = {
   height: number;

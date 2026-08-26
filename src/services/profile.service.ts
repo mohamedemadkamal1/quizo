@@ -4,16 +4,9 @@ import type {
   ChangePasswordApiResponse,
   ChangePasswordRequest,
   DeleteProfileRequest,
-  SoundPreferences,
   UpdateProfileData,
   UpdateProfileRequest,
 } from '@/types/profile.types';
-
-const DEFAULT_SOUND_PREFERENCES: SoundPreferences = {
-  soundVolume: 0.7,
-};
-
-let temporarySoundPreferences = { ...DEFAULT_SOUND_PREFERENCES };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -105,18 +98,4 @@ export async function changePassword(
   });
 
   parseChangePasswordResponse(response.data);
-}
-
-function clampVolume(value: number) {
-  return Math.min(1, Math.max(0, value));
-}
-
-export async function getSoundPreferences(): Promise<SoundPreferences> {
-  return { ...temporarySoundPreferences };
-}
-
-export async function saveSoundPreference(value: number): Promise<void> {
-  temporarySoundPreferences = {
-    soundVolume: clampVolume(value),
-  };
 }

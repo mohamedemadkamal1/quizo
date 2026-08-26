@@ -1,4 +1,8 @@
-import { forwardRef, useState } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  type MutableRefObject,
+} from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -8,7 +12,9 @@ import {
 } from 'react-native';
 
 import { AppText } from '@/components/common/AppText';
+import { PasswordVisibilityIcon } from '@/components/common/icons/PasswordVisibilityIcon';
 import { AppTextInput } from '@/components/common/AppTextInput';
+import { usePasswordVisibility } from '@/hooks/usePasswordVisibility';
 import { useTranslation } from '@/hooks/useTranslation';
 
 type AuthInputProps = Omit<TextInputProps, 'style'> & {
@@ -33,8 +39,25 @@ export const AuthInput = forwardRef<TextInput, AuthInputProps>(
     ref,
   ) {
     const { t } = useTranslation();
-    const [passwordVisible, setPasswordVisible] = useState(false);
     const isPasswordInput = secureTextEntry;
+    const {
+      inputRef,
+      isPasswordVisible,
+      secureTextEntry: resolvedSecureTextEntry,
+      togglePasswordVisibility,
+    } = usePasswordVisibility(isPasswordInput);
+    const setInputRef = useCallback(
+      (input: TextInput | null) => {
+        inputRef.current = input;
+
+        if (typeof ref === 'function') {
+          ref(input);
+        } else if (ref) {
+          (ref as MutableRefObject<TextInput | null>).current = input;
+        }
+      },
+      [inputRef, ref],
+    );
 
     return (
       <View className="w-[280px] max-w-full">
@@ -47,10 +70,10 @@ export const AuthInput = forwardRef<TextInput, AuthInputProps>(
           style={styles.shadow}
         >
           <AppTextInput
-            ref={ref}
+            ref={setInputRef}
             {...inputProps}
             editable={editable}
-            secureTextEntry={isPasswordInput && !passwordVisible}
+            secureTextEntry={resolvedSecureTextEntry}
             placeholderTextColor="#8490C8"
             ltrContent={ltrContent || isPasswordInput}
             className="flex-1 font-nunito text-[14px] font-medium leading-5 text-muv-blue-300"
@@ -60,18 +83,18 @@ export const AuthInput = forwardRef<TextInput, AuthInputProps>(
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={
-                passwordVisible
+                isPasswordVisible
                   ? t('common.hidePassword')
                   : t('common.showPassword')
               }
-              hitSlop={10}
-              onPress={() => {
-                setPasswordVisible((current) => !current);
-              }}
+              disabled={!editable}
+              onPress={togglePasswordVisibility}
+              style={styles.eyeButton}
             >
-              <AppText className="font-nunito text-xs font-medium leading-4 text-muv-blue-300">
-                {passwordVisible ? t('common.hide') : t('common.show')}
-              </AppText>
+              <PasswordVisibilityIcon
+                color="#485BDD"
+                visible={isPasswordVisible}
+              />
             </Pressable>
           ) : null}
         </View>
@@ -89,5 +112,12 @@ export const AuthInput = forwardRef<TextInput, AuthInputProps>(
 const styles = StyleSheet.create({
   shadow: {
     boxShadow: '3px 4px 4px rgba(0, 0, 0, 0.25)',
+  },
+  eyeButton: {
+    width: 44,
+    height: 44,
+    marginEnd: -10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

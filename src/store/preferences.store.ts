@@ -21,6 +21,20 @@ export function usePreferencesStore<T>(
   return useStore(preferencesStore, selector);
 }
 
+export function getSoundEnabled(): boolean {
+  return preferencesStore.getState().soundEnabled;
+}
+
+export function subscribeToSoundEnabled(
+  listener: (enabled: boolean) => void,
+): () => void {
+  return preferencesStore.subscribe((state, previousState) => {
+    if (state.soundEnabled !== previousState.soundEnabled) {
+      listener(state.soundEnabled);
+    }
+  });
+}
+
 let hydrationPromise: Promise<void> | null = null;
 
 export function hydratePreferences(): Promise<void> {

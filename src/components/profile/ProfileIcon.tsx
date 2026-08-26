@@ -8,11 +8,12 @@ export type ProfileIconName =
   | 'chevron'
   | 'close'
   | 'edit'
-  | 'eye'
   | 'globe'
+  | 'headset'
   | 'lock'
   | 'logout'
   | 'progress'
+  | 'speaker'
   | 'trash';
 
 type ProfileIconProps = {
@@ -178,15 +179,31 @@ export function ProfileIcon({ name, color, size = 22 }: ProfileIconProps) {
     );
   }
 
-  if (name === 'eye') {
+  if (name === 'headset') {
     return (
       <Svg {...commonProps}>
         <Path
-          d="M3 12s3.3-5 9-5 9 5 9 5-3.3 5-9 5-9-5-9-5Z"
+          d="M4 13v-1a8 8 0 0 1 16 0v1M4 13h2.3a1.7 1.7 0 0 1 1.7 1.7v2.6A1.7 1.7 0 0 1 6.3 19H5.7A1.7 1.7 0 0 1 4 17.3V13Zm16 0h-2.3a1.7 1.7 0 0 0-1.7 1.7v2.6a1.7 1.7 0 0 0 1.7 1.7h.6a1.7 1.7 0 0 0 1.7-1.7V13Zm0 4v.5a2.5 2.5 0 0 1-2.5 2.5H14"
           stroke={color}
-          strokeWidth={1.6}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.8}
         />
-        <Circle cx="12" cy="12" r="2.4" stroke={color} strokeWidth={1.6} />
+        <Circle cx="12.8" cy="20" r="1" fill={color} />
+      </Svg>
+    );
+  }
+
+  if (name === 'speaker') {
+    return (
+      <Svg {...commonProps}>
+        <Path
+          d="M5 10h3l4-3.5v11L8 14H5v-4Zm10.2-.6a4 4 0 0 1 0 5.2M17.8 7a7 7 0 0 1 0 10"
+          stroke={color}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.8}
+        />
       </Svg>
     );
   }

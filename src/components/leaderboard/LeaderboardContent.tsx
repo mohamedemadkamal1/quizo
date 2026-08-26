@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/common/AppText';
 import { LeaderboardPodium } from '@/components/leaderboard/LeaderboardPodium';
 import { LeaderboardRow } from '@/components/leaderboard/LeaderboardRow';
+import { ProfileIcon } from '@/components/profile/ProfileIcon';
 import { colors } from '@/constants/colors';
 import {
   LEADERBOARD_LIST_RADIUS,
@@ -28,6 +29,7 @@ import type { LeaderboardRankedEntry } from '@/types/leaderboard.types';
 
 type LeaderboardContentProps = {
   screen: ReturnType<typeof useLeaderboardScreen>;
+  onBack?: () => void;
 };
 
 const TROPHY = '\u{1F3C6}';
@@ -36,7 +38,10 @@ function keyExtractor(entry: LeaderboardRankedEntry) {
   return String(entry.id);
 }
 
-export function LeaderboardContent({ screen }: LeaderboardContentProps) {
+export function LeaderboardContent({
+  onBack,
+  screen,
+}: LeaderboardContentProps) {
   const { t } = useTranslation();
   const { metrics } = screen;
   const hasEntries = screen.entries.length > 0;
@@ -74,14 +79,37 @@ export function LeaderboardContent({ screen }: LeaderboardContentProps) {
           }
           ListHeaderComponent={
             <View style={styles.header}>
-              <View
-                accessible
-                accessibilityRole="header"
-                accessibilityLabel={t('leaderboard.title')}
-                style={styles.titleRow}
-              >
-                <AppText style={styles.title}>{t('leaderboard.title')}</AppText>
-                <AppText style={styles.trophy}>{TROPHY}</AppText>
+              <View style={styles.titleBar}>
+                {onBack ? (
+                  <Pressable
+                    accessibilityLabel={t('common.back')}
+                    accessibilityRole="button"
+                    hitSlop={8}
+                    onPress={onBack}
+                    style={({ pressed }) => [
+                      styles.backButton,
+                      pressed && styles.buttonPressed,
+                    ]}
+                  >
+                    <ProfileIcon
+                      color={colors.leaderboard.title}
+                      name="back"
+                      size={23}
+                    />
+                  </Pressable>
+                ) : null}
+
+                <View
+                  accessible
+                  accessibilityRole="header"
+                  accessibilityLabel={t('leaderboard.title')}
+                  style={styles.titleRow}
+                >
+                  <AppText style={styles.title}>
+                    {t('leaderboard.title')}
+                  </AppText>
+                  <AppText style={styles.trophy}>{TROPHY}</AppText>
+                </View>
               </View>
 
               <AppText style={styles.subtitle}>
@@ -247,6 +275,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
+  },
+
+  titleBar: {
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+
+  backButton: {
+    position: 'absolute',
+    zIndex: 2,
+    start: 16,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.42)',
   },
 
   title: {

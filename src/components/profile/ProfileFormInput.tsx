@@ -1,11 +1,11 @@
-import { useState } from 'react';
 import type { TextInputProps } from 'react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/common/AppText';
+import { PasswordVisibilityIcon } from '@/components/common/icons/PasswordVisibilityIcon';
 import { AppTextInput } from '@/components/common/AppTextInput';
-import { ProfileIcon } from '@/components/profile/ProfileIcon';
 import { colors } from '@/constants/colors';
+import { usePasswordVisibility } from '@/hooks/usePasswordVisibility';
 import { useTranslation } from '@/hooks/useTranslation';
 
 type ProfileFormInputProps = Omit<TextInputProps, 'style'> & {
@@ -23,7 +23,12 @@ export function ProfileFormInput({
   ...inputProps
 }: ProfileFormInputProps) {
   const { t } = useTranslation();
-  const [isVisible, setVisible] = useState(false);
+  const {
+    inputRef,
+    isPasswordVisible,
+    secureTextEntry,
+    togglePasswordVisibility,
+  } = usePasswordVisibility(isPassword);
 
   return (
     <View style={styles.wrapper}>
@@ -35,26 +40,31 @@ export function ProfileFormInput({
         ]}
       >
         <AppTextInput
+          ref={inputRef}
           {...inputProps}
           editable={editable}
           ltrContent={ltrContent || isPassword}
           placeholderTextColor="#5D72D9"
-          secureTextEntry={isPassword && !isVisible}
+          secureTextEntry={secureTextEntry}
           style={styles.input}
         />
 
         {isPassword ? (
           <Pressable
             accessibilityLabel={
-              isVisible ? t('common.hidePassword') : t('common.showPassword')
+              isPasswordVisible
+                ? t('common.hidePassword')
+                : t('common.showPassword')
             }
             accessibilityRole="button"
             disabled={!editable}
-            hitSlop={10}
-            onPress={() => setVisible((current) => !current)}
+            onPress={togglePasswordVisibility}
             style={styles.eyeButton}
           >
-            <ProfileIcon name="eye" color="#4B63D7" size={22} />
+            <PasswordVisibilityIcon
+              color="#4B63D7"
+              visible={isPasswordVisible}
+            />
           </Pressable>
         ) : null}
       </View>

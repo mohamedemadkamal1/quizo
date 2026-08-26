@@ -17,10 +17,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OtpInput } from '@/components/auth/OtpInput';
 import { AppText } from '@/components/common/AppText';
+import { PasswordVisibilityIcon } from '@/components/common/icons/PasswordVisibilityIcon';
 import { AppTextInput } from '@/components/common/AppTextInput';
 import { ProfileIcon } from '@/components/profile/ProfileIcon';
-import { SocialIconPlaceholders } from '@/components/profile/SocialIconPlaceholders';
 import { useLanguageDirection } from '@/hooks/useLanguageDirection';
+import { usePasswordVisibility } from '@/hooks/usePasswordVisibility';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
   createCompleteProfileSchema,
@@ -56,22 +57,57 @@ const defaultValues: CompleteProfileFormValues = {
 function CompleteProfileInput({
   error,
   editable = true,
+  secureTextEntry = false,
   ...inputProps
 }: CompleteProfileInputProps) {
+  const { t } = useTranslation();
+  const {
+    inputRef,
+    isPasswordVisible,
+    secureTextEntry: resolvedSecureTextEntry,
+    togglePasswordVisibility,
+  } = usePasswordVisibility(secureTextEntry);
+
   return (
     <View style={styles.fieldWrapper}>
-      {/* Technical values stay LTR, while field alignment follows the UI. */}
-      <AppTextInput
-        {...inputProps}
-        editable={editable}
-        ltrContent
-        placeholderTextColor="#5D72D9"
+      <View
         style={[
-          styles.input,
+          styles.inputShell,
           error && styles.inputError,
           !editable && styles.disabled,
         ]}
-      />
+      >
+        {/* Technical values stay LTR, while field alignment follows the UI. */}
+        <AppTextInput
+          ref={inputRef}
+          {...inputProps}
+          editable={editable}
+          ltrContent
+          placeholderTextColor="#5D72D9"
+          secureTextEntry={resolvedSecureTextEntry}
+          style={styles.input}
+        />
+
+        {secureTextEntry ? (
+          <Pressable
+            accessibilityLabel={
+              isPasswordVisible
+                ? t('common.hidePassword')
+                : t('common.showPassword')
+            }
+            accessibilityRole="button"
+            disabled={!editable}
+            onPress={togglePasswordVisibility}
+            style={styles.eyeButton}
+          >
+            <PasswordVisibilityIcon
+              color="#4B63D7"
+              size={22}
+              visible={isPasswordVisible}
+            />
+          </Pressable>
+        ) : null}
+      </View>
 
       {error ? (
         <AppText accessibilityRole="alert" style={styles.fieldError}>
@@ -316,11 +352,6 @@ export function CompleteProfileModal({
                   )}
                 </Pressable>
 
-                {isCodeStep ? null : (
-                  <View style={styles.socialContainer}>
-                    <SocialIconPlaceholders disabled={isSubmitting} />
-                  </View>
-                )}
               </View>
             </View>
           </ScrollView>
@@ -411,24 +442,38 @@ const styles = StyleSheet.create({
   fieldWrapper: {
     width: '100%',
   },
-  input: {
+  inputShell: {
     width: '100%',
     height: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 0,
     borderRadius: 22,
-    paddingHorizontal: 15,
-    paddingVertical: 0,
     backgroundColor: '#F0F2F5',
-    color: '#5D72D9',
-    fontFamily: 'Fredoka',
-    fontSize: 17,
-    fontWeight: '500',
-    textAlignVertical: 'center',
     shadowColor: '#172554',
     shadowOffset: { width: 1, height: 3 },
     shadowOpacity: 0.22,
     shadowRadius: 4,
     elevation: 4,
+  },
+  input: {
+    minWidth: 0,
+    height: 44,
+    flex: 1,
+    paddingHorizontal: 15,
+    paddingVertical: 0,
+    color: '#5D72D9',
+    fontFamily: 'Fredoka',
+    fontSize: 17,
+    fontWeight: '500',
+    textAlignVertical: 'center',
+  },
+  eyeButton: {
+    width: 44,
+    height: 44,
+    flexShrink: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   inputError: {
     borderWidth: 1,
@@ -471,10 +516,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     lineHeight: 22,
-  },
-  socialContainer: {
-    zIndex: 1,
-    marginTop: 10,
   },
   disabled: {
     opacity: 0.55,

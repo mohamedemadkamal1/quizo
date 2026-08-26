@@ -999,7 +999,9 @@ export function useQuestionsScreen() {
     formattedTime: `00:${remainingSeconds.toString().padStart(2, "0")}`,
     isQuestionSpeaking: questionNarration.isSpeaking,
     canReplayQuestion:
-      readyState?.phase === "answering" && readyState.overlay === null,
+      questionNarration.canSpeak &&
+      readyState?.phase === "answering" &&
+      readyState.overlay === null,
     handleReplayQuestion: questionNarration.toggle,
     handleSelectAnswer: submitCurrentAnswer,
     handleRetrySubmission,

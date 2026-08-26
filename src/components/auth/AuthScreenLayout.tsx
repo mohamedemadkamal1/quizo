@@ -17,6 +17,7 @@ import {
 import { AuthHero, getAuthHeroHeight } from '@/components/auth/AuthHero';
 import { AuthHeading } from '@/components/auth/AuthHeading';
 import { AuthLanguageSelector } from '@/components/auth/AuthLanguageSelector';
+import { AuthSupportButton } from '@/components/auth/AuthSupportButton';
 
 type AuthScreenLayoutProps = PropsWithChildren<{
   title: string;
@@ -39,7 +40,8 @@ export function AuthScreenLayout({
   const { height: screenHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const heroHeight = getAuthHeroHeight(screenHeight);
-  const { progress } = useReanimatedKeyboardAnimation();
+  const { height: keyboardHeight, progress } =
+    useReanimatedKeyboardAnimation();
 
   const heroFrameAnimatedStyle = useAnimatedStyle(
     () => ({
@@ -101,6 +103,10 @@ export function AuthScreenLayout({
     flexGrow: interpolate(progress.value, [0, 1], [1, 0], Extrapolation.CLAMP),
   }));
 
+  const supportAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: keyboardHeight.value }],
+  }));
+
   return (
     <SafeAreaView edges={['bottom']} className="flex-1 bg-white">
       <KeyboardAwareScrollView
@@ -140,6 +146,10 @@ export function AuthScreenLayout({
           <Animated.View style={remainingSpaceAnimatedStyle} />
         </Animated.View>
       </KeyboardAwareScrollView>
+
+      <Animated.View style={[styles.supportContainer, supportAnimatedStyle]}>
+        <AuthSupportButton />
+      </Animated.View>
 
       {/*
         Sits above the scroll view rather than inside the hero so it is never
@@ -197,5 +207,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     zIndex: 10,
     end: 16,
+  },
+
+  supportContainer: {
+    flexShrink: 0,
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingBottom: 8,
   },
 });

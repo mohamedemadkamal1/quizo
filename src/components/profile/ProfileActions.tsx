@@ -5,6 +5,7 @@ import { AppText } from '@/components/common/AppText';
 import { LanguageDropdown } from '@/components/common/LanguageDropdown';
 import { ProfileIcon } from '@/components/profile/ProfileIcon';
 import { colors } from '@/constants/colors';
+import { useExternalLinks } from '@/hooks/useExternalLinks';
 import { useTranslation } from '@/hooks/useTranslation';
 import { type TranslationKey } from '@/i18n';
 
@@ -164,6 +165,37 @@ export function LanguageAction() {
   );
 }
 
+export function SupportAction() {
+  const { t } = useTranslation();
+  const { openSupportEmail } = useExternalLinks();
+
+  return (
+    <Pressable
+      accessibilityHint={t('support.emailHint')}
+      accessibilityLabel={t('support.title')}
+      accessibilityRole="button"
+      android_ripple={{ color: 'rgba(124, 58, 237, 0.08)' }}
+      onPress={() => void openSupportEmail()}
+      style={styles.passwordRow}
+    >
+      <View style={styles.passwordIconTile}>
+        <ProfileIcon
+          name="headset"
+          color={colors.settings.violet}
+          size={22}
+        />
+      </View>
+      <View style={styles.passwordCopy}>
+        <AppText style={styles.passwordTitle}>{t('support.title')}</AppText>
+        <AppText numberOfLines={2} style={styles.passwordSubtitle}>
+          {t('support.subtitle')}
+        </AppText>
+      </View>
+      <ProfileIcon name="chevron" color={colors.settings.muted} size={18} />
+    </Pressable>
+  );
+}
+
 export function RegisteredProfileActions({
   onChangePassword,
   onDeleteProfile,
@@ -194,6 +226,8 @@ export function RegisteredProfileActions({
       </Pressable>
 
       <LanguageAction />
+
+      <SupportAction />
 
       <View style={styles.destructiveRow}>
         <Pressable
@@ -366,7 +400,7 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
   registeredGroup: {
-    gap: 20,
+    gap: 10,
   },
   passwordRow: {
     minHeight: 66,

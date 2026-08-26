@@ -62,6 +62,21 @@ export const en = {
     retry: 'Try again',
   },
 
+  support: {
+    label: 'Support',
+    emailHint: 'Opens your email app to contact Quizo support',
+    title: 'Support',
+    subtitle: 'Get help or contact our team',
+    unavailableTitle: 'Email app unavailable',
+    unavailableMessage:
+      'No email app could be opened. You can contact us at support@quizo.games.',
+  },
+
+  legal: {
+    unavailableTitle: 'Unable to open terms',
+    unavailableMessage: 'Please try again when a web browser is available.',
+  },
+
   validation: {
     emailRequired: 'Email is required.',
     emailInvalid: 'Enter a valid email address.',
@@ -101,9 +116,8 @@ export const en = {
       continueWithEmail: 'Continue with Email',
       continueAsGuest: 'Continue as a Guest',
       legalPrefix: 'By continuing, you agree to our ',
-      legalTerms: 'Terms',
-      legalSeparator: ' & ',
-      legalPrivacy: 'Privacy Policy',
+      legalLink: 'Terms & Privacy Policy',
+      legalLinkLabel: 'Open Terms and Privacy Policy',
       legalSuffix: '.',
     },
 
@@ -151,14 +165,6 @@ export const en = {
       title: 'Let’s Get to Know You!',
       subtitle: 'Choose a nickname and enter your age to start playing.',
       submit: 'Start Learning!',
-    },
-
-    social: {
-      continueWith: 'Continue with {{provider}}',
-      apple: 'Apple',
-      google: 'Google',
-      googleUnavailable: 'Google sign-in is unavailable',
-      appleUnavailable: 'Apple sign-in is unavailable',
     },
 
     errors: {
@@ -367,7 +373,7 @@ export const en = {
     replayNoXp: 'Replay — no XP awarded',
     completedIn: 'Completed in {{duration}}',
     rankingLabel: '{{xp}}. Completed in {{duration}}',
-    rankingHint: 'Opens the Leaderboard tab',
+    rankingHint: 'Opens the Leaderboard and keeps this result available',
     backToMap: 'Back To Map →',
     backToMapLabel: 'Back to level map',
     goHome: 'Go to Home',
@@ -408,13 +414,9 @@ export const en = {
     avatarLabel: '{{name}}, {{avatar}}',
     initialsLabel: '{{name}} initials',
     soundLabel: 'Sound',
-    soundPreference: 'Sound preference',
-    soundIncrease: 'Increase sound',
-    soundDecrease: 'Decrease sound',
-    soundValue: '{{percent}} percent',
-    readQuestionsAloudTitle: 'Read questions aloud',
-    readQuestionsAloudDescription:
-      'Automatically reads each question when it appears.',
+    soundDescription: 'Enable or disable app sound',
+    soundOn: 'ON',
+    soundOff: 'OFF',
     passwordChanged: 'Your password has been changed successfully.',
 
     unlockTitle: '🚀 Unlock Full Access!',

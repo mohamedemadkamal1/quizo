@@ -22,9 +22,7 @@ export function useQuestionNarration({
   questionKey,
   text,
 }: UseQuestionNarrationOptions) {
-  const automaticNarrationEnabled = usePreferencesStore(
-    (state) => state.readQuestionsAloud,
-  );
+  const soundEnabled = usePreferencesStore((state) => state.soundEnabled);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const speechLanguage = getQuestionNarrationLanguage(text, language);
   const mountedRef = useRef(false);
@@ -38,7 +36,7 @@ export function useQuestionNarration({
   }, []);
 
   const toggle = useCallback(() => {
-    if (!active) {
+    if (!active || !soundEnabled) {
       stop();
       return;
     }
@@ -48,7 +46,7 @@ export function useQuestionNarration({
       questionKey,
       text,
     });
-  }, [active, questionKey, speechLanguage, stop, text]);
+  }, [active, questionKey, soundEnabled, speechLanguage, stop, text]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -79,20 +77,21 @@ export function useQuestionNarration({
   useEffect(() => {
     coordinatorRef.current?.updateAutomaticNarration({
       active,
-      enabled: automaticNarrationEnabled,
+      enabled: soundEnabled,
       language: speechLanguage,
       questionKey,
       text,
     });
   }, [
     active,
-    automaticNarrationEnabled,
+    soundEnabled,
     questionKey,
     speechLanguage,
     text,
   ]);
 
   return {
+    canSpeak: soundEnabled,
     isSpeaking,
     stop,
     toggle,

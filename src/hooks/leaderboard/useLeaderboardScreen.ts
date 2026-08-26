@@ -1,7 +1,6 @@
 import type { InfiniteData } from '@tanstack/react-query';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useFocusEffect } from 'expo-router';
-import { useBottomTabBarHeight } from 'expo-router/js-tabs';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 
@@ -85,10 +84,9 @@ function toRankedEntry(
   };
 }
 
-export function useLeaderboardScreen() {
+export function useLeaderboardScreen(contentBottomPadding: number) {
   const { t, language } = useTranslation();
   const { width } = useWindowDimensions();
-  const tabBarHeight = useBottomTabBarHeight();
   const queryClient = useQueryClient();
   const sessionUserId = useAuthStore((state) => state.session?.user.id);
   const sessionUsername = useAuthStore(
@@ -276,6 +274,6 @@ export function useLeaderboardScreen() {
     markListScrolled,
     refresh,
     retry,
-    contentBottomPadding: tabBarHeight + 24,
+    contentBottomPadding,
   };
 }

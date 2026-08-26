@@ -66,6 +66,7 @@ export default function RootLayout() {
                   name="level-complete"
                   options={{ gestureEnabled: false }}
                 />
+                <Stack.Screen name="level-complete-leaderboard" />
                 <Stack.Screen
                   name="level-failed"
                   options={{ gestureEnabled: false }}
