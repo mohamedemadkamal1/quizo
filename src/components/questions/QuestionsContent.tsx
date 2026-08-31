@@ -1,3 +1,4 @@
+import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -13,10 +14,14 @@ import {
 import { AppText } from '@/components/common/AppText';
 import {
   AnswerOption,
+  getAnswerBaseHeight,
   type AnswerVisualState,
 } from '@/components/questions/AnswerOption';
 import { GameplayOverlayHost } from '@/components/questions/GameplayOverlay';
-import { QuestionCard } from '@/components/questions/QuestionCard';
+import {
+  CARD_MIN_HEIGHT,
+  QuestionCard,
+} from '@/components/questions/QuestionCard';
 import type { CharacterReaction } from '@/components/questions/QuestionCharacter';
 import { QuestionHeader } from '@/components/questions/QuestionHeader';
 import {
@@ -101,6 +106,43 @@ export function QuestionsContent({ screen }: QuestionsContentProps) {
   const { t } = useTranslation();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const [cardHeight, setCardHeight] = useState(0);
+  // Measurements are stamped with the question they belong to rather than
+  // cleared by an effect. Option IDs are unique per question, so a stale record
+  // would otherwise keep the row at the previous question's height.
+  const [answerMeasurements, setAnswerMeasurements] = useState<{
+    questionId: number | null;
+    heights: Record<number, number>;
+  }>({ questionId: null, heights: {} });
+
+  const currentQuestionId = screen.currentQuestion?.id ?? null;
+  const answerHeights =
+    answerMeasurements.questionId === currentQuestionId
+      ? answerMeasurements.heights
+      : null;
+
+  const handleMeasureCard = useCallback((height: number) => {
+    setCardHeight((current) => (current === height ? current : height));
+  }, []);
+
+  const handleMeasureAnswer = useCallback(
+    (optionId: number, height: number) => {
+      setAnswerMeasurements((current) => {
+        const heights =
+          current.questionId === currentQuestionId ? current.heights : {};
+
+        if (heights[optionId] === height) {
+          return current;
+        }
+
+        return {
+          questionId: currentQuestionId,
+          heights: { ...heights, [optionId]: height },
+        };
+      });
+    },
+    [currentQuestionId],
+  );
 
   if (screen.state.status === 'loading') {
     return <QuestionsStatePanel loading message={t('questions.loading')} />;
@@ -151,10 +193,26 @@ export function QuestionsContent({ screen }: QuestionsContentProps) {
   const scale = contentWidth / QUESTION_REFERENCE_WIDTH;
   const availableHeight = windowHeight - insets.top - insets.bottom;
   const verticalScale = Math.min(scale, availableHeight / 720);
+  const cardTop = 110 * verticalScale;
+  // The gap the design leaves between the card and the answers. It used to be
+  // implied by two fixed offsets; now that the card grows with its question,
+  // the answers are placed relative to the height it actually took.
+  const cardToAnswersGap =
+    (currentQuestion.type === 'multiple-choice' ? 62 : 76) * verticalScale;
   const answersTop =
-    (currentQuestion.type === 'multiple-choice' ? 360 : 374) * verticalScale;
+    cardTop + (cardHeight || CARD_MIN_HEIGHT * scale) + cardToAnswersGap;
   const answerGap =
     (currentQuestion.type === 'multiple-choice' ? 11 : 10) * verticalScale;
+  // Applied only once every option has reported, so the row resizes in one
+  // step rather than climbing as each measurement lands.
+  const measuredAnswers = answerHeights ? Object.values(answerHeights) : [];
+  const uniformAnswerHeight =
+    measuredAnswers.length === currentQuestion.options.length
+      ? Math.max(
+          getAnswerBaseHeight(currentQuestion.type) * scale,
+          ...measuredAnswers,
+        )
+      : undefined;
   const answersDisabled =
     readyState.phase !== 'answering' || readyState.overlay !== null;
 
@@ -180,13 +238,14 @@ export function QuestionsContent({ screen }: QuestionsContentProps) {
           <View
             style={[
               styles.questionCardPosition,
-              { top: 110 * verticalScale, left: 15 * scale },
+              { top: cardTop, left: 15 * scale },
             ]}
           >
             <QuestionCard
               canReplay={screen.canReplayQuestion}
               formattedTime={screen.formattedTime}
               isSpeaking={screen.isQuestionSpeaking}
+              onMeasure={handleMeasureCard}
               onReplay={screen.handleReplayQuestion}
               question={currentQuestion}
               reaction={getCharacterReaction(readyState.feedback)}
@@ -216,11 +275,13 @@ export function QuestionsContent({ screen }: QuestionsContentProps) {
                     answersDisabled ||
                     (readyState.submissionError !== null && !isSelected)
                   }
+                  onMeasureContent={handleMeasureAnswer}
                   onPress={screen.handleSelectAnswer}
                   option={option}
                   questionType={currentQuestion.type}
                   scale={scale}
                   selected={isSelected}
+                  uniformHeight={uniformAnswerHeight}
                   visualState={getAnswerVisualState(
                     option.id,
                     readyState.selectedOptionId,

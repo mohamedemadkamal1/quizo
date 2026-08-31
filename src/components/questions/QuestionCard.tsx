@@ -25,8 +25,27 @@ type QuestionCardProps = {
   reaction: CharacterReaction;
   scale: number;
   isSpeaking: boolean;
+  /**
+   * Reports the card's laid-out height so the answers below it can be placed
+   * under whatever room the question ended up taking.
+   */
+  onMeasure: (height: number) => void;
   onReplay: () => void;
 };
+
+// Card geometry, in the design units the card is drawn with. The prompt used
+// to be absolutely positioned like everything else, so a long question simply
+// ran down over the clock and the timer. It now sits in flow instead and the
+// card grows to it, keeping its designed size until a question actually needs
+// more room.
+export const CARD_MIN_HEIGHT = 188;
+const PROMPT_TOP = 46;
+const CLOCK_TOP_EDGE = CARD_MIN_HEIGHT - 14 - 37;
+// Space kept clear below the prompt for the clock and timer, which stay
+// anchored to the bottom edge and so travel down as the card grows.
+const TIMER_RESERVE = CARD_MIN_HEIGHT - CLOCK_TOP_EDGE;
+const PROMPT_FONT_SIZE = 21;
+const PROMPT_LINE_HEIGHT = 30;
 
 function CardDecorations() {
   return (
@@ -56,6 +75,7 @@ export function QuestionCard({
   reaction,
   scale,
   isSpeaking,
+  onMeasure,
   onReplay,
 }: QuestionCardProps) {
   const { t } = useTranslation();
@@ -67,11 +87,12 @@ export function QuestionCard({
       colors={gameplayGradients.questionCard}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
+      onLayout={(event) => onMeasure(event.nativeEvent.layout.height)}
       style={[
         styles.card,
         {
           width: 370 * scale,
-          height: 188 * scale,
+          minHeight: CARD_MIN_HEIGHT * scale,
           borderRadius: 30 * scale,
         },
       ]}
@@ -111,16 +132,22 @@ export function QuestionCard({
         the correct side in Arabic, while the illustration itself is only
         repositioned — never flipped.
       */}
+      {/*
+        In flow rather than absolutely positioned, so its height is what makes
+        the card taller. The margins reproduce the offsets it used to be pinned
+        at, and the bottom one keeps the clock and timer clear at every size.
+      */}
       <AppText
         alignToLanguage
         style={[
           styles.prompt,
           {
-            top: 46 * scale,
-            start: 25 * scale,
+            marginTop: PROMPT_TOP * scale,
+            marginStart: 25 * scale,
+            marginBottom: TIMER_RESERVE * scale,
             width: 205 * scale,
-            fontSize: 21 * scale,
-            lineHeight: 30 * scale,
+            fontSize: PROMPT_FONT_SIZE * scale,
+            lineHeight: PROMPT_LINE_HEIGHT * scale,
           },
         ]}
       >
@@ -187,7 +214,6 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   prompt: {
-    position: 'absolute',
     zIndex: 2,
     color: gameplayColors.primaryText,
     fontFamily: 'Fredoka',
