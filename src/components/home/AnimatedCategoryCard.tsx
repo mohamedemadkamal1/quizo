@@ -185,7 +185,12 @@ export function AnimatedCategoryCard({
 
           <View style={styles.progressRow}>
             <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { width: fillWidth }]} />
+              <View
+                style={[
+                  styles.progressFill,
+                  { width: fillWidth, backgroundColor: category.progressFill },
+                ]}
+              />
             </View>
             <AppText style={styles.percentage}>
               {category.displayedProgress}%
@@ -351,7 +356,6 @@ const styles = StyleSheet.create({
   progressFill: {
     height: 8,
     borderRadius: 999,
-    backgroundColor: colors.home.categoryText,
   },
   percentage: {
     minWidth: 34,

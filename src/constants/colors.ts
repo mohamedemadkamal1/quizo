@@ -18,12 +18,24 @@ export const colors = {
     categoryGlass: 'rgba(255, 255, 255, 0.25)',
     categoryBadge: 'rgba(255, 255, 255, 0.2)',
     categoryBadgeText: 'rgba(255, 255, 255, 0.9)',
-    progressTrack: 'rgba(255, 255, 255, 0.25)',
+    progressTrack: '#FFFFFF',
     viewAll: '#4F46E5',
     modalBackground: '#F5F3FF',
     modalBackdrop: 'rgba(12, 10, 9, 0.62)',
     levelDescription: 'rgba(255, 255, 255, 0.85)',
     levelStar: '#FFDF20',
+  },
+
+  /** Progress fills, keyed by the card colour they sit on. */
+  categoryProgressFill: {
+    violet: '#DDD6FE',
+    sky: '#BAE6FD',
+    emerald: '#A7F3D0',
+    yellow: '#FEF08A',
+    amber: '#FDE68A',
+    pink: '#FBCFE8',
+    rose: '#FECDD3',
+    cyan: '#A2F4FD',
   },
 
   leaderboard: {

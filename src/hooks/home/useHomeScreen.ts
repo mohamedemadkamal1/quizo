@@ -8,6 +8,7 @@ import {
   CATEGORY_LEVELS,
   HOME_CATEGORY_COLOR_PALETTE,
   HOME_CATEGORY_ICONS,
+  HOME_CATEGORY_PROGRESS_FILL_PALETTE,
 } from '@/constants/home';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
@@ -133,6 +134,10 @@ export function useHomeScreen() {
           gradient:
             HOME_CATEGORY_COLOR_PALETTE[
               index % HOME_CATEGORY_COLOR_PALETTE.length
+            ],
+          progressFill:
+            HOME_CATEGORY_PROGRESS_FILL_PALETTE[
+              index % HOME_CATEGORY_PROGRESS_FILL_PALETTE.length
             ],
         };
       }),

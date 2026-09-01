@@ -1,4 +1,4 @@
-import { gradients } from '@/constants/colors';
+import { colors, gradients } from '@/constants/colors';
 import type { CategoryLevelConfig, GradientColors } from '@/types/home.types';
 
 export const HOME_CATEGORY_ICONS = [
@@ -12,16 +12,54 @@ export const HOME_CATEGORY_ICONS = [
   '\u{1F381}',
 ] as const;
 
-export const HOME_CATEGORY_COLOR_PALETTE: readonly GradientColors[] = [
-  gradients.categories.quran,
-  gradients.categories.seerah,
-  gradients.categories.duas,
-  gradients.categories.prophets,
-  gradients.categories.goodManners,
-  gradients.categories.islamicQuiz,
-  gradients.categories.companions,
-  gradients.categories.ramadan,
-];
+/**
+ * Single source of truth for the category palette. Each entry pairs a card
+ * gradient with the progress fill tinted to match that card's colour, so the
+ * two can never drift out of order.
+ */
+const HOME_CATEGORY_THEMES = [
+  {
+    gradient: gradients.categories.quran,
+    progressFill: colors.categoryProgressFill.violet,
+  },
+  {
+    gradient: gradients.categories.seerah,
+    progressFill: colors.categoryProgressFill.sky,
+  },
+  {
+    gradient: gradients.categories.duas,
+    progressFill: colors.categoryProgressFill.emerald,
+  },
+  {
+    gradient: gradients.categories.prophets,
+    progressFill: colors.categoryProgressFill.yellow,
+  },
+  {
+    gradient: gradients.categories.goodManners,
+    progressFill: colors.categoryProgressFill.amber,
+  },
+  {
+    gradient: gradients.categories.islamicQuiz,
+    progressFill: colors.categoryProgressFill.pink,
+  },
+  {
+    gradient: gradients.categories.companions,
+    progressFill: colors.categoryProgressFill.rose,
+  },
+  {
+    gradient: gradients.categories.ramadan,
+    progressFill: colors.categoryProgressFill.cyan,
+  },
+] as const satisfies readonly {
+  gradient: GradientColors;
+  progressFill: string;
+}[];
+
+export const HOME_CATEGORY_COLOR_PALETTE: readonly GradientColors[] =
+  HOME_CATEGORY_THEMES.map((theme) => theme.gradient);
+
+export const HOME_CATEGORY_PROGRESS_FILL_PALETTE: readonly string[] =
+  HOME_CATEGORY_THEMES.map((theme) => theme.progressFill);
 
 export const CATEGORY_LEVELS: CategoryLevelConfig[] = [
   {

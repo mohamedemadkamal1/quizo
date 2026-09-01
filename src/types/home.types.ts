@@ -64,6 +64,7 @@ export type HomeCategory = {
   displayedProgress: number;
   visualFillRatio: number;
   gradient: GradientColors;
+  progressFill: string;
 };
 
 export type CategoryLevelStarCount = 1 | 2 | 3;
