@@ -61,11 +61,14 @@ export const colors = {
   },
 
   navigation: {
-    activeTab: '#8B5CF6',
-    inactiveTab: '#94A3B8',
-    inactiveHomeIcon: '#9DB2CE',
-    activeTabBackground: '#8B5CF61A',
-    tabBarBackground: '#FFFFFF',
+    activeTab: '#FFFFFF',
+    inactiveTab: '#FFFFFF',
+    activeTabBackground: 'rgba(229, 222, 255, 0.48)',
+    activeTabBorder: 'rgba(255, 255, 255, 0.72)',
+    tabLabel: '#FFFFFF',
+    tabDivider: 'rgba(255, 255, 255, 0.38)',
+    tabBarStart: '#A77CFA',
+    tabBarEnd: '#7D2AF8',
   },
 
   settings: {

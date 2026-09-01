@@ -30,7 +30,7 @@ export const en = {
   navigation: {
     home: 'Home',
     leaderboard: 'Leaderboard',
-    profile: 'Profile',
+    setting: 'Setting',
     tab: '{{label}} tab',
   },
 

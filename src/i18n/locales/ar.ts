@@ -32,7 +32,7 @@ export const ar = {
   navigation: {
     home: 'الرئيسية',
     leaderboard: 'المتصدرون',
-    profile: 'حسابي',
+    setting: 'الإعدادات',
     tab: 'تبويب {{label}}',
   },
 
