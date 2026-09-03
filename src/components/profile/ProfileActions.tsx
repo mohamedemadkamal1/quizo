@@ -23,6 +23,10 @@ type ProgressActionProps = {
   onPress: () => void;
 };
 
+type LogoutActionProps = {
+  onPress: () => void;
+};
+
 const benefitKeys = [
   ['⭐', 'profile.benefitXp'],
   ['🏆', 'profile.benefitLeaderboard'],
@@ -189,6 +193,32 @@ export function SupportAction() {
         <AppText style={styles.passwordTitle}>{t('support.title')}</AppText>
         <AppText numberOfLines={2} style={styles.passwordSubtitle}>
           {t('support.subtitle')}
+        </AppText>
+      </View>
+      <ProfileIcon name="chevron" color={colors.settings.muted} size={18} />
+    </Pressable>
+  );
+}
+
+export function LogoutAction({ onPress }: LogoutActionProps) {
+  const { t } = useTranslation();
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      android_ripple={{ color: 'rgba(245, 93, 110, 0.08)' }}
+      onPress={onPress}
+      style={[styles.passwordRow, styles.guestLogoutRow]}
+    >
+      <View style={[styles.passwordIconTile, styles.logoutIconTile]}>
+        <ProfileIcon name="logout" color={colors.settings.coral} size={22} />
+      </View>
+      <View style={styles.passwordCopy}>
+        <AppText style={[styles.passwordTitle, styles.logoutTitle]}>
+          {t('profile.logoutTitle')}
+        </AppText>
+        <AppText style={styles.passwordSubtitle}>
+          {t('profile.logoutSubtitle')}
         </AppText>
       </View>
       <ProfileIcon name="chevron" color={colors.settings.muted} size={18} />
@@ -461,6 +491,9 @@ const styles = StyleSheet.create({
   },
   logoutCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.82)',
+  },
+  guestLogoutRow: {
+    borderColor: 'rgba(245, 93, 110, 0.25)',
   },
   deleteCard: {
     backgroundColor: colors.settings.coral,

@@ -11,6 +11,7 @@ import { LogoutConfirmationModal } from '@/components/profile/LogoutConfirmation
 import {
   GuestProfileActions,
   LanguageAction,
+  LogoutAction,
   ProgressAction,
   RegisteredProfileActions,
   SupportAction,
@@ -61,6 +62,7 @@ export function ProfileContent({ screen }: ProfileContentProps) {
               <ProgressAction onPress={screen.onNavigateToProgress} />
               <LanguageAction />
               <SupportAction />
+              <LogoutAction onPress={screen.onRequestLogout} />
             </>
           ) : (
             <>
